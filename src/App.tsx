@@ -16,6 +16,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const categoryRoutes = ["tdah", "tea", "dislexia", "altas-habilidades", "toc"];
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
@@ -25,7 +27,9 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/:slug" element={<CategoryHubWrapper />} />
+            {categoryRoutes.map((slug) => (
+              <Route key={slug} path={`/${slug}`} element={<CategoryHub />} />
+            ))}
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/perguntas-frequentes" element={<FAQ />} />
