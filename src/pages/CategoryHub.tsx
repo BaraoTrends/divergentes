@@ -1,11 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ArticleCard from "@/components/ArticleCard";
 import NewsletterCTA from "@/components/NewsletterCTA";
 import { categories, blogPosts } from "@/lib/content";
 import { generateBreadcrumbSchema } from "@/lib/seo";
-import { Link } from "react-router-dom";
 
 const hubContent: Record<string, { intro: string; sections: { title: string; content: string }[] }> = {
   tdah: {
@@ -56,7 +56,8 @@ const hubContent: Record<string, { intro: string; sections: { title: string; con
 };
 
 const CategoryHub = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  const slug = location.pathname.replace("/", "");
   const category = categories.find((c) => c.slug === slug);
   const content = slug ? hubContent[slug] : undefined;
   const relatedPosts = blogPosts.filter((p) => p.category === slug);
