@@ -1,0 +1,98 @@
+export const SITE_URL = "https://neurodivergencias.com.br";
+export const SITE_NAME = "Neurodivergências";
+export const SITE_DESCRIPTION = "Portal informativo sobre neurodivergências: TDAH, TEA, Dislexia, Altas Habilidades, TOC e mais. Informação acessível e confiável para o público brasileiro.";
+
+export interface SEOData {
+  title: string;
+  description: string;
+  path: string;
+  image?: string;
+  type?: "website" | "article";
+  article?: {
+    datePublished: string;
+    dateModified: string;
+    author: string;
+    category: string;
+  };
+}
+
+export function generateWebSiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: SITE_URL,
+    description: SITE_DESCRIPTION,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/busca?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+export function generateOrganizationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    sameAs: [
+      "https://instagram.com/neurodivergencias",
+      "https://twitter.com/neurodiv_br",
+    ],
+  };
+}
+
+export function generateBreadcrumbSchema(items: { name: string; url: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: `${SITE_URL}${item.url}`,
+    })),
+  };
+}
+
+export function generateArticleSchema(data: {
+  title: string;
+  description: string;
+  url: string;
+  image: string;
+  datePublished: string;
+  dateModified: string;
+  author: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: data.title,
+    description: data.description,
+    image: data.image,
+    datePublished: data.datePublished,
+    dateModified: data.dateModified,
+    author: { "@type": "Person", name: data.author },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}${data.url}` },
+  };
+}
+
+export function generateFAQSchema(faqs: { question: string; answer: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  };
+}
