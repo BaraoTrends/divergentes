@@ -25,11 +25,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/tdah" element={<CategoryHub />} />
-            <Route path="/tea" element={<CategoryHub />} />
-            <Route path="/dislexia" element={<CategoryHub />} />
-            <Route path="/altas-habilidades" element={<CategoryHub />} />
-            <Route path="/toc" element={<CategoryHub />} />
+            <Route path="/:slug" element={<CategoryHubWrapper />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/perguntas-frequentes" element={<FAQ />} />
