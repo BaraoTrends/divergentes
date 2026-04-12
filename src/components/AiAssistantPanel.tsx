@@ -119,6 +119,24 @@ const AiAssistantPanel = ({
 
       {expanded && (
         <div className="p-3 pt-0 space-y-3">
+          {/* Model selector */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Modelo de IA</Label>
+            <Select value={selectedModel} onValueChange={setSelectedModel} disabled={isGenerating}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {AI_MODELS.map((m) => (
+                  <SelectItem key={m.value} value={m.value} className="text-xs">
+                    <span className="font-medium">{m.label}</span>
+                    <span className="ml-1.5 text-muted-foreground">{m.description}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Generate from topic */}
           <div className="space-y-2">
             <Label className="text-xs">Gerar artigo sobre um tema</Label>
