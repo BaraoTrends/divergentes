@@ -32,6 +32,14 @@ const AiAssistantPanel = ({
   const [expanded, setExpanded] = useState(true);
   const [streamPreview, setStreamPreview] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("fast");
+
+  const AI_MODELS = [
+    { value: "fast", label: "⚡ Rápido", description: "Gemini Flash — respostas ágeis" },
+    { value: "balanced", label: "⚖️ Equilibrado", description: "Gemini Flash — bom custo-benefício" },
+    { value: "precise", label: "🎯 Preciso", description: "Gemini Pro — máxima qualidade" },
+    { value: "gpt", label: "🧠 GPT-5", description: "OpenAI GPT-5 — raciocínio avançado" },
+  ];
 
   const { generate, isGenerating } = useAiWriter({
     onStream: (text) => setStreamPreview(text),
