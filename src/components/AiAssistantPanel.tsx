@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAiWriter } from "@/hooks/useAiWriter";
+import { useAiImageGen } from "@/hooks/useAiImageGen";
 import {
   Sparkles,
   FileText,
@@ -13,6 +14,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  ImageIcon,
 } from "lucide-react";
 
 interface AiAssistantPanelProps {
