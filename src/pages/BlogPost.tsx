@@ -63,11 +63,14 @@ const BlogPost = () => {
     { name: post.title, url: `/blog/${post.slug}` },
   ]);
 
+  const articleImage = dbArticle?.image_url || blogImages[post.slug] || "";
+  const ogImage = articleImage.startsWith("http") ? articleImage : articleImage ? `${SITE_URL}${articleImage}` : undefined;
+
   const articleSchema = generateArticleSchema({
     title: post.title,
     description: post.excerpt,
     url: `/blog/${post.slug}`,
-    image: `${SITE_URL}${post.image}`,
+    image: ogImage || `${SITE_URL}/placeholder.svg`,
     datePublished: post.datePublished,
     dateModified: post.dateModified,
     author: post.author,
