@@ -46,9 +46,9 @@ const Header = () => {
     >
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-heading text-xl font-bold text-foreground">
-          <img src={logoImg} alt="Neuro Rotina" className="h-8 w-8" width={32} height={32} />
-          <span className="hidden sm:inline">Neuro Rotina</span>
-          <span className="sm:hidden">NR</span>
+          <img src={logoImg} alt="Neuro Rotina" className="h-10 w-10 sm:h-12 sm:w-12" width={48} height={48} />
+          <span className="hidden sm:inline text-2xl">Neuro Rotina</span>
+          <span className="sm:hidden text-lg">Neuro Rotina</span>
         </Link>
 
         {/* Desktop nav */}
