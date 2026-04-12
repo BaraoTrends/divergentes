@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
+import SeoChecker from "@/components/SeoChecker";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
 import type { Article } from "@/hooks/useArticles";
 
@@ -338,6 +339,15 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               className="hidden"
             />
           </div>
+
+          {/* SEO Checker */}
+          <SeoChecker
+            title={title}
+            excerpt={excerpt}
+            content={content}
+            slug={slug}
+            imageUrl={imageUrl}
+          />
 
           {/* AI Assistant */}
           <AiAssistantPanel
