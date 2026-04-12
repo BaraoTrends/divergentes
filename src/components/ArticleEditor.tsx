@@ -281,25 +281,54 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                 </div>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="w-full h-40 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
-              >
-                {uploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
-                    <span className="text-sm">Enviando...</span>
-                  </>
-                ) : (
-                  <>
-                    <ImageIcon className="h-8 w-8" />
-                    <span className="text-sm font-medium">Clique para enviar uma imagem</span>
-                    <span className="text-xs">JPG, PNG, WebP ou GIF • Máx. 5MB</span>
-                  </>
-                )}
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || isGeneratingCover}
+                  className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {uploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                      <span className="text-sm">Enviando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-6 w-6" />
+                      <span className="text-sm font-medium">Clique para enviar uma imagem</span>
+                      <span className="text-xs">JPG, PNG, WebP ou GIF • Máx. 5MB</span>
+                    </>
+                  )}
+                </button>
+
+                {/* AI Image Generation */}
+                <div className="flex gap-2">
+                  <Input
+                    value={coverPrompt}
+                    onChange={(e) => setCoverPrompt(e.target.value)}
+                    placeholder="Descreva a imagem de capa desejada..."
+                    className="text-sm"
+                    disabled={isGeneratingCover}
+                    onKeyDown={(e) => e.key === "Enter" && coverPrompt.trim() && generateImage(coverPrompt.trim(), "cover")}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => generateImage(coverPrompt.trim() || title || "neurodiversidade", "cover")}
+                    disabled={isGeneratingCover}
+                    className="gap-1 shrink-0"
+                  >
+                    {isGeneratingCover ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    Gerar com IA
+                  </Button>
+                </div>
+              </div>
             )}
             <input
               ref={fileInputRef}
