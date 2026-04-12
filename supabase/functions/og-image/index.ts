@@ -77,21 +77,6 @@ function generateOgSvg(title: string, category: string, siteName: string): strin
 </svg>`;
 }
 
-// Initialize WASM once at module level
-let wasmReady: Promise<void> | null = null;
-
-function ensureWasm(): Promise<void> {
-  if (!wasmReady) {
-    wasmReady = (async () => {
-      const wasmResp = await fetch(
-        "https://unpkg.com/@aspect-dev/resvg-wasm@0.1.0/index_bg.wasm"
-      );
-      const wasmBytes = await wasmResp.arrayBuffer();
-      await initWasm(wasmBytes);
-    })();
-  }
-  return wasmReady;
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
