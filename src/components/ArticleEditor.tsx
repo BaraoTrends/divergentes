@@ -400,7 +400,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           />
 
           <div className="space-y-2">
-            <Label>Conteúdo *</Label>
+            <div className="flex items-center justify-between">
+              <Label>Conteúdo *</Label>
+              <span className={`text-xs ${meetsMinimum ? "text-green-600" : "text-destructive"}`}>
+                {wordCount} palavras • {charCount} caracteres {meetsMinimum ? "✓" : `(mín. 400 palavras ou 3.000 caracteres)`}
+              </span>
+            </div>
             <RichTextEditor
               content={content}
               onChange={setContent}
