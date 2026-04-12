@@ -34,6 +34,7 @@ interface ArticleEditorProps {
     published: boolean;
     featured: boolean;
     read_time: number;
+    tags: string[];
     author_id: string;
   }) => void;
   onCancel: () => void;
