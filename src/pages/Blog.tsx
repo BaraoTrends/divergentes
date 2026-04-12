@@ -3,7 +3,8 @@ import Layout from "@/components/Layout";
 import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ArticleCard from "@/components/ArticleCard";
-import { blogPosts, categories } from "@/lib/content";
+import { blogPosts as staticPosts, categories } from "@/lib/content";
+import { useArticles } from "@/hooks/useArticles";
 import { generateBreadcrumbSchema } from "@/lib/seo";
 import {
   Pagination,
@@ -15,6 +16,7 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
+import type { BlogPost as BlogPostType } from "@/lib/content";
 
 const POSTS_PER_PAGE = 4;
 
@@ -23,9 +25,28 @@ const Blog = () => {
   const activeCategory = searchParams.get("categoria") || "";
   const currentPage = Math.max(1, Number(searchParams.get("pagina") || "1"));
 
+  const { data: dbArticles = [] } = useArticles({ publishedOnly: true });
+
+  // Merge DB articles with static posts, DB articles first
+  const dbAsBlogPosts: BlogPostType[] = dbArticles.map((a) => ({
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt || "",
+    category: a.category,
+    author: "Equipe Neurodivergências",
+    datePublished: a.created_at.split("T")[0],
+    dateModified: a.updated_at.split("T")[0],
+    readingTime: a.read_time,
+    image: a.image_url || "/placeholder.svg",
+    content: a.content,
+  }));
+
+  const dbSlugs = new Set(dbAsBlogPosts.map((p) => p.slug));
+  const allPosts = [...dbAsBlogPosts, ...staticPosts.filter((p) => !dbSlugs.has(p.slug))];
+
   const filteredPosts = activeCategory
-    ? blogPosts.filter((p) => p.category === activeCategory)
-    : blogPosts;
+    ? allPosts.filter((p) => p.category === activeCategory)
+    : allPosts;
 
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
   const safePage = Math.min(currentPage, Math.max(totalPages, 1));
@@ -44,10 +65,7 @@ const Blog = () => {
   };
 
   const goToPage = (page: number) => updateParams(activeCategory, page);
-
-  const setCategory = (slug: string) => {
-    updateParams(slug === activeCategory ? "" : slug, 1);
-  };
+  const setCategory = (slug: string) => updateParams(slug === activeCategory ? "" : slug, 1);
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: "Início", url: "/" },
@@ -130,10 +148,7 @@ const Blog = () => {
             <PaginationContent>
               {safePage > 1 && (
                 <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => goToPage(safePage - 1)}
-                    className="cursor-pointer"
-                  >
+                  <PaginationPrevious onClick={() => goToPage(safePage - 1)} className="cursor-pointer">
                     Anterior
                   </PaginationPrevious>
                 </PaginationItem>
@@ -145,11 +160,7 @@ const Blog = () => {
                   </PaginationItem>
                 ) : (
                   <PaginationItem key={p}>
-                    <PaginationLink
-                      isActive={p === safePage}
-                      onClick={() => goToPage(p)}
-                      className="cursor-pointer"
-                    >
+                    <PaginationLink isActive={p === safePage} onClick={() => goToPage(p)} className="cursor-pointer">
                       {p}
                     </PaginationLink>
                   </PaginationItem>
@@ -157,10 +168,7 @@ const Blog = () => {
               )}
               {safePage < totalPages && (
                 <PaginationItem>
-                  <PaginationNext
-                    onClick={() => goToPage(safePage + 1)}
-                    className="cursor-pointer"
-                  >
+                  <PaginationNext onClick={() => goToPage(safePage + 1)} className="cursor-pointer">
                     Próximo
                   </PaginationNext>
                 </PaginationItem>
