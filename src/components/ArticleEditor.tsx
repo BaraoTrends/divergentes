@@ -34,6 +34,7 @@ interface ArticleEditorProps {
     published: boolean;
     featured: boolean;
     read_time: number;
+    tags: string[];
     author_id: string;
   }) => void;
   onCancel: () => void;
@@ -50,7 +51,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [imageUrl, setImageUrl] = useState(article?.image_url || "");
   const [published, setPublished] = useState(article?.published || false);
   const [featured, setFeatured] = useState(article?.featured || false);
-  
+  const [tags, setTags] = useState<string[]>(article?.tags || []);
+  const [tagInput, setTagInput] = useState("");
   const [focusKeyword, setFocusKeyword] = useState("");
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -63,6 +65,35 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const { generate: generateExcerpt, isGenerating: isGeneratingExcerpt } = useAiWriter({
     onComplete: (text) => setExcerpt(text.trim()),
   });
+  const { generate: generateKeywords, isGenerating: isGeneratingTags } = useAiWriter({
+    onComplete: (text) => {
+      try {
+        // Clean potential markdown code fences
+        const clean = text.replace(/```json\s*/g, "").replace(/```/g, "").trim();
+        const parsed = JSON.parse(clean);
+        const keywords: string[] = parsed.keywords?.map((k: any) => k.term) || [];
+        if (keywords.length > 0) {
+          setTags((prev) => [...new Set([...prev, ...keywords])]);
+        }
+      } catch {
+        // If not JSON, try comma-separated
+        const fallback = text.split(/[,\n]/).map((t: string) => t.trim()).filter(Boolean);
+        if (fallback.length > 0) setTags((prev) => [...new Set([...prev, ...fallback])]);
+      }
+    },
+  });
+
+  const handleAddTag = () => {
+    const t = tagInput.trim().toLowerCase();
+    if (t && !tags.includes(t)) {
+      setTags([...tags, t]);
+    }
+    setTagInput("");
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter((t) => t !== tag));
+  };
 
   const generateSlug = (text: string) =>
     text
@@ -171,6 +202,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       published,
       featured,
       read_time: calculatedReadTime,
+      tags,
       author_id: article?.author_id || userId,
     });
   };
@@ -300,7 +332,64 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             </div>
           </div>
 
-          {/* Image Upload Section */}
+          {/* Tags Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Tags / Palavras-chave</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                disabled={isGeneratingTags || (!title.trim() && !content.trim())}
+                onClick={() => generateKeywords("suggest_keywords", { topic: title || "artigo" })}
+              >
+                {isGeneratingTags ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Wand2 className="h-3 w-3" />
+                )}
+                Gerar com IA
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                placeholder="Adicionar tag..."
+                className="flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>
+                Adicionar
+              </Button>
+            </div>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>Imagem de Capa</Label>
             {imageUrl ? (

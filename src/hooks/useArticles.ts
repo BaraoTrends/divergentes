@@ -14,6 +14,7 @@ export interface Article {
   published: boolean;
   featured: boolean;
   read_time: number;
+  tags: string[];
   created_at: string;
   updated_at: string;
 }
