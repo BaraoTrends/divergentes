@@ -14,9 +14,10 @@ import {
 import { categories } from "@/lib/content";
 import RichTextEditor from "@/components/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Save, Eye, Upload, X, ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
+import { useAiImageGen } from "@/hooks/useAiImageGen";
 import type { Article } from "@/hooks/useArticles";
 
 interface ArticleEditorProps {
@@ -50,8 +51,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [readTime, setReadTime] = useState(article?.read_time || 5);
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverPrompt, setCoverPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { generateImage, isGenerating: isGeneratingCover } = useAiImageGen({
+    onImageGenerated: (url) => setImageUrl(url),
+  });
 
   const generateSlug = (text: string) =>
     text
@@ -276,25 +281,54 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                 </div>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="w-full h-40 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
-              >
-                {uploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
-                    <span className="text-sm">Enviando...</span>
-                  </>
-                ) : (
-                  <>
-                    <ImageIcon className="h-8 w-8" />
-                    <span className="text-sm font-medium">Clique para enviar uma imagem</span>
-                    <span className="text-xs">JPG, PNG, WebP ou GIF • Máx. 5MB</span>
-                  </>
-                )}
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || isGeneratingCover}
+                  className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {uploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                      <span className="text-sm">Enviando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-6 w-6" />
+                      <span className="text-sm font-medium">Clique para enviar uma imagem</span>
+                      <span className="text-xs">JPG, PNG, WebP ou GIF • Máx. 5MB</span>
+                    </>
+                  )}
+                </button>
+
+                {/* AI Image Generation */}
+                <div className="flex gap-2">
+                  <Input
+                    value={coverPrompt}
+                    onChange={(e) => setCoverPrompt(e.target.value)}
+                    placeholder="Descreva a imagem de capa desejada..."
+                    className="text-sm"
+                    disabled={isGeneratingCover}
+                    onKeyDown={(e) => e.key === "Enter" && coverPrompt.trim() && generateImage(coverPrompt.trim(), "cover")}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => generateImage(coverPrompt.trim() || title || "neurodiversidade", "cover")}
+                    disabled={isGeneratingCover}
+                    className="gap-1 shrink-0"
+                  >
+                    {isGeneratingCover ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    Gerar com IA
+                  </Button>
+                </div>
+              </div>
             )}
             <input
               ref={fileInputRef}
@@ -311,6 +345,10 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             onContentGenerated={(html) => setContent(html)}
             onTitleGenerated={(t) => setTitle(t)}
             onExcerptGenerated={(e) => setExcerpt(e)}
+            onImageInserted={(url) => {
+              const imgTag = `<img src="${url}" alt="Imagem gerada por IA" style="max-width:100%;height:auto;border-radius:8px;margin:1em 0" />`;
+              setContent((prev) => prev + imgTag);
+            }}
           />
 
           <div className="space-y-2">

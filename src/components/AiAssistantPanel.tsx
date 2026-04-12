@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAiWriter } from "@/hooks/useAiWriter";
+import { useAiImageGen } from "@/hooks/useAiImageGen";
 import {
   Sparkles,
   FileText,
@@ -13,6 +14,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  ImageIcon,
 } from "lucide-react";
 
 interface AiAssistantPanelProps {
@@ -20,6 +22,7 @@ interface AiAssistantPanelProps {
   onContentGenerated: (html: string) => void;
   onTitleGenerated?: (title: string) => void;
   onExcerptGenerated?: (excerpt: string) => void;
+  onImageInserted?: (url: string) => void;
 }
 
 const AiAssistantPanel = ({
@@ -27,12 +30,14 @@ const AiAssistantPanel = ({
   onContentGenerated,
   onTitleGenerated,
   onExcerptGenerated,
+  onImageInserted,
 }: AiAssistantPanelProps) => {
   const [topic, setTopic] = useState("");
   const [expanded, setExpanded] = useState(true);
   const [streamPreview, setStreamPreview] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [selectedModel, setSelectedModel] = useState("fast");
+  const [imagePrompt, setImagePrompt] = useState("");
 
   const AI_MODELS = [
     { value: "fast", label: "⚡ Rápido", description: "Gemini Flash — respostas ágeis" },
@@ -44,6 +49,16 @@ const AiAssistantPanel = ({
   const { generate, isGenerating } = useAiWriter({
     onStream: (text) => setStreamPreview(text),
   });
+
+  const { generateImage, isGenerating: isGeneratingImage } = useAiImageGen({
+    onImageGenerated: (url) => onImageInserted?.(url),
+  });
+
+  const handleGenerateInlineImage = async () => {
+    if (!imagePrompt.trim()) return;
+    await generateImage(imagePrompt.trim(), "inline");
+    setImagePrompt("");
+  };
 
   const handleGenerateArticle = async () => {
     if (!topic.trim()) return;
@@ -210,6 +225,36 @@ const AiAssistantPanel = ({
               >
                 <FileText className="h-3.5 w-3.5" />
                 Gerar resumo
+              </Button>
+            </div>
+          </div>
+
+          {/* AI Image Generation */}
+          <div className="space-y-2">
+            <Label className="text-xs">Gerar imagem com IA</Label>
+            <div className="flex gap-2">
+              <Input
+                value={imagePrompt}
+                onChange={(e) => setImagePrompt(e.target.value)}
+                placeholder="Descreva a imagem desejada..."
+                className="text-sm"
+                disabled={isGeneratingImage}
+                onKeyDown={(e) => e.key === "Enter" && handleGenerateInlineImage()}
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleGenerateInlineImage}
+                disabled={isGeneratingImage || !imagePrompt.trim()}
+                className="gap-1 shrink-0 text-xs"
+              >
+                {isGeneratingImage ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ImageIcon className="h-3.5 w-3.5" />
+                )}
+                Gerar
               </Button>
             </div>
           </div>
