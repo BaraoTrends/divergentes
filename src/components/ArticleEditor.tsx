@@ -16,6 +16,7 @@ import RichTextEditor from "@/components/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Save, Eye, Upload, X, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AiAssistantPanel from "@/components/AiAssistantPanel";
 import type { Article } from "@/hooks/useArticles";
 
 interface ArticleEditorProps {
@@ -303,6 +304,14 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               className="hidden"
             />
           </div>
+
+          {/* AI Assistant */}
+          <AiAssistantPanel
+            content={content}
+            onContentGenerated={(html) => setContent(html)}
+            onTitleGenerated={(t) => setTitle(t)}
+            onExcerptGenerated={(e) => setExcerpt(e)}
+          />
 
           <div className="space-y-2">
             <Label>Conteúdo *</Label>
