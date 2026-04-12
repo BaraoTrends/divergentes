@@ -5,6 +5,7 @@ import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ReadingProgress from "@/components/ReadingProgress";
 import CategoryBadge from "@/components/CategoryBadge";
+import ShareButtons from "@/components/ShareButtons";
 import NewsletterCTA from "@/components/NewsletterCTA";
 import { blogPosts as staticPosts } from "@/lib/content";
 import { blogImages } from "@/lib/images";
@@ -256,12 +257,15 @@ const BlogPost = () => {
             {post.title}
           </h1>
 
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-8 pb-8 border-b">
-            <span>Por {post.author}</span>
-            <time dateTime={post.datePublished} className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-              {new Date(post.datePublished).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
-            </time>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-muted-foreground mb-8 pb-8 border-b">
+            <div className="flex items-center gap-4">
+              <span>Por {post.author}</span>
+              <time dateTime={post.datePublished} className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                {new Date(post.datePublished).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
+              </time>
+            </div>
+            <ShareButtons title={post.title} slug={post.slug} />
           </div>
 
           {coverImage && (
