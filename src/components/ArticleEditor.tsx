@@ -173,6 +173,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       published,
       featured,
       read_time: calculatedReadTime,
+      tags,
       author_id: article?.author_id || userId,
     });
   };
