@@ -22,7 +22,39 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Fallback content for crawlers that don't execute JavaScript -->
+      <noscript>
+        <header>
+          <h1>Neurodivergências</h1>
+          <nav>
+            <a href="/">Início</a> |
+            <a href="/tdah">TDAH</a> |
+            <a href="/tea">TEA</a> |
+            <a href="/dislexia">Dislexia</a> |
+            <a href="/altas-habilidades">Altas Habilidades</a> |
+            <a href="/toc">TOC</a> |
+            <a href="/blog">Blog</a> |
+            <a href="/perguntas-frequentes">FAQ</a> |
+            <a href="/glossario">Glossário</a> |
+            <a href="/sobre">Sobre</a> |
+            <a href="/contato">Contato</a>
+          </nav>
+        </header>
+        <main>
+          <h2>Informação acessível sobre neurodivergências</h2>
+          <p>Portal informativo sobre neurodivergências: TDAH, TEA, Dislexia, Altas Habilidades, TOC e mais. Informação acessível e confiável para o público brasileiro.</p>
+          <h3>Categorias</h3>
+          <ul>
+            <li><a href="/tdah">TDAH — Transtorno de Déficit de Atenção e Hiperatividade</a></li>
+            <li><a href="/tea">TEA — Transtorno do Espectro Autista</a></li>
+            <li><a href="/dislexia">Dislexia — Sinais, avaliação e estratégias</a></li>
+            <li><a href="/altas-habilidades">Altas Habilidades / Superdotação</a></li>
+            <li><a href="/toc">TOC — Transtorno Obsessivo-Compulsivo</a></li>
+          </ul>
+        </main>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
