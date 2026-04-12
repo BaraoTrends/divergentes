@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import ArticleCard from "@/components/ArticleCard";
 import Layout from "@/components/Layout";
 import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -224,6 +225,27 @@ const BlogPost = () => {
           <div className="mt-12">
             <NewsletterCTA />
           </div>
+
+          {(() => {
+            const related = blogPosts
+              .filter((p) => p.slug !== post.slug && p.category === post.category)
+              .slice(0, 2);
+            const extras = related.length < 2
+              ? blogPosts.filter((p) => p.slug !== post.slug && p.category !== post.category).slice(0, 2 - related.length)
+              : [];
+            const relatedPosts = [...related, ...extras];
+            if (relatedPosts.length === 0) return null;
+            return (
+              <section className="mt-12 pt-8 border-t border-border">
+                <h2 className="font-heading text-xl font-bold text-foreground mb-6">Artigos Relacionados</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {relatedPosts.map((rp) => (
+                    <ArticleCard key={rp.slug} post={rp} />
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
         </div>
       </article>
     </Layout>
