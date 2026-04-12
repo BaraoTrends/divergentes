@@ -65,6 +65,35 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const { generate: generateExcerpt, isGenerating: isGeneratingExcerpt } = useAiWriter({
     onComplete: (text) => setExcerpt(text.trim()),
   });
+  const { generate: generateKeywords, isGenerating: isGeneratingTags } = useAiWriter({
+    onComplete: (text) => {
+      try {
+        // Clean potential markdown code fences
+        const clean = text.replace(/```json\s*/g, "").replace(/```/g, "").trim();
+        const parsed = JSON.parse(clean);
+        const keywords: string[] = parsed.keywords?.map((k: any) => k.term) || [];
+        if (keywords.length > 0) {
+          setTags((prev) => [...new Set([...prev, ...keywords])]);
+        }
+      } catch {
+        // If not JSON, try comma-separated
+        const fallback = text.split(/[,\n]/).map((t: string) => t.trim()).filter(Boolean);
+        if (fallback.length > 0) setTags((prev) => [...new Set([...prev, ...fallback])]);
+      }
+    },
+  });
+
+  const handleAddTag = () => {
+    const t = tagInput.trim().toLowerCase();
+    if (t && !tags.includes(t)) {
+      setTags([...tags, t]);
+    }
+    setTagInput("");
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter((t) => t !== tag));
+  };
 
   const generateSlug = (text: string) =>
     text
