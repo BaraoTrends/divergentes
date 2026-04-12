@@ -24,7 +24,7 @@ REGRAS OBRIGATÓRIAS DE ESCRITA (aplique SEMPRE):
 - Use a palavra-chave principal no primeiro parágrafo, em pelo menos um H2 e na conclusão.
 - Crie subtítulos (H2, H3) que funcionem como perguntas ou frases de busca que as pessoas realmente digitam no Google.
 - Inclua variações semânticas e palavras-chave de cauda longa naturalmente ao longo do texto.
-- Mantenha parágrafos curtos (3-4 linhas no máximo) para melhorar a legibilidade e o tempo de permanência.
+- Mantenha parágrafos MUITO curtos (2-4 frases, MÁXIMO 80-100 palavras por parágrafo). Parágrafos longos são PROIBIDOS.
 - Use listas (ul/ol) para facilitar a leitura e aumentar as chances de featured snippets.
 - Inclua dados, estatísticas ou referências quando possível (aumenta E-E-A-T).
 - A densidade da palavra-chave deve ser entre 1-2% do texto total.
