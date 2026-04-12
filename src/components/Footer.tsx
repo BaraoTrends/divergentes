@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { categories } from "@/lib/content";
+import logoImg from "@/assets/logo-neuro-rotina.png";
 
 const Footer = () => {
   return (
@@ -9,7 +10,8 @@ const Footer = () => {
           {/* About */}
           <div>
             <h3 className="font-heading font-bold text-foreground mb-3 flex items-center gap-2">
-              <span>🧠</span> Neurodivergências
+              <img src={logoImg} alt="Neuro Rotina" className="h-6 w-6" width={24} height={24} />
+              Neuro Rotina
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Informação acessível e confiável sobre neurodivergências para o público brasileiro.
@@ -52,7 +54,7 @@ const Footer = () => {
 
         <div className="border-t mt-8 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Neurodivergências. Conteúdo informativo — não substitui avaliação profissional.
+            © {new Date().getFullYear()} Neuro Rotina. Conteúdo informativo — não substitui avaliação profissional.
           </p>
         </div>
       </div>
