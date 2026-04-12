@@ -269,7 +269,14 @@ const BlogPost = () => {
             </div>
           )}
 
-          {renderContent(post.content)}
+          {isHtmlContent(post.content) ? (
+            <div
+              className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-heading prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:bg-accent/30 prose-blockquote:rounded-r-md prose-img:rounded-lg"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          ) : (
+            renderContent(post.content)
+          )}
 
           <div className="mt-12">
             <NewsletterCTA />
