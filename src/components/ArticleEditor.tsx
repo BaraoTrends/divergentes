@@ -166,7 +166,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       image_url: imageUrl.trim(),
       published,
       featured,
-      read_time: readTime,
+      read_time: calculatedReadTime,
       author_id: article?.author_id || userId,
     });
   };
