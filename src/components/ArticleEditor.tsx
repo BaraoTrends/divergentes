@@ -332,7 +332,64 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             </div>
           </div>
 
-          {/* Image Upload Section */}
+          {/* Tags Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Tags / Palavras-chave</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                disabled={isGeneratingTags || (!title.trim() && !content.trim())}
+                onClick={() => generateKeywords("suggest_keywords", { topic: title || "artigo" })}
+              >
+                {isGeneratingTags ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Wand2 className="h-3 w-3" />
+                )}
+                Gerar com IA
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                placeholder="Adicionar tag..."
+                className="flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>
+                Adicionar
+              </Button>
+            </div>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>Imagem de Capa</Label>
             {imageUrl ? (
