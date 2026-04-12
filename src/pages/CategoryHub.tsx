@@ -5,6 +5,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import ArticleCard from "@/components/ArticleCard";
 import NewsletterCTA from "@/components/NewsletterCTA";
 import { categories, blogPosts } from "@/lib/content";
+import { categoryImages } from "@/lib/images";
 import { generateBreadcrumbSchema } from "@/lib/seo";
 
 const hubContent: Record<string, { intro: string; sections: { title: string; content: string }[] }> = {
@@ -86,6 +87,17 @@ const CategoryHub = () => {
         path={`/${category.slug}`}
         schemas={[breadcrumbSchema]}
       />
+      {categoryImages[slug] && (
+        <div className="w-full h-48 md:h-64 overflow-hidden">
+          <img
+            src={categoryImages[slug]}
+            alt={category.name}
+            width={1200}
+            height={672}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
       <div className="container py-8 md:py-12">
         <Breadcrumbs items={[{ label: category.shortName }]} />
 

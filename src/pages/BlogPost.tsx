@@ -6,6 +6,7 @@ import ReadingProgress from "@/components/ReadingProgress";
 import CategoryBadge from "@/components/CategoryBadge";
 import NewsletterCTA from "@/components/NewsletterCTA";
 import { blogPosts } from "@/lib/content";
+import { blogImages } from "@/lib/images";
 import { generateBreadcrumbSchema, generateArticleSchema, SITE_URL } from "@/lib/seo";
 import { Clock, Calendar } from "lucide-react";
 
@@ -205,6 +206,18 @@ const BlogPost = () => {
               {new Date(post.datePublished).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
             </span>
           </div>
+
+          {blogImages[post.slug] && (
+            <div className="rounded-lg overflow-hidden mb-8">
+              <img
+                src={blogImages[post.slug]}
+                alt={post.title}
+                width={1200}
+                height={672}
+                className="w-full h-auto"
+              />
+            </div>
+          )}
 
           {renderContent(post.content)}
 
