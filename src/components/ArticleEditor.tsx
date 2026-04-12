@@ -362,6 +362,10 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             slug={slug}
             imageUrl={imageUrl}
             focusKeyword={focusKeyword}
+            onKeywordClick={(kw) => {
+              navigator.clipboard.writeText(kw);
+              toast({ title: `"${kw}" copiada!`, description: "Palavra-chave copiada para a área de transferência." });
+            }}
           />
 
           {/* AI Assistant */}
