@@ -145,6 +145,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
   const charCount = plainText.trim().length;
   const meetsMinimum = wordCount >= 400 || charCount >= 3000;
+  const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
