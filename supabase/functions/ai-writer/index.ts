@@ -83,7 +83,9 @@ ${SEO_AND_HUMAN_RULES}`;
 
         userPrompt = `Escreva um artigo completo e aprofundado sobre: "${topic}".
 
-O artigo deve ter entre 1500-2500 palavras e incluir:
+REGRA CRÍTICA DE TAMANHO: O artigo DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Artigos abaixo desse limite são inaceitáveis. O ideal é entre 1500-2500 palavras.
+
+O artigo deve incluir:
 - Uma introdução envolvente que prenda o leitor e inclua a palavra-chave principal
 - 4-6 seções com subtítulos H2 formulados como perguntas de busca ou frases que pessoas realmente pesquisam
 - Sub-seções H3 quando apropriado para aprofundar pontos
@@ -133,7 +135,7 @@ Ao melhorar o texto:
 - Melhore a estrutura SEO dos subtítulos se necessário
 - Garanta que o texto flua como uma conversa natural
 - Mantenha a formatação HTML`;
-        userPrompt = `Melhore o seguinte texto, tornando-o mais humano, natural e otimizado para SEO. Elimine qualquer vestígio de escrita artificial. Mantenha a formatação HTML:\n\n${content}\n\nRetorne APENAS o texto melhorado em HTML.`;
+        userPrompt = `Melhore o seguinte texto, tornando-o mais humano, natural e otimizado para SEO. Elimine qualquer vestígio de escrita artificial. Mantenha a formatação HTML.\n\nREGRA CRÍTICA: O texto resultante DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Se o texto original for menor, expanda-o mantendo a qualidade.\n\n${content}\n\nRetorne APENAS o texto melhorado em HTML.`;
         break;
 
       case "expand_text":
@@ -153,7 +155,7 @@ Ao expandir:
 - Crie novas sub-seções com subtítulos SEO-friendly
 - Mantenha a variação de tom e estilo
 - Use HTML semântico`;
-        userPrompt = `Expanda e enriqueça o seguinte texto com mais informações, exemplos práticos e detalhes relevantes. Adicione sub-seções com subtítulos otimizados para SEO. Mantenha o estilo humano e natural. Formatação HTML:\n\n${content}\n\nRetorne APENAS o texto expandido em HTML.`;
+        userPrompt = `Expanda e enriqueça o seguinte texto com mais informações, exemplos práticos e detalhes relevantes. Adicione sub-seções com subtítulos otimizados para SEO. Mantenha o estilo humano e natural. Formatação HTML.\n\nREGRA CRÍTICA: O texto resultante DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Garanta que o resultado final atinja esse limite.\n\n${content}\n\nRetorne APENAS o texto expandido em HTML.`;
         break;
 
       case "generate_title":
