@@ -22,6 +22,7 @@ interface AiAssistantPanelProps {
   onContentGenerated: (html: string) => void;
   onTitleGenerated?: (title: string) => void;
   onExcerptGenerated?: (excerpt: string) => void;
+  onImageInserted?: (url: string) => void;
 }
 
 const AiAssistantPanel = ({
