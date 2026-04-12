@@ -89,7 +89,10 @@ const BlogPost = () => {
   const dbSlugs = new Set(dbAsBlogPosts.map((p) => p.slug));
   const allPosts = [...dbAsBlogPosts, ...staticPosts.filter((p) => !dbSlugs.has(p.slug))];
 
-  // Simple markdown-like rendering
+  // Detect if content is HTML (from rich editor) vs markdown
+  const isHtmlContent = (text: string) => /^<[a-z][\s\S]*>/i.test(text.trim());
+
+  // Simple markdown-like rendering for static posts
   const renderContent = (content: string) => {
     const lines = content.trim().split("\n");
     const elements: JSX.Element[] = [];
