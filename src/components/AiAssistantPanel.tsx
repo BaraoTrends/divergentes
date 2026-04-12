@@ -49,7 +49,7 @@ const AiAssistantPanel = ({
     if (!topic.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("generate_article", { topic: topic.trim() });
+    const result = await generate("generate_article", { topic: topic.trim(), model: selectedModel });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -61,7 +61,7 @@ const AiAssistantPanel = ({
     if (!content.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("improve_text", { content });
+    const result = await generate("improve_text", { content, model: selectedModel });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -73,7 +73,7 @@ const AiAssistantPanel = ({
     if (!content.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("expand_text", { content });
+    const result = await generate("expand_text", { content, model: selectedModel });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -85,9 +85,9 @@ const AiAssistantPanel = ({
     const result = await generate("generate_title", {
       topic: topic.trim() || undefined,
       content: content || undefined,
+      model: selectedModel,
     });
     if (result && onTitleGenerated) {
-      // Parse first suggestion
       const firstLine = result.split("\n").find((l) => l.trim().match(/^\d+\./));
       if (firstLine) {
         onTitleGenerated(firstLine.replace(/^\d+\.\s*/, "").trim());
@@ -97,7 +97,7 @@ const AiAssistantPanel = ({
 
   const handleGenerateExcerpt = async () => {
     if (!content.trim()) return;
-    const result = await generate("generate_excerpt", { content });
+    const result = await generate("generate_excerpt", { content, model: selectedModel });
     if (result && onExcerptGenerated) {
       onExcerptGenerated(result.trim());
     }

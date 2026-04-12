@@ -17,7 +17,15 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const { action, topic, content, language } = await req.json();
+    const { action, topic, content, language, model: modelKey } = await req.json();
+
+    const MODEL_MAP: Record<string, string> = {
+      fast: "google/gemini-3-flash-preview",
+      balanced: "google/gemini-2.5-flash",
+      precise: "google/gemini-2.5-pro",
+      gpt: "openai/gpt-5",
+    };
+    const selectedModel = MODEL_MAP[modelKey] || MODEL_MAP.fast;
 
     if (!action || typeof action !== "string") {
       return new Response(JSON.stringify({ error: "action is required" }), {
