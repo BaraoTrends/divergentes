@@ -30,12 +30,14 @@ const AiAssistantPanel = ({
   onContentGenerated,
   onTitleGenerated,
   onExcerptGenerated,
+  onImageInserted,
 }: AiAssistantPanelProps) => {
   const [topic, setTopic] = useState("");
   const [expanded, setExpanded] = useState(true);
   const [streamPreview, setStreamPreview] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [selectedModel, setSelectedModel] = useState("fast");
+  const [imagePrompt, setImagePrompt] = useState("");
 
   const AI_MODELS = [
     { value: "fast", label: "⚡ Rápido", description: "Gemini Flash — respostas ágeis" },
