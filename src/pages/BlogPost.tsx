@@ -65,7 +65,8 @@ const BlogPost = () => {
   ]);
 
   const articleImage = dbArticle?.image_url || blogImages[post.slug] || "";
-  const ogImage = articleImage.startsWith("http") ? articleImage : articleImage ? `${SITE_URL}${articleImage}` : undefined;
+  const ogImageEndpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-image?slug=${encodeURIComponent(post.slug)}`;
+  const ogImage = articleImage.startsWith("http") ? articleImage : articleImage ? `${SITE_URL}${articleImage}` : ogImageEndpoint;
 
   const articleSchema = generateArticleSchema({
     title: post.title,

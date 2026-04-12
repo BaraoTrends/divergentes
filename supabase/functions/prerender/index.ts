@@ -309,7 +309,8 @@ serve(async (req) => {
 
       const isHtml = /^<[a-z][\s\S]*>/i.test((article.content || "").trim());
       const contentHtml = isHtml ? article.content : markdownToHtml(article.content);
-      const image = article.image_url || `${SITE_URL}/placeholder.svg`;
+      const supabaseOgUrl = `${supabaseUrl}/functions/v1/og-image?slug=${encodeURIComponent(slug)}`;
+      const image = article.image_url || supabaseOgUrl;
       const datePublished = article.created_at.split("T")[0];
       const dateModified = article.updated_at.split("T")[0];
       const author = "Equipe Neurodivergências";
