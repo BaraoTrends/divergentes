@@ -247,15 +247,10 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="readTime">Tempo de leitura (min)</Label>
-              <Input
-                id="readTime"
-                type="number"
-                min={1}
-                max={60}
-                value={readTime}
-                onChange={(e) => setReadTime(Number(e.target.value))}
-              />
+              <Label>Tempo de leitura</Label>
+              <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50 text-sm text-muted-foreground">
+                ⏱ {calculatedReadTime} min (automático: {wordCount} palavras ÷ 200)
+              </div>
             </div>
           </div>
 
