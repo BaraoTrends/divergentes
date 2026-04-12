@@ -95,6 +95,12 @@ O artigo deve incluir:
 - Uma conclusão com orientação prática e chamada sutil à ação
 - Tom empático e acolhedor, como se estivesse conversando com o leitor
 
+REGRAS CRÍTICAS DE SEO (OBRIGATÓRIAS):
+- PARÁGRAFOS CURTOS: Cada parágrafo deve ter no MÁXIMO 3-4 frases (menos de 100 palavras). NUNCA crie parágrafos longos.
+- LINKS INTERNOS: Inclua pelo menos 2-3 links internos usando <a href="/blog/slug-do-artigo">texto âncora</a> ou <a href="/glossario">glossário</a> ou <a href="/sobre">sobre nós</a>. Use links naturais no texto.
+- LINKS EXTERNOS: Inclua pelo menos 1-2 links externos para fontes confiáveis (ex: <a href="https://www.gov.br/saude" target="_blank" rel="noopener noreferrer">Ministério da Saúde</a>, sites de universidades, artigos científicos).
+- IMAGENS: Inclua pelo menos 2-3 tags <img> no corpo do artigo com src de placeholder e alt descritivo. Use: <img src="https://images.unsplash.com/photo-placeholder" alt="descrição relevante da imagem" />. Posicione as imagens entre seções para quebrar o texto.
+
 IMPORTANTE: Escreva como um ser humano real. Varie seu estilo, use expressões naturais, evite padrões repetitivos. Cada parágrafo deve soar diferente do anterior.
 
 Retorne APENAS o conteúdo HTML do artigo (sem título h1, sem metadados).`;
@@ -115,7 +121,7 @@ Regras para a meta description:
 - Use linguagem que desperte curiosidade ou prometa valor
 - Inclua um verbo de ação (descubra, aprenda, entenda, conheça)
 - Evite frases genéricas — seja específico sobre o que o leitor vai encontrar`;
-        userPrompt = `Com base no seguinte conteúdo de artigo, gere uma meta description otimizada para SEO (máximo 155 caracteres) que maximize o CTR no Google:\n\n${content}\n\nRetorne APENAS o texto da meta description, sem aspas.`;
+        userPrompt = `Com base no seguinte conteúdo de artigo, gere uma meta description otimizada para SEO. REGRA ABSOLUTA: o texto DEVE ter entre 120 e 150 caracteres (conte cada caractere!). NUNCA ultrapasse 150 caracteres. Se ultrapassar, encurte até caber.\n\n${content}\n\nRetorne APENAS o texto da meta description, sem aspas, sem explicações. Máximo 150 caracteres.`;
         break;
 
       case "improve_text":
