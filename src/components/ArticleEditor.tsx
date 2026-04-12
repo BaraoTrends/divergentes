@@ -51,7 +51,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [imageUrl, setImageUrl] = useState(article?.image_url || "");
   const [published, setPublished] = useState(article?.published || false);
   const [featured, setFeatured] = useState(article?.featured || false);
-  
+  const [tags, setTags] = useState<string[]>(article?.tags || []);
+  const [tagInput, setTagInput] = useState("");
   const [focusKeyword, setFocusKeyword] = useState("");
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
