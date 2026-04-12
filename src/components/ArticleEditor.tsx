@@ -50,6 +50,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [published, setPublished] = useState(article?.published || false);
   const [featured, setFeatured] = useState(article?.featured || false);
   const [readTime, setReadTime] = useState(article?.read_time || 5);
+  const [focusKeyword, setFocusKeyword] = useState("");
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverPrompt, setCoverPrompt] = useState("");
@@ -238,16 +239,29 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="excerpt">Resumo</Label>
-            <Textarea
-              id="excerpt"
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              placeholder="Breve descrição do artigo..."
-              rows={2}
-              maxLength={500}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="excerpt">Resumo</Label>
+              <Textarea
+                id="excerpt"
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                placeholder="Breve descrição do artigo..."
+                rows={2}
+                maxLength={500}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="focusKeyword">Palavra-chave foco</Label>
+              <Input
+                id="focusKeyword"
+                value={focusKeyword}
+                onChange={(e) => setFocusKeyword(e.target.value)}
+                placeholder="Ex: TDAH em adultos"
+                maxLength={100}
+              />
+              <p className="text-xs text-muted-foreground">Usada para análise de densidade SEO.</p>
+            </div>
           </div>
 
           {/* Image Upload Section */}
@@ -347,6 +361,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             content={content}
             slug={slug}
             imageUrl={imageUrl}
+            focusKeyword={focusKeyword}
           />
 
           {/* AI Assistant */}
