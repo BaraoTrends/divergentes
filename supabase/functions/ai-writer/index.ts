@@ -175,6 +175,27 @@ Regras para títulos:
         userPrompt = `Gere 5 opções de título SEO para um artigo sobre: "${topic || "o conteúdo a seguir"}"\n\n${content ? `Conteúdo:\n${content}` : ""}\n\nRetorne APENAS os 5 títulos, um por linha, numerados (1. 2. 3. 4. 5.). Cada um com no máximo 60 caracteres. Sem explicações.`;
         break;
 
+      case "suggest_keywords":
+        if (!topic) {
+          return new Response(JSON.stringify({ error: "topic (focus keyword) is required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        systemPrompt = `Você é um especialista em SEO brasileiro. Retorne APENAS um JSON válido, sem markdown, sem explicações.`;
+        userPrompt = `Para a palavra-chave foco "${topic}", gere exatamente este JSON (sem code fences):
+{"keywords":[{"term":"palavra","type":"related|long_tail|semantic","volume":"alto|médio|baixo"}]}
+
+Regras:
+- 8-12 palavras-chave no total
+- Inclua: 3-4 variações semânticas (type: "semantic"), 3-4 cauda longa (type: "long_tail"), 2-3 relacionadas (type: "related")
+- Todas em português brasileiro
+- Relevantes para o nicho de neurodivergências/saúde mental quando aplicável
+- "volume" é uma estimativa relativa de busca
+
+Retorne APENAS o JSON.`;
+        break;
+
       default:
         return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
           status: 400,
