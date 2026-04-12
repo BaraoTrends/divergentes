@@ -4,9 +4,11 @@ import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ArticleCard from "@/components/ArticleCard";
 import NewsletterCTA from "@/components/NewsletterCTA";
-import { categories, blogPosts } from "@/lib/content";
+import { categories } from "@/lib/content";
+import type { BlogPost } from "@/lib/content";
 import { categoryImages } from "@/lib/images";
 import { generateBreadcrumbSchema } from "@/lib/seo";
+import { useArticles } from "@/hooks/useArticles";
 
 const hubContent: Record<string, { intro: string; sections: { title: string; content: string }[] }> = {
   tdah: {
@@ -61,7 +63,21 @@ const CategoryHub = () => {
   const slug = location.pathname.replace("/", "");
   const category = categories.find((c) => c.slug === slug);
   const content = slug ? hubContent[slug] : undefined;
-  const relatedPosts = blogPosts.filter((p) => p.category === slug);
+  const { data: dbArticles = [] } = useArticles({ publishedOnly: true });
+  const relatedPosts: BlogPost[] = dbArticles
+    .filter((a) => a.category === slug)
+    .map((a) => ({
+      slug: a.slug,
+      title: a.title,
+      excerpt: a.excerpt || "",
+      category: a.category,
+      author: "Equipe Neurodivergências",
+      datePublished: a.created_at.split("T")[0],
+      dateModified: a.updated_at.split("T")[0],
+      readingTime: a.read_time,
+      image: a.image_url || "/placeholder.svg",
+      content: a.content,
+    }));
 
   if (!category || !content) {
     return (

@@ -69,9 +69,7 @@ export interface BlogPost {
   content: string;
 }
 
-export const blogPosts: BlogPost[] = [
-  {
-    slug: "tdah-em-adultos-sinais-e-diagnostico",
+export const blogPosts: BlogPost[] = [];
     title: "TDAH em Adultos: Sinais, Diagnóstico e Como Buscar Ajuda",
     excerpt: "Muitos adultos convivem com o TDAH sem saber. Conheça os sinais mais comuns, como é feito o diagnóstico e os caminhos para uma vida mais equilibrada.",
     category: "tdah",
