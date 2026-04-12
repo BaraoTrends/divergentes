@@ -5,7 +5,8 @@ import { blogImages } from "@/lib/images";
 import CategoryBadge from "./CategoryBadge";
 
 const ArticleCard = ({ post }: { post: BlogPost }) => {
-  const coverImage = blogImages[post.slug];
+  // Use post.image (which may come from DB image_url) or fall back to static blogImages
+  const coverImage = post.image && post.image !== "/placeholder.svg" ? post.image : blogImages[post.slug];
 
   return (
     <article className="group rounded-lg border bg-card overflow-hidden transition-shadow hover:shadow-md">
@@ -15,9 +16,10 @@ const ArticleCard = ({ post }: { post: BlogPost }) => {
             <img
               src={coverImage}
               alt={post.title}
-              width={1200}
-              height={672}
+              width={600}
+              height={338}
               loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>
@@ -26,7 +28,7 @@ const ArticleCard = ({ post }: { post: BlogPost }) => {
           <div className="flex items-center gap-2 mb-3">
             <CategoryBadge category={post.category} />
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
+              <Clock className="h-3 w-3" aria-hidden="true" />
               {post.readingTime} min de leitura
             </span>
           </div>
@@ -36,9 +38,12 @@ const ArticleCard = ({ post }: { post: BlogPost }) => {
           <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
             {post.excerpt}
           </p>
-          <div className="mt-3 text-xs text-muted-foreground">
+          <time
+            dateTime={post.datePublished}
+            className="mt-3 block text-xs text-muted-foreground"
+          >
             {new Date(post.datePublished).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
-          </div>
+          </time>
         </div>
       </Link>
     </article>
