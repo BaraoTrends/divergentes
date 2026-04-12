@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
@@ -15,9 +15,16 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && user && isAdmin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [user, isAdmin, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,8 +34,11 @@ const AdminLogin = () => {
       const { error } = await signIn(email, password);
       if (error) {
         toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
+        setLoading(false);
       } else {
-        navigate("/admin");
+        // Navigation will happen via useEffect when auth state updates
+        // Add safety timeout
+        setTimeout(() => setLoading(false), 5000);
       }
     } else {
       const { error } = await signUp(email, password, displayName);
@@ -37,8 +47,8 @@ const AdminLogin = () => {
       } else {
         toast({ title: "Conta criada!", description: "Verifique seu email para confirmar." });
       }
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
