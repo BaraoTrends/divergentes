@@ -63,11 +63,14 @@ const BlogPost = () => {
     { name: post.title, url: `/blog/${post.slug}` },
   ]);
 
+  const articleImage = dbArticle?.image_url || blogImages[post.slug] || "";
+  const ogImage = articleImage.startsWith("http") ? articleImage : articleImage ? `${SITE_URL}${articleImage}` : undefined;
+
   const articleSchema = generateArticleSchema({
     title: post.title,
     description: post.excerpt,
     url: `/blog/${post.slug}`,
-    image: `${SITE_URL}${post.image}`,
+    image: ogImage || `${SITE_URL}/placeholder.svg`,
     datePublished: post.datePublished,
     dateModified: post.dateModified,
     author: post.author,
@@ -224,7 +227,7 @@ const BlogPost = () => {
     return <div className="space-y-4">{elements}</div>;
   };
 
-  const coverImage = dbArticle?.image_url || blogImages[post.slug];
+  const coverImage = articleImage;
 
   return (
     <Layout>
@@ -233,6 +236,7 @@ const BlogPost = () => {
         title={post.title}
         description={post.excerpt}
         path={`/blog/${post.slug}`}
+        image={ogImage}
         type="article"
         schemas={[breadcrumbSchema, articleSchema]}
       />
@@ -254,10 +258,10 @@ const BlogPost = () => {
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-8 pb-8 border-b">
             <span>Por {post.author}</span>
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" />
+            <time dateTime={post.datePublished} className="flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
               {new Date(post.datePublished).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
-            </span>
+            </time>
           </div>
 
           {coverImage && (

@@ -43,7 +43,7 @@ const AdminLogin = () => {
 
   return (
     <Layout>
-      <SEOHead title="Acesso Admin" description="Painel administrativo" path="/admin/login" />
+      <SEOHead title="Acesso Admin" description="Painel administrativo" path="/admin/login" noindex />
       <div className="container py-16 flex justify-center">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
