@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { categories } from "@/lib/content";
-import { ArrowLeft, Save, Eye } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Save, Eye, Upload, X, ImageIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import type { Article } from "@/hooks/useArticles";
 
 interface ArticleEditorProps {
@@ -45,6 +47,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [featured, setFeatured] = useState(article?.featured || false);
   const [readTime, setReadTime] = useState(article?.read_time || 5);
   const [previewMode, setPreviewMode] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const generateSlug = (text: string) =>
     text
@@ -61,6 +66,65 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       setSlug(generateSlug(title));
     }
   }, [title, article]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Formato inválido",
+        description: "Use imagens JPG, PNG, WebP ou GIF.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo é 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const filePath = `covers/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("article-images")
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("article-images")
+        .getPublicUrl(filePath);
+
+      setImageUrl(urlData.publicUrl);
+      toast({ title: "Imagem enviada com sucesso!" });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar imagem",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = () => {
+    setImageUrl("");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +166,11 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
       {previewMode ? (
         <div className="bg-card border rounded-lg p-6">
+          {imageUrl && (
+            <div className="rounded-lg overflow-hidden mb-4">
+              <img src={imageUrl} alt={title} className="w-full h-auto max-h-64 object-cover" />
+            </div>
+          )}
           <h1 className="font-heading text-2xl font-bold text-foreground mb-2">{title || "Sem título"}</h1>
           <p className="text-muted-foreground mb-4">{excerpt}</p>
           <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">{content}</div>
@@ -173,14 +242,64 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             />
           </div>
 
+          {/* Image Upload Section */}
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">URL da imagem de capa</Label>
-            <Input
-              id="imageUrl"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://exemplo.com/imagem.jpg"
-              maxLength={500}
+            <Label>Imagem de Capa</Label>
+            {imageUrl ? (
+              <div className="relative rounded-lg overflow-hidden border bg-muted">
+                <img
+                  src={imageUrl}
+                  alt="Capa do artigo"
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute top-2 right-2 flex gap-1">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8 bg-background/80 backdrop-blur-sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8 bg-background/80 backdrop-blur-sm text-destructive"
+                    onClick={removeImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full h-40 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {uploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                    <span className="text-sm">Enviando...</span>
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon className="h-8 w-8" />
+                    <span className="text-sm font-medium">Clique para enviar uma imagem</span>
+                    <span className="text-xs">JPG, PNG, WebP ou GIF • Máx. 5MB</span>
+                  </>
+                )}
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleImageUpload}
+              className="hidden"
             />
           </div>
 
