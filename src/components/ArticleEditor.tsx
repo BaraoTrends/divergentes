@@ -60,6 +60,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const { generateImage, isGenerating: isGeneratingCover } = useAiImageGen({
     onImageGenerated: (url) => setImageUrl(url),
   });
+  const { generate: generateExcerpt, isGenerating: isGeneratingExcerpt } = useAiWriter({
+    onComplete: (text) => setExcerpt(text.trim()),
+  });
 
   const generateSlug = (text: string) =>
     text
