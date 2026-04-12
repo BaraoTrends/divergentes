@@ -16,4 +16,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://neurodivergencias.com.br/sitemap.xml
+Sitemap: https://wmdjjvjmwvsceqbcmksb.supabase.co/functions/v1/sitemap
