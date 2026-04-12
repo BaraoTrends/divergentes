@@ -51,8 +51,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [readTime, setReadTime] = useState(article?.read_time || 5);
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverPrompt, setCoverPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { generateImage, isGenerating: isGeneratingCover } = useAiImageGen({
+    onImageGenerated: (url) => setImageUrl(url),
+  });
 
   const generateSlug = (text: string) =>
     text
