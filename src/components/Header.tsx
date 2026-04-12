@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Search, Moon, Sun } from "lucide-react";
 import { categories } from "@/lib/content";
 import { Button } from "@/components/ui/button";
+import logoImg from "@/assets/logo-neuro-rotina.png";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,9 +46,9 @@ const Header = () => {
     >
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-heading text-xl font-bold text-foreground">
-          <span className="text-2xl" role="img" aria-label="cérebro">🧠</span>
-          <span className="hidden sm:inline">Neurodivergências</span>
-          <span className="sm:hidden">ND</span>
+          <img src={logoImg} alt="Neuro Rotina" className="h-8 w-8" width={32} height={32} />
+          <span className="hidden sm:inline">Neuro Rotina</span>
+          <span className="sm:hidden">NR</span>
         </Link>
 
         {/* Desktop nav */}
