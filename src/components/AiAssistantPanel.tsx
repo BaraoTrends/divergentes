@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAiWriter } from "@/hooks/useAiWriter";
 import {
   Sparkles,
@@ -31,6 +32,14 @@ const AiAssistantPanel = ({
   const [expanded, setExpanded] = useState(true);
   const [streamPreview, setStreamPreview] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("fast");
+
+  const AI_MODELS = [
+    { value: "fast", label: "⚡ Rápido", description: "Gemini Flash — respostas ágeis" },
+    { value: "balanced", label: "⚖️ Equilibrado", description: "Gemini Flash — bom custo-benefício" },
+    { value: "precise", label: "🎯 Preciso", description: "Gemini Pro — máxima qualidade" },
+    { value: "gpt", label: "🧠 GPT-5", description: "OpenAI GPT-5 — raciocínio avançado" },
+  ];
 
   const { generate, isGenerating } = useAiWriter({
     onStream: (text) => setStreamPreview(text),
@@ -40,7 +49,7 @@ const AiAssistantPanel = ({
     if (!topic.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("generate_article", { topic: topic.trim() });
+    const result = await generate("generate_article", { topic: topic.trim(), model: selectedModel });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -52,7 +61,7 @@ const AiAssistantPanel = ({
     if (!content.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("improve_text", { content });
+    const result = await generate("improve_text", { content, model: selectedModel });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -64,7 +73,7 @@ const AiAssistantPanel = ({
     if (!content.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("expand_text", { content });
+    const result = await generate("expand_text", { content, model: selectedModel });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -76,9 +85,9 @@ const AiAssistantPanel = ({
     const result = await generate("generate_title", {
       topic: topic.trim() || undefined,
       content: content || undefined,
+      model: selectedModel,
     });
     if (result && onTitleGenerated) {
-      // Parse first suggestion
       const firstLine = result.split("\n").find((l) => l.trim().match(/^\d+\./));
       if (firstLine) {
         onTitleGenerated(firstLine.replace(/^\d+\.\s*/, "").trim());
@@ -88,7 +97,7 @@ const AiAssistantPanel = ({
 
   const handleGenerateExcerpt = async () => {
     if (!content.trim()) return;
-    const result = await generate("generate_excerpt", { content });
+    const result = await generate("generate_excerpt", { content, model: selectedModel });
     if (result && onExcerptGenerated) {
       onExcerptGenerated(result.trim());
     }
@@ -110,6 +119,24 @@ const AiAssistantPanel = ({
 
       {expanded && (
         <div className="p-3 pt-0 space-y-3">
+          {/* Model selector */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Modelo de IA</Label>
+            <Select value={selectedModel} onValueChange={setSelectedModel} disabled={isGenerating}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {AI_MODELS.map((m) => (
+                  <SelectItem key={m.value} value={m.value} className="text-xs">
+                    <span className="font-medium">{m.label}</span>
+                    <span className="ml-1.5 text-muted-foreground">{m.description}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Generate from topic */}
           <div className="space-y-2">
             <Label className="text-xs">Gerar artigo sobre um tema</Label>

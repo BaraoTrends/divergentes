@@ -15,18 +15,19 @@ export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
   const { toast } = useToast();
 
   const generate = useCallback(
-    async (action: AiAction, params: { topic?: string; content?: string }) => {
+    async (action: AiAction, params: { topic?: string; content?: string; model?: string }) => {
       setIsGenerating(true);
       let fullText = "";
 
       try {
+        const { model, ...restParams } = params;
         const resp = await fetch(AI_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ action, ...params }),
+          body: JSON.stringify({ action, ...restParams, model }),
         });
 
         if (!resp.ok) {
