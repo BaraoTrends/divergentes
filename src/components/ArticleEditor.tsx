@@ -49,7 +49,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [imageUrl, setImageUrl] = useState(article?.image_url || "");
   const [published, setPublished] = useState(article?.published || false);
   const [featured, setFeatured] = useState(article?.featured || false);
-  const [readTime, setReadTime] = useState(article?.read_time || 5);
+  
   const [focusKeyword, setFocusKeyword] = useState("");
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -145,6 +145,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
   const charCount = plainText.trim().length;
   const meetsMinimum = wordCount >= 400 || charCount >= 3000;
+  const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +166,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       image_url: imageUrl.trim(),
       published,
       featured,
-      read_time: readTime,
+      read_time: calculatedReadTime,
       author_id: article?.author_id || userId,
     });
   };
@@ -246,15 +247,10 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="readTime">Tempo de leitura (min)</Label>
-              <Input
-                id="readTime"
-                type="number"
-                min={1}
-                max={60}
-                value={readTime}
-                onChange={(e) => setReadTime(Number(e.target.value))}
-              />
+              <Label>Tempo de leitura</Label>
+              <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50 text-sm text-muted-foreground">
+                ⏱ {calculatedReadTime} min (automático: {wordCount} palavras ÷ 200)
+              </div>
             </div>
           </div>
 
