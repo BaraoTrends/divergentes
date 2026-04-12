@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { categories } from "@/lib/content";
+import RichTextEditor from "@/components/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Save, Eye, Upload, X, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -304,15 +305,11 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Conteúdo (Markdown) *</Label>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Escreva o conteúdo do artigo usando markdown..."
-              rows={16}
-              className="font-mono text-sm"
-              required
+            <Label>Conteúdo *</Label>
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              placeholder="Comece a escrever o conteúdo do artigo..."
             />
           </div>
 
