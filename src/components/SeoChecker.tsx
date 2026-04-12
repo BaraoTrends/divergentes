@@ -120,11 +120,11 @@ function analyzeSeo({ title, excerpt, content, slug, imageUrl, focusKeyword }: S
     checks.push({ id: "links-ok", label: "Links", status: "good", message: "Links encontrados no conteúdo." });
   }
 
-  const paragraphs = content.split(/<\/p>/i).filter((p) => stripHtml(p).length > 0);
-  const longParas = paragraphs.filter((p) => countWords(p) > 150);
+  const pTagMatches = content.match(/<p[^>]*>[\s\S]*?<\/p>/gi) || [];
+  const longParas = pTagMatches.filter((p) => countWords(p) > 150);
   if (longParas.length > 0) {
     checks.push({ id: "para-long", label: "Parágrafos", status: "warning", message: `${longParas.length} parágrafo(s) muito longo(s). Divida para facilitar a leitura.` });
-  } else if (paragraphs.length > 0) {
+  } else if (pTagMatches.length > 0) {
     checks.push({ id: "para-ok", label: "Parágrafos", status: "good", message: "Parágrafos com tamanho adequado." });
   }
 
