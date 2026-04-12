@@ -138,13 +138,7 @@ serve(async (req) => {
     const svg = generateOgSvg(article.title, article.category, "Neurodivergências");
 
     // Convert SVG → PNG via resvg-wasm
-    await ensureWasm();
-
-    const resvg = new Resvg(svg, {
-      fitTo: { mode: "width", value: 1200 },
-    });
-    const rendered = resvg.render();
-    const pngData: Uint8Array = rendered.asPng();
+    const pngData: Uint8Array = await renderSvgToPng(svg);
 
     // Cache PNG in storage
     await supabase.storage
