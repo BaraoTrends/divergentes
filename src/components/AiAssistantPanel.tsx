@@ -229,6 +229,36 @@ const AiAssistantPanel = ({
             </div>
           </div>
 
+          {/* AI Image Generation */}
+          <div className="space-y-2">
+            <Label className="text-xs">Gerar imagem com IA</Label>
+            <div className="flex gap-2">
+              <Input
+                value={imagePrompt}
+                onChange={(e) => setImagePrompt(e.target.value)}
+                placeholder="Descreva a imagem desejada..."
+                className="text-sm"
+                disabled={isGeneratingImage}
+                onKeyDown={(e) => e.key === "Enter" && handleGenerateInlineImage()}
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleGenerateInlineImage}
+                disabled={isGeneratingImage || !imagePrompt.trim()}
+                className="gap-1 shrink-0 text-xs"
+              >
+                {isGeneratingImage ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ImageIcon className="h-3.5 w-3.5" />
+                )}
+                Gerar
+              </Button>
+            </div>
+          </div>
+
           {/* Stream preview */}
           {showPreview && streamPreview && (
             <div className="border rounded-md p-3 bg-muted/30 max-h-48 overflow-y-auto">
