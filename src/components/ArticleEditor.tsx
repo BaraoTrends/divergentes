@@ -135,8 +135,27 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     setImageUrl("");
   };
 
+  const getPlainTextFromHtml = (html: string) => {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
+
+  const plainText = getPlainTextFromHtml(content);
+  const wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
+  const charCount = plainText.trim().length;
+  const meetsMinimum = wordCount >= 400 || charCount >= 3000;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!meetsMinimum) {
+      toast({
+        title: "Conteúdo insuficiente",
+        description: `O artigo precisa ter no mínimo 400 palavras ou 3.000 caracteres. Atual: ${wordCount} palavras / ${charCount} caracteres.`,
+        variant: "destructive",
+      });
+      return;
+    }
     onSave({
       title: title.trim(),
       slug: slug.trim(),
@@ -381,7 +400,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           />
 
           <div className="space-y-2">
-            <Label>Conteúdo *</Label>
+            <div className="flex items-center justify-between">
+              <Label>Conteúdo *</Label>
+              <span className={`text-xs ${meetsMinimum ? "text-green-600" : "text-destructive"}`}>
+                {wordCount} palavras • {charCount} caracteres {meetsMinimum ? "✓" : `(mín. 400 palavras ou 3.000 caracteres)`}
+              </span>
+            </div>
             <RichTextEditor
               content={content}
               onChange={setContent}
