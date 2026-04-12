@@ -231,6 +231,312 @@ O tratamento do TDAH em crianças pode incluir:
 *Este artigo tem caráter informativo e não substitui avaliação médica profissional.*
     `,
   },
+  {
+    slug: "tea-sinais-na-infancia",
+    title: "Autismo na Infância: Sinais Precoces e a Importância do Diagnóstico",
+    excerpt: "Reconhecer os sinais do TEA nos primeiros anos de vida permite intervenções mais eficazes. Saiba o que observar e quando buscar avaliação.",
+    category: "tea",
+    author: "Equipe Neurodivergências",
+    datePublished: "2025-02-15",
+    dateModified: "2025-03-20",
+    readingTime: 9,
+    image: "/placeholder.svg",
+    content: `
+## O que é o Transtorno do Espectro Autista?
+
+O Transtorno do Espectro Autista (TEA) é uma condição do neurodesenvolvimento que afeta a comunicação social, o comportamento e o processamento sensorial. O termo **"espectro"** reflete a enorme diversidade de manifestações — cada pessoa autista é única.
+
+O diagnóstico precoce é fundamental: quanto antes as intervenções começarem, melhores são os resultados no desenvolvimento da criança.
+
+## Sinais precoces (0 a 2 anos)
+
+Alguns sinais podem ser observados ainda nos primeiros meses de vida:
+
+- **Pouco contato visual** — o bebê evita ou sustenta pouco o olhar
+- **Não responde ao nome** — parece não ouvir quando chamado
+- **Ausência de sorriso social** — não sorri em resposta ao sorriso dos cuidadores
+- **Atraso na fala** — não balbucia aos 12 meses, não fala palavras simples aos 16 meses
+- **Não aponta ou gesticula** — não usa gestos para se comunicar
+- **Preferência por brincar sozinho** — pouco interesse em interação com outras crianças
+
+## Sinais na idade pré-escolar (3 a 5 anos)
+
+### Comunicação social
+- Dificuldade em manter conversas recíprocas
+- Uso de linguagem de forma peculiar (ecolalia, inversão pronominal)
+- Dificuldade em entender expressões faciais e linguagem corporal
+- Pouco interesse em brincadeiras de faz-de-conta
+
+### Comportamento
+- Movimentos repetitivos (flapping, girar, balançar)
+- Interesse intenso e restrito em temas específicos
+- Resistência a mudanças na rotina
+- Sensibilidade a estímulos sensoriais (sons, texturas, luzes)
+
+## Como é feito o diagnóstico?
+
+O diagnóstico do TEA é **clínico e multidisciplinar**, envolvendo:
+
+1. **Avaliação pediátrica** — triagem inicial com instrumentos como M-CHAT
+2. **Avaliação neuropsicológica** — testes cognitivos e de desenvolvimento
+3. **Avaliação fonoaudiológica** — comunicação e linguagem
+4. **Observação comportamental** — usando instrumentos como o ADOS-2
+
+> **Importante:** O diagnóstico pode ser feito em qualquer idade, mas a identificação precoce (antes dos 3 anos) permite intervenções mais eficazes.
+
+## Intervenções baseadas em evidências
+
+- **Análise do Comportamento Aplicada (ABA)** — intervenção comportamental estruturada
+- **Terapia ocupacional** — desenvolvimento de habilidades motoras e sensoriais
+- **Fonoaudiologia** — comunicação verbal e não-verbal
+- **Intervenção mediada pelos pais** — os cuidadores como agentes terapêuticos
+- **Apoio escolar especializado** — adaptações e inclusão
+
+## O papel da família
+
+A família é o pilar central no desenvolvimento da criança autista:
+
+- **Buscar informação de qualidade** e evitar mitos
+- **Celebrar as conquistas** e respeitar o ritmo da criança
+- **Criar um ambiente previsível** e sensorialmente adequado
+- **Cuidar da própria saúde emocional** — pais também precisam de suporte
+
+---
+
+*Este artigo tem caráter informativo e não substitui avaliação médica profissional.*
+    `,
+  },
+  {
+    slug: "dislexia-na-escola-como-ajudar",
+    title: "Dislexia na Escola: Como Identificar e Apoiar o Aluno",
+    excerpt: "A dislexia pode ser confundida com preguiça ou falta de inteligência. Entenda como reconhecer os sinais na escola e quais estratégias ajudam.",
+    category: "dislexia",
+    author: "Equipe Neurodivergências",
+    datePublished: "2025-03-01",
+    dateModified: "2025-03-25",
+    readingTime: 7,
+    image: "/placeholder.svg",
+    content: `
+## Dislexia: muito além da troca de letras
+
+A dislexia é um transtorno específico de aprendizagem de **origem neurobiológica**, que afeta a precisão e fluência na leitura e as habilidades de decodificação. Afeta cerca de **10% da população** e não tem relação com inteligência.
+
+Muitas crianças disléxicas passam anos na escola sem diagnóstico, sendo rotuladas como "preguiçosas" ou "pouco inteligentes" — o que causa enorme sofrimento emocional.
+
+## Sinais de alerta na escola
+
+### Educação infantil e alfabetização
+- Dificuldade em aprender o alfabeto e associar letras a sons
+- Problemas com rimas e jogos fonológicos
+- Atraso no desenvolvimento da fala
+- Dificuldade em memorizar sequências (dias da semana, meses)
+
+### Ensino fundamental
+- Leitura lenta, silabada e com muitos erros
+- Troca, omissão ou inversão de letras (b/d, p/q)
+- Dificuldade em compreender o que leu
+- Escrita com muitos erros ortográficos
+- Evita ler em voz alta
+- Discrepância entre inteligência verbal e desempenho em leitura/escrita
+
+### Ensino médio e além
+- Leitura lenta mesmo após anos de prática
+- Dificuldade com idiomas estrangeiros
+- Preferência por conteúdo visual ou auditivo
+- Cansaço excessivo após atividades de leitura
+
+## O que a escola pode fazer?
+
+### Adaptações em sala de aula
+- **Mais tempo** para provas e atividades de leitura
+- **Avaliações orais** como alternativa ou complemento
+- **Material impresso** com fonte maior e espaçamento adequado
+- **Uso de tecnologia assistiva** (leitores de tela, audiobooks)
+- **Sentar o aluno próximo ao professor** para melhor acompanhamento
+
+### Estratégias pedagógicas
+- **Método multissensorial** — associar visão, audição e tato no aprendizado
+- **Instrução fônica explícita** — ensinar sistematicamente a relação letra-som
+- **Mapas mentais e organizadores gráficos** — apoiar a compreensão
+- **Feedback positivo** — valorizar o esforço, não apenas o resultado
+
+## Direitos do aluno disléxico
+
+No Brasil, a **Lei 14.254/2021** garante acompanhamento integral para alunos com dislexia, TDAH e outros transtornos de aprendizagem. Isso inclui:
+
+- Identificação precoce pela escola
+- Encaminhamento para diagnóstico
+- Adaptações pedagógicas e de avaliação
+- Formação continuada dos professores
+
+> **Lembre-se:** Com o suporte adequado, alunos disléxicos podem alcançar todo o seu potencial. Muitas pessoas disléxicas se destacam em áreas como artes, ciências e empreendedorismo.
+
+---
+
+*Este artigo tem caráter informativo e não substitui avaliação profissional.*
+    `,
+  },
+  {
+    slug: "altas-habilidades-como-identificar",
+    title: "Altas Habilidades: Como Identificar e Apoiar Crianças Superdotadas",
+    excerpt: "Crianças com altas habilidades nem sempre são as 'melhores alunos'. Conheça os sinais, mitos e como oferecer o enriquecimento adequado.",
+    category: "altas-habilidades",
+    author: "Equipe Neurodivergências",
+    datePublished: "2025-03-10",
+    dateModified: "2025-04-01",
+    readingTime: 8,
+    image: "/placeholder.svg",
+    content: `
+## O que são Altas Habilidades/Superdotação?
+
+Altas Habilidades/Superdotação (AH/SD) é um termo usado para descrever pessoas que demonstram **potencial elevado** em uma ou mais áreas: intelectual, acadêmica, criativa, artística, psicomotora ou de liderança.
+
+No Brasil, estima-se que entre **3,5% e 5%** da população escolar tenha altas habilidades — o que representa milhões de crianças e adolescentes que, muitas vezes, não são identificados.
+
+## Derrubando mitos
+
+### Mito 1: "Superdotado é gênio em tudo"
+**Realidade:** Pessoas com AH/SD podem ter habilidades excepcionais em áreas específicas e dificuldades em outras. É possível ter altas habilidades em matemática e dificuldade em escrita.
+
+### Mito 2: "Não precisa de apoio, já é inteligente"
+**Realidade:** Sem estímulo adequado, crianças com AH/SD podem desenvolver problemas emocionais, comportamentais e até evasão escolar por tédio.
+
+### Mito 3: "É sempre o melhor aluno da classe"
+**Realidade:** Muitas crianças com AH/SD têm desempenho escolar mediano ou até baixo, especialmente quando o currículo não as desafia. Isso é chamado de **underachievement**.
+
+### Mito 4: "É uma condição só intelectual"
+**Realidade:** As AH/SD podem se manifestar em criatividade, artes, esportes, liderança e outras áreas além da acadêmica.
+
+## Sinais de altas habilidades
+
+- **Curiosidade intensa** e questionamentos profundos desde cedo
+- **Vocabulário avançado** para a idade
+- **Aprendizagem rápida** com pouca repetição
+- **Memória excepcional** para temas de interesse
+- **Pensamento abstrato** e capacidade de fazer conexões incomuns
+- **Perfeccionismo** e autocrítica elevada
+- **Sensibilidade emocional** intensa
+- **Preferência por companhia de crianças mais velhas ou adultos**
+- **Senso de humor sofisticado**
+- **Interesse profundo** em temas específicos (dinossauros, astronomia, história)
+
+## Dupla excepcionalidade
+
+Um conceito importante é a **dupla excepcionalidade**: quando uma pessoa tem altas habilidades **e** outra condição, como TDAH, TEA, dislexia ou ansiedade.
+
+Nesses casos, uma condição pode mascarar a outra:
+- As altas habilidades compensam as dificuldades, atrasando o diagnóstico
+- As dificuldades mascaram as altas habilidades, impedindo o enriquecimento
+
+## Como apoiar
+
+1. **Identificação profissional** — avaliação com psicólogo especializado
+2. **Enriquecimento curricular** — atividades mais complexas e aprofundadas
+3. **Aceleração de série** — quando adequada ao desenvolvimento socioemocional
+4. **Programas de mentoria** — contato com profissionais das áreas de interesse
+5. **Apoio socioemocional** — acolhimento das questões emocionais
+
+> **No Brasil**, o MEC reconhece alunos com AH/SD como público-alvo da Educação Especial, garantindo atendimento educacional especializado (AEE).
+
+---
+
+*Este artigo tem caráter informativo e não substitui avaliação profissional.*
+    `,
+  },
+  {
+    slug: "toc-alem-das-manias",
+    title: "TOC: Muito Além das Manias — Entendendo o Transtorno Obsessivo-Compulsivo",
+    excerpt: "O TOC é muito mais do que mania de limpeza. Conheça as diferentes formas do transtorno, como ele afeta a vida e quais tratamentos funcionam.",
+    category: "toc",
+    author: "Equipe Neurodivergências",
+    datePublished: "2025-03-20",
+    dateModified: "2025-04-05",
+    readingTime: 8,
+    image: "/placeholder.svg",
+    content: `
+## O que é o TOC?
+
+O Transtorno Obsessivo-Compulsivo (TOC) é uma condição de saúde mental caracterizada por **obsessões** (pensamentos, imagens ou impulsos intrusivos e indesejados) e **compulsões** (comportamentos repetitivos realizados para aliviar a ansiedade causada pelas obsessões).
+
+O TOC afeta cerca de **2% da população mundial** e pode se manifestar em qualquer idade, embora frequentemente comece na infância ou adolescência.
+
+## Obsessões: mais do que preocupações
+
+As obsessões do TOC são diferentes de preocupações comuns. São pensamentos:
+
+- **Intrusivos** — surgem sem que a pessoa queira
+- **Repetitivos** — voltam constantemente, mesmo quando a pessoa tenta ignorá-los
+- **Perturbadores** — causam angústia, medo ou nojo intensos
+- **Ego-distônicos** — a pessoa reconhece que são irracionais, mas não consegue controlá-los
+
+## Tipos comuns de TOC
+
+### Contaminação
+- Medo excessivo de germes, sujeira ou substâncias tóxicas
+- Lavagem excessiva das mãos ou limpeza compulsiva
+- Evitar tocar objetos ou pessoas
+
+### Verificação
+- Checar repetidamente se a porta está trancada, o fogão desligado
+- Reler textos várias vezes por medo de erros
+- Verificar constantemente se não atropelou alguém ao dirigir
+
+### Simetria e ordem
+- Necessidade de que objetos estejam perfeitamente alinhados
+- Angústia quando algo está "fora do lugar"
+- Rituais de contagem ou organização
+
+### Pensamentos intrusivos
+- Pensamentos violentos ou sexuais indesejados
+- Medo de fazer algo terrível impulsivamente
+- Dúvida constante sobre a própria moralidade
+
+### Acumulação
+- Dificuldade em descartar objetos, mesmo sem valor
+- Medo de que algo ruim aconteça se jogar algo fora
+
+## O ciclo do TOC
+
+O TOC funciona em um ciclo vicioso:
+
+1. **Obsessão** — surge um pensamento intrusivo
+2. **Ansiedade** — o pensamento causa angústia intensa
+3. **Compulsão** — a pessoa realiza um ritual para aliviar a ansiedade
+4. **Alívio temporário** — a ansiedade diminui momentaneamente
+5. **Retorno** — a obsessão volta, e o ciclo recomeça
+
+O problema é que as compulsões **reforçam** as obsessões, tornando o ciclo cada vez mais forte.
+
+## Tratamento baseado em evidências
+
+### Terapia Cognitivo-Comportamental (TCC)
+A **Exposição e Prevenção de Resposta (EPR)** é o tratamento psicológico mais eficaz para o TOC. Consiste em:
+
+- Exposição gradual às situações que provocam obsessões
+- Prevenção da realização das compulsões
+- Aprendizagem de que a ansiedade diminui naturalmente sem o ritual
+
+### Medicação
+- **Inibidores Seletivos de Recaptação de Serotonina (ISRS)** — fluoxetina, sertralina, fluvoxamina
+- Geralmente em doses mais altas do que para depressão
+- A combinação de TCC-EPR + medicação costuma oferecer os melhores resultados
+
+## Quando buscar ajuda?
+
+Procure um profissional se as obsessões e compulsões:
+
+- Ocupam **mais de 1 hora por dia**
+- Causam **sofrimento significativo**
+- Interferem no **trabalho, estudos ou relacionamentos**
+- Limitam **atividades que antes eram normais**
+
+> **O TOC é tratável.** Com o tratamento adequado, a maioria das pessoas apresenta melhora significativa na qualidade de vida.
+
+---
+
+*Este artigo tem caráter informativo e não substitui avaliação médica profissional.*
+    `,
+  },
 ];
 
 export const faqItems = [
