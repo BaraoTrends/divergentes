@@ -5,6 +5,7 @@ import SEOHead from "@/components/SEOHead";
 import ArticleCard from "@/components/ArticleCard";
 import NewsletterCTA from "@/components/NewsletterCTA";
 import { categories, blogPosts } from "@/lib/content";
+import { categoryImages } from "@/lib/images";
 import { generateWebSiteSchema, generateOrganizationSchema } from "@/lib/seo";
 
 const Index = () => {
@@ -52,15 +53,29 @@ const Index = () => {
             <Link
               key={cat.slug}
               to={`/${cat.slug}`}
-              className="group rounded-lg border bg-card p-5 transition-all hover:shadow-md hover:border-primary/20"
+              className="group rounded-lg border bg-card overflow-hidden transition-all hover:shadow-md hover:border-primary/20"
             >
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">{cat.icon}</span>
-                <div>
-                  <h3 className="font-heading font-bold text-foreground group-hover:text-primary transition-colors">
-                    {cat.shortName}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{cat.description}</p>
+              {categoryImages[cat.slug] && (
+                <div className="h-32 overflow-hidden">
+                  <img
+                    src={categoryImages[cat.slug]}
+                    alt={cat.name}
+                    width={1200}
+                    height={672}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+              )}
+              <div className="p-5">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{cat.icon}</span>
+                  <div>
+                    <h3 className="font-heading font-bold text-foreground group-hover:text-primary transition-colors">
+                      {cat.shortName}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{cat.description}</p>
+                  </div>
                 </div>
               </div>
             </Link>
