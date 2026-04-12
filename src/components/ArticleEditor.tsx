@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
 import SeoChecker from "@/components/SeoChecker";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
+import { useAiWriter } from "@/hooks/useAiWriter";
 import type { Article } from "@/hooks/useArticles";
 
 interface ArticleEditorProps {
