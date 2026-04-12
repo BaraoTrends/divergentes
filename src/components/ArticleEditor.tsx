@@ -14,11 +14,12 @@ import {
 import { categories } from "@/lib/content";
 import RichTextEditor from "@/components/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
 import SeoChecker from "@/components/SeoChecker";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
+import { useAiWriter } from "@/hooks/useAiWriter";
 import type { Article } from "@/hooks/useArticles";
 
 interface ArticleEditorProps {
@@ -58,6 +59,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const { toast } = useToast();
   const { generateImage, isGenerating: isGeneratingCover } = useAiImageGen({
     onImageGenerated: (url) => setImageUrl(url),
+  });
+  const { generate: generateExcerpt, isGenerating: isGeneratingExcerpt } = useAiWriter({
+    onComplete: (text) => setExcerpt(text.trim()),
   });
 
   const generateSlug = (text: string) =>
@@ -256,7 +260,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="excerpt">Resumo</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="excerpt">Resumo</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  disabled={isGeneratingExcerpt || !content.trim()}
+                  onClick={() => generateExcerpt("generate_excerpt", { content })}
+                >
+                  {isGeneratingExcerpt ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-3 w-3" />
+                  )}
+                  Gerar com IA
+                </Button>
+              </div>
               <Textarea
                 id="excerpt"
                 value={excerpt}
