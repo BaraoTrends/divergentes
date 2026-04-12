@@ -50,6 +50,16 @@ const AiAssistantPanel = ({
     onStream: (text) => setStreamPreview(text),
   });
 
+  const { generateImage, isGenerating: isGeneratingImage } = useAiImageGen({
+    onImageGenerated: (url) => onImageInserted?.(url),
+  });
+
+  const handleGenerateInlineImage = async () => {
+    if (!imagePrompt.trim()) return;
+    await generateImage(imagePrompt.trim(), "inline");
+    setImagePrompt("");
+  };
+
   const handleGenerateArticle = async () => {
     if (!topic.trim()) return;
     setShowPreview(true);
