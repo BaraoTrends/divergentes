@@ -21,34 +21,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const checkAdmin = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    setIsAdmin(!!data);
+    try {
+      const { data } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "admin",
+      });
+      setIsAdmin(!!data);
+    } catch {
+      setIsAdmin(false);
+    }
   };
 
   useEffect(() => {
+    let initialized = false;
+
+    // Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await checkAdmin(session.user.id);
+      async (_event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        if (newSession?.user) {
+          // Use setTimeout to avoid Supabase deadlock on token refresh
+          setTimeout(() => checkAdmin(newSession.user.id), 0);
         } else {
           setIsAdmin(false);
         }
-        setLoading(false);
+        if (initialized) {
+          setLoading(false);
+        }
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdmin(session.user.id);
+    // Then get initial session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      initialized = true;
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      if (initialSession?.user) {
+        checkAdmin(initialSession.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
