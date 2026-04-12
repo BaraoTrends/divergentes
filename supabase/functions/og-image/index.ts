@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { render as renderSvgToPng } from "https://deno.land/x/resvg_wasm@0.2.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,10 +16,18 @@ const CATEGORIES: Record<string, { shortName: string; icon: string; color: strin
   toc: { shortName: "TOC", icon: "🔄", color: "#EC4899" },
 };
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 function generateOgSvg(title: string, category: string, siteName: string): string {
   const cat = CATEGORIES[category] || { shortName: "Geral", icon: "🧠", color: "#78716C" };
 
-  // Wrap title for SVG text (max ~40 chars per line)
   const words = title.split(" ");
   const lines: string[] = [];
   let currentLine = "";
@@ -31,7 +40,7 @@ function generateOgSvg(title: string, category: string, siteName: string): strin
     }
   }
   if (currentLine) lines.push(currentLine.trim());
-  const titleLines = lines.slice(0, 4); // max 4 lines
+  const titleLines = lines.slice(0, 4);
 
   const titleY = titleLines.length <= 2 ? 240 : 200;
   const titleSvg = titleLines
@@ -54,46 +63,20 @@ function generateOgSvg(title: string, category: string, siteName: string): strin
       <stop offset="100%" stop-color="${cat.color}" stop-opacity="0.7"/>
     </linearGradient>
   </defs>
-
-  <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
-
-  <!-- Left accent bar -->
   <rect x="0" y="0" width="8" height="630" fill="url(#accent)"/>
-
-  <!-- Top decorative line -->
   <rect x="80" y="120" width="80" height="4" rx="2" fill="${cat.color}"/>
-
-  <!-- Category badge -->
   <rect x="80" y="${badgeY}" width="${cat.shortName.length * 14 + 56}" height="36" rx="18" fill="${cat.color}" opacity="0.12"/>
   <text x="100" y="${badgeY + 24}" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="600" fill="${cat.color}">${cat.icon} ${escapeXml(cat.shortName)}</text>
-
-  <!-- Title -->
   ${titleSvg}
-
-  <!-- Bottom section -->
   <line x1="80" y1="540" x2="1120" y2="540" stroke="#D6D3D1" stroke-width="1"/>
-
-  <!-- Site name -->
-  <text x="80" y="580" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#78716C">🧠 ${escapeXml(siteName)}</text>
-
-  <!-- URL -->
+  <text x="80" y="580" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#78716C">&#x1F9E0; ${escapeXml(siteName)}</text>
   <text x="1120" y="580" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#A8A29E" text-anchor="end">neurodivergencias.com.br</text>
-
-  <!-- Corner decoration -->
   <circle cx="1140" cy="80" r="40" fill="${cat.color}" opacity="0.08"/>
   <circle cx="1100" cy="120" r="20" fill="${cat.color}" opacity="0.05"/>
 </svg>`;
 }
 
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -115,7 +98,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if we already have a cached OG image
+    // Check if cached PNG exists
     const cachePath = `og/${slug}.png`;
     const { data: existingFile } = await supabase.storage
       .from("article-images")
@@ -151,49 +134,24 @@ serve(async (req) => {
       });
     }
 
-    // Generate SVG OG image
+    // Generate SVG
     const svg = generateOgSvg(article.title, article.category, "Neurodivergências");
 
-    // Try to convert SVG to PNG using resvg-wasm
-    let imageData: Uint8Array;
-    let contentType: string;
+    // Convert SVG → PNG via resvg-wasm
+    const pngData: Uint8Array = await renderSvgToPng(svg);
 
-    try {
-      const { Resvg, initWasm } = await import("npm:@aspect-dev/resvg-wasm@0.1.0");
-      
-      // Fetch and init WASM
-      const wasmUrl = "https://unpkg.com/@aspect-dev/resvg-wasm@0.1.0/index_bg.wasm";
-      const wasmResp = await fetch(wasmUrl);
-      const wasmBytes = await wasmResp.arrayBuffer();
-      await initWasm(wasmBytes);
-
-      const resvg = new Resvg(svg, {
-        fitTo: { mode: "width", value: 1200 },
-      });
-      const rendered = resvg.render();
-      imageData = rendered.asPng();
-      contentType = "image/png";
-    } catch (resvgError) {
-      console.warn("resvg-wasm failed, falling back to SVG:", resvgError);
-      // Fallback: serve SVG directly and cache as SVG
-      imageData = new TextEncoder().encode(svg);
-      contentType = "image/svg+xml";
-    }
-
-    // Cache in storage
-    const cacheFileName = contentType === "image/png" ? `og/${slug}.png` : `og/${slug}.svg`;
+    // Cache PNG in storage
     await supabase.storage
       .from("article-images")
-      .upload(cacheFileName, imageData, {
-        contentType,
+      .upload(cachePath, pngData, {
+        contentType: "image/png",
         upsert: true,
       });
 
-    // Return the image
-    return new Response(imageData, {
+    return new Response(pngData, {
       headers: {
         ...corsHeaders,
-        "Content-Type": contentType,
+        "Content-Type": "image/png",
         "Cache-Control": "public, max-age=86400, s-maxage=604800",
       },
     });
