@@ -187,7 +187,7 @@ const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps)
   useEffect(() => {
     if (editor && content !== lastExternalContent.current) {
       lastExternalContent.current = content;
-      editor.commands.setContent(content, false);
+      editor.commands.setContent(content, { emitUpdate: false });
     }
   }, [content, editor]);
 
