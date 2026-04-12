@@ -33,6 +33,7 @@ function buildHtml(opts: {
   image?: string;
   type?: string;
   body: string;
+  noindex?: boolean;
   schemas?: object[];
   article?: { datePublished: string; dateModified: string; author: string };
 }): string {
@@ -60,7 +61,7 @@ function buildHtml(opts: {
   <title>${escapeHtml(fullTitle)}</title>
   <meta name="description" content="${escapeHtml(desc)}" />
   <link rel="canonical" href="${canonical}" />
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="robots" content="${opts.noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}" />
 
   <meta property="og:title" content="${escapeHtml(fullTitle)}" />
   <meta property="og:description" content="${escapeHtml(desc)}" />
@@ -299,6 +300,7 @@ serve(async (req) => {
             title: "Artigo não encontrado",
             description: "O artigo que você procura não foi encontrado.",
             path,
+            noindex: true,
             body: `<main><h1>Artigo não encontrado</h1><p>Voltar ao <a href="/blog">blog</a>.</p></main>`,
           }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } }
@@ -383,6 +385,7 @@ serve(async (req) => {
         title: "Página não encontrada",
         description: "A página que você procura não existe.",
         path,
+        noindex: true,
         body: `<main><h1>Página não encontrada</h1><p>Voltar à <a href="/">página inicial</a>.</p></main>`,
       }),
       { status: 404, headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } }
