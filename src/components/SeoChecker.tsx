@@ -7,6 +7,7 @@ interface SeoCheckerProps {
   content: string;
   slug: string;
   imageUrl: string;
+  focusKeyword?: string;
 }
 
 interface SeoCheck {
@@ -39,12 +40,14 @@ function hasLinks(html: string): boolean {
   return /<a\s/i.test(html);
 }
 
-function analyzeSeo({ title, excerpt, content, slug, imageUrl }: SeoCheckerProps): SeoCheck[] {
+function analyzeSeo({ title, excerpt, content, slug, imageUrl, focusKeyword }: SeoCheckerProps): SeoCheck[] {
   const checks: SeoCheck[] = [];
   const titleLen = title.trim().length;
   const excerptLen = excerpt.trim().length;
+  const plainContent = stripHtml(content).toLowerCase();
   const wordCount = countWords(content);
   const headings = getHeadings(content);
+  const kw = (focusKeyword || "").trim().toLowerCase();
 
   // Title
   if (!titleLen) {
@@ -125,6 +128,67 @@ function analyzeSeo({ title, excerpt, content, slug, imageUrl }: SeoCheckerProps
     checks.push({ id: "para-ok", label: "Parágrafos", status: "good", message: "Parágrafos com tamanho adequado." });
   }
 
+  // Focus keyword checks
+  if (kw) {
+    // Keyword in title
+    if (title.toLowerCase().includes(kw)) {
+      checks.push({ id: "kw-title", label: "Keyword no título", status: "good", message: `"${focusKeyword}" encontrada no título.` });
+    } else {
+      checks.push({ id: "kw-title", label: "Keyword no título", status: "error", message: `"${focusKeyword}" não aparece no título.` });
+    }
+
+    // Keyword in excerpt
+    if (excerpt.toLowerCase().includes(kw)) {
+      checks.push({ id: "kw-excerpt", label: "Keyword na meta descrição", status: "good", message: `"${focusKeyword}" encontrada no resumo.` });
+    } else {
+      checks.push({ id: "kw-excerpt", label: "Keyword na meta descrição", status: "warning", message: `"${focusKeyword}" não aparece no resumo.` });
+    }
+
+    // Keyword in slug
+    const kwSlug = kw.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-");
+    if (slug.toLowerCase().includes(kwSlug)) {
+      checks.push({ id: "kw-slug", label: "Keyword na URL", status: "good", message: `Keyword encontrada no slug.` });
+    } else {
+      checks.push({ id: "kw-slug", label: "Keyword na URL", status: "warning", message: `Considere incluir "${focusKeyword}" no slug.` });
+    }
+
+    // Keyword in headings
+    const kwInHeadings = headings.some((h) => h.toLowerCase().includes(kw));
+    if (kwInHeadings) {
+      checks.push({ id: "kw-headings", label: "Keyword nos subtítulos", status: "good", message: `Keyword presente em pelo menos um subtítulo.` });
+    } else if (headings.length > 0) {
+      checks.push({ id: "kw-headings", label: "Keyword nos subtítulos", status: "warning", message: `Adicione "${focusKeyword}" em pelo menos um H2/H3.` });
+    }
+
+    // Keyword in first paragraph
+    const firstPara = stripHtml(content.split(/<\/p>/i)[0] || "").toLowerCase();
+    if (firstPara.includes(kw)) {
+      checks.push({ id: "kw-intro", label: "Keyword na introdução", status: "good", message: `Keyword presente no primeiro parágrafo.` });
+    } else {
+      checks.push({ id: "kw-intro", label: "Keyword na introdução", status: "warning", message: `Inclua "${focusKeyword}" no primeiro parágrafo.` });
+    }
+
+    // Keyword density
+    if (wordCount > 0) {
+      const kwWords = kw.split(/\s+/).length;
+      let kwCount = 0;
+      const words = plainContent.split(/\s+/);
+      for (let i = 0; i <= words.length - kwWords; i++) {
+        if (words.slice(i, i + kwWords).join(" ") === kw) kwCount++;
+      }
+      const density = (kwCount / wordCount) * 100;
+      if (density === 0) {
+        checks.push({ id: "kw-density", label: "Densidade da keyword", status: "error", message: `"${focusKeyword}" não aparece no conteúdo.` });
+      } else if (density < 0.5) {
+        checks.push({ id: "kw-density", label: "Densidade da keyword", status: "warning", message: `Densidade baixa (${density.toFixed(1)}%). Ideal: 0.5–2.5%.` });
+      } else if (density > 2.5) {
+        checks.push({ id: "kw-density", label: "Densidade da keyword", status: "warning", message: `Densidade alta (${density.toFixed(1)}%). Risco de keyword stuffing.` });
+      } else {
+        checks.push({ id: "kw-density", label: "Densidade da keyword", status: "good", message: `Densidade ideal (${density.toFixed(1)}%). ${kwCount} ocorrência(s).` });
+      }
+    }
+  }
+
   return checks;
 }
 
@@ -136,7 +200,7 @@ const statusIcon = {
 
 const SeoChecker = (props: SeoCheckerProps) => {
   const [expanded, setExpanded] = useState(false);
-  const checks = useMemo(() => analyzeSeo(props), [props.title, props.excerpt, props.content, props.slug, props.imageUrl]);
+  const checks = useMemo(() => analyzeSeo(props), [props.title, props.excerpt, props.content, props.slug, props.imageUrl, props.focusKeyword]);
 
   const goodCount = checks.filter((c) => c.status === "good").length;
   const total = checks.length;
