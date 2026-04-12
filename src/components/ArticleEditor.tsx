@@ -345,6 +345,10 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             onContentGenerated={(html) => setContent(html)}
             onTitleGenerated={(t) => setTitle(t)}
             onExcerptGenerated={(e) => setExcerpt(e)}
+            onImageInserted={(url) => {
+              const imgTag = `<img src="${url}" alt="Imagem gerada por IA" style="max-width:100%;height:auto;border-radius:8px;margin:1em 0" />`;
+              setContent((prev) => prev + imgTag);
+            }}
           />
 
           <div className="space-y-2">
