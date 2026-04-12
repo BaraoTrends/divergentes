@@ -1,4 +1,5 @@
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import { useEffect, useRef } from "react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
@@ -155,6 +156,8 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
 };
 
 const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps) => {
+  const lastExternalContent = useRef(content);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -169,7 +172,9 @@ const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps)
     ],
     content,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      const html = editor.getHTML();
+      lastExternalContent.current = html;
+      onChange(html);
     },
     editorProps: {
       attributes: {
@@ -177,6 +182,14 @@ const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps)
       },
     },
   });
+
+  // Sync external content changes (e.g. from AI generation)
+  useEffect(() => {
+    if (editor && content !== lastExternalContent.current) {
+      lastExternalContent.current = content;
+      editor.commands.setContent(content, { emitUpdate: false });
+    }
+  }, [content, editor]);
 
   if (!editor) return null;
 
