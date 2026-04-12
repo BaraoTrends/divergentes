@@ -89,7 +89,10 @@ const BlogPost = () => {
   const dbSlugs = new Set(dbAsBlogPosts.map((p) => p.slug));
   const allPosts = [...dbAsBlogPosts, ...staticPosts.filter((p) => !dbSlugs.has(p.slug))];
 
-  // Simple markdown-like rendering
+  // Detect if content is HTML (from rich editor) vs markdown
+  const isHtmlContent = (text: string) => /^<[a-z][\s\S]*>/i.test(text.trim());
+
+  // Simple markdown-like rendering for static posts
   const renderContent = (content: string) => {
     const lines = content.trim().split("\n");
     const elements: JSX.Element[] = [];
@@ -269,7 +272,14 @@ const BlogPost = () => {
             </div>
           )}
 
-          {renderContent(post.content)}
+          {isHtmlContent(post.content) ? (
+            <div
+              className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-heading prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:bg-accent/30 prose-blockquote:rounded-r-md prose-img:rounded-lg"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          ) : (
+            renderContent(post.content)
+          )}
 
           <div className="mt-12">
             <NewsletterCTA />

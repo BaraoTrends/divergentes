@@ -135,3 +135,24 @@ html {
 *:focus-visible {
   @apply outline-2 outline-offset-2 outline-ring ring-ring;
 }
+
+/* Tiptap editor styles */
+.tiptap {
+  @apply text-foreground;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  @apply text-muted-foreground pointer-events-none float-left h-0;
+  content: attr(data-placeholder);
+}
+
+.tiptap h1 { @apply font-heading text-2xl font-bold mt-6 mb-3; }
+.tiptap h2 { @apply font-heading text-xl font-bold mt-6 mb-2; }
+.tiptap h3 { @apply font-heading text-lg font-bold mt-4 mb-2; }
+.tiptap ul { @apply list-disc pl-6 space-y-1; }
+.tiptap ol { @apply list-decimal pl-6 space-y-1; }
+.tiptap blockquote { @apply border-l-4 border-primary/30 pl-4 py-2 italic bg-accent/30 rounded-r-md my-4; }
+.tiptap hr { @apply my-6 border-border; }
+.tiptap a { @apply text-primary underline; }
+.tiptap img { @apply rounded-lg max-w-full my-4; }
+.tiptap p { @apply leading-relaxed; }
