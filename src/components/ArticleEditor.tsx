@@ -260,7 +260,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="excerpt">Resumo</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="excerpt">Resumo</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  disabled={isGeneratingExcerpt || !content.trim()}
+                  onClick={() => generateExcerpt("generate_excerpt", { content })}
+                >
+                  {isGeneratingExcerpt ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-3 w-3" />
+                  )}
+                  Gerar com IA
+                </Button>
+              </div>
               <Textarea
                 id="excerpt"
                 value={excerpt}
