@@ -28,6 +28,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import UsuariosTab from "@/components/admin/UsuariosTab";
+import ConfiguracoesTab from "@/components/admin/ConfiguracoesTab";
+import AnunciosTab from "@/components/admin/AnunciosTab";
 import {
   LayoutDashboard,
   FileText,
@@ -40,9 +42,11 @@ import {
   Eye,
   EyeOff,
   Users,
+  Megaphone,
+  Wrench,
 } from "lucide-react";
 
-type Tab = "dashboard" | "artigos" | "categorias" | "usuarios" | "perfil";
+type Tab = "dashboard" | "artigos" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "perfil";
 type EditorMode = null | "create" | "edit";
 
 const AdminDashboard = () => {
@@ -72,6 +76,8 @@ const AdminDashboard = () => {
     { id: "artigos" as Tab, label: "Artigos", icon: FileText },
     { id: "categorias" as Tab, label: "Categorias", icon: BarChart3 },
     { id: "usuarios" as Tab, label: "Usuários", icon: Users },
+    { id: "configuracoes" as Tab, label: "Configurações", icon: Wrench },
+    { id: "anuncios" as Tab, label: "Anúncios", icon: Megaphone },
     { id: "perfil" as Tab, label: "Perfil", icon: Settings },
   ];
 
@@ -129,6 +135,8 @@ const AdminDashboard = () => {
             )}
             {activeTab === "categorias" && <CategoriasTab />}
             {activeTab === "usuarios" && <UsuariosTab />}
+            {activeTab === "configuracoes" && <ConfiguracoesTab />}
+            {activeTab === "anuncios" && <AnunciosTab />}
             {activeTab === "perfil" && <PerfilTab />}
           </main>
         </div>
