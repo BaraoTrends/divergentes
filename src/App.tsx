@@ -19,6 +19,7 @@ const Contato = lazy(() => import("./pages/Contato"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SitemapRedirect = lazy(() => import("./pages/SitemapRedirect"));
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/sitemap.xml" element={<SitemapRedirect />} />
                 {categoryRoutes.map((slug) => (
                   <Route key={slug} path={`/${slug}`} element={<CategoryHub />} />
                 ))}
