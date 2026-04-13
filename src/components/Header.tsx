@@ -136,6 +136,11 @@ const Header = () => {
                 ⚙️ Painel Admin
               </Link>
             )}
+            {user && (
+              <button onClick={signOut} className="block w-full text-left px-3 py-2.5 rounded-md text-sm font-medium text-destructive hover:bg-accent transition-colors">
+                🚪 Sair
+              </button>
+            )}
           </div>
         </nav>
       )}
