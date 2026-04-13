@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 interface AiAssistantPanelProps {
+  title?: string;
   content: string;
   onContentGenerated: (html: string) => void;
   onTitleGenerated?: (title: string) => void;
@@ -26,13 +27,14 @@ interface AiAssistantPanelProps {
 }
 
 const AiAssistantPanel = ({
+  title,
   content,
   onContentGenerated,
   onTitleGenerated,
   onExcerptGenerated,
   onImageInserted,
 }: AiAssistantPanelProps) => {
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(title || "");
   const [expanded, setExpanded] = useState(true);
   const [streamPreview, setStreamPreview] = useState("");
   const [showPreview, setShowPreview] = useState(false);
@@ -54,6 +56,14 @@ const AiAssistantPanel = ({
     onImageGenerated: (url) => onImageInserted?.(url),
   });
 
+  useEffect(() => {
+    if (title?.trim() && !topic.trim()) {
+      setTopic(title.trim());
+    }
+  }, [title, topic]);
+
+  const effectiveTopic = topic.trim() || title?.trim() || "";
+
   const handleGenerateInlineImage = async () => {
     if (!imagePrompt.trim()) return;
     await generateImage(imagePrompt.trim(), "inline");
@@ -61,10 +71,10 @@ const AiAssistantPanel = ({
   };
 
   const handleGenerateArticle = async () => {
-    if (!topic.trim()) return;
+    if (!effectiveTopic) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("generate_article", { topic: topic.trim(), model: selectedModel });
+    const result = await generate("generate_article", { topic: effectiveTopic, model: selectedModel });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -98,7 +108,7 @@ const AiAssistantPanel = ({
 
   const handleGenerateTitle = async () => {
     const result = await generate("generate_title", {
-      topic: topic.trim() || undefined,
+      topic: effectiveTopic || undefined,
       content: content || undefined,
       model: selectedModel,
     });
@@ -169,7 +179,7 @@ const AiAssistantPanel = ({
                 type="button"
                 size="sm"
                 onClick={handleGenerateArticle}
-                disabled={isGenerating || !topic.trim()}
+                disabled={isGenerating || !effectiveTopic}
                 className="gap-1 shrink-0"
               >
                 {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}

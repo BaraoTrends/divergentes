@@ -529,6 +529,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
             {/* AI Assistant */}
             <AiAssistantPanel
+              title={title}
               content={content}
               onContentGenerated={(html) => setContent(html)}
               onTitleGenerated={(t) => setTitle(t)}
