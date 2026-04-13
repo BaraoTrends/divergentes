@@ -34,6 +34,7 @@ interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  editorRef?: React.MutableRefObject<Editor | null>;
 }
 
 const MenuButton = ({
@@ -155,7 +156,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
   );
 };
 
-const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps) => {
+const RichTextEditor = ({ content, onChange, placeholder, editorRef }: RichTextEditorProps) => {
   const lastExternalContent = useRef(content);
 
   const editor = useEditor({
