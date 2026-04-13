@@ -17,18 +17,24 @@ const InternalLinksSuggestions = ({ articleId, currentSlug }: Props) => {
   const articleMap = new Map(articles.map((a) => [a.id, a]));
 
   // Get target articles linked FROM this article
-  const linkedArticles = links
+  const outLinks = links
     .filter((l) => l.source_article_id === articleId)
-    .map((l) => articleMap.get(l.target_article_id))
-    .filter(Boolean);
+    .map((l) => {
+      const article = articleMap.get(l.target_article_id);
+      return article ? { article, anchor: l.anchor_text } : null;
+    })
+    .filter(Boolean) as { article: NonNullable<ReturnType<typeof articleMap.get>>; anchor: string }[];
 
   // Also get articles that link TO this article
-  const backLinks = links
+  const inLinks = links
     .filter((l) => l.target_article_id === articleId)
-    .map((l) => articleMap.get(l.source_article_id))
-    .filter(Boolean);
+    .map((l) => {
+      const article = articleMap.get(l.source_article_id);
+      return article ? { article, anchor: l.anchor_text } : null;
+    })
+    .filter(Boolean) as { article: NonNullable<ReturnType<typeof articleMap.get>>; anchor: string }[];
 
-  const allLinked = [...new Map([...linkedArticles, ...backLinks].map((a) => [a!.id, a])).values()];
+  const allLinked = [...new Map([...outLinks, ...inLinks].map((item) => [item.article.id, item])).values()];
 
   if (allLinked.length === 0) return null;
 
@@ -39,14 +45,14 @@ const InternalLinksSuggestions = ({ articleId, currentSlug }: Props) => {
         Leia Também
       </h3>
       <ul className="space-y-2">
-        {allLinked.slice(0, 4).map((article) => (
-          <li key={article!.id}>
+        {allLinked.slice(0, 4).map((item) => (
+          <li key={item.article.id}>
             <Link
-              to={`/blog/${article!.slug}`}
+              to={`/blog/${item.article.slug}`}
               className="text-sm text-primary hover:underline flex items-center gap-1.5"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
-              {article!.title}
+              {item.anchor}
             </Link>
           </li>
         ))}
