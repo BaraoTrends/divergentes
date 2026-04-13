@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Search, Moon, Sun } from "lucide-react";
+import { Menu, X, Search, Moon, Sun, Settings } from "lucide-react";
 import { categories } from "@/lib/content";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import logoImg from "@/assets/logo-neuro-rotina.png";
 
 const Header = () => {
