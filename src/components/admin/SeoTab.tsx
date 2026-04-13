@@ -265,7 +265,7 @@ const SeoTab = () => {
                   <p className="text-xs text-muted-foreground">
                     <strong>URL do Sitemap:</strong>{" "}
                     <a
-                      href={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap`}
+                      href="/functions/v1/sitemap"
                       target="_blank"
                       rel="noreferrer"
                       className="text-primary hover:underline inline-flex items-center gap-1"

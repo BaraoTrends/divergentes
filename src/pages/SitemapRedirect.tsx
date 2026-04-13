@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITEMAP_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap`;
+const SITEMAP_URL = "/functions/v1/sitemap";
 
 const SitemapRedirect = () => {
   useEffect(() => {
