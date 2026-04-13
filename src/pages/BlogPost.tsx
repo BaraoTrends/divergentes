@@ -79,6 +79,17 @@ const BlogPost = () => {
     author: post.author,
   });
 
+  // Collect all schemas: breadcrumb + article + custom per-article
+  const allSchemas: object[] = [breadcrumbSchema, articleSchema];
+  if (dbArticle?.custom_schema) {
+    const cs = dbArticle.custom_schema;
+    if (Array.isArray(cs)) {
+      allSchemas.push(...(cs as object[]));
+    } else if (typeof cs === "object" && cs !== null) {
+      allSchemas.push(cs as object);
+    }
+  }
+
   // Build all posts (DB + static) for related
   const dbAsBlogPosts: BlogPostType[] = dbArticles.map((a) => ({
     slug: a.slug,
@@ -241,7 +252,7 @@ const BlogPost = () => {
         path={`/blog/${post.slug}`}
         image={ogImage}
         type="article"
-        schemas={[breadcrumbSchema, articleSchema]}
+        schemas={allSchemas}
       />
       <article className="container py-8 md:py-12">
         <Breadcrumbs items={[{ label: "Blog", href: "/blog" }, { label: post.title }]} />

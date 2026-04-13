@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSiteSettings, useBulkUpdateSettings } from "@/hooks/useSiteSettings";
-import { useArticles, type Article } from "@/hooks/useArticles";
+import { useArticles, useUpdateArticle, type Article } from "@/hooks/useArticles";
 import { analyzeSeo, calculateScore, countWords, type SeoCheck } from "@/lib/seoAnalysis";
 import { SITE_URL } from "@/lib/seo";
 import { Input } from "@/components/ui/input";
@@ -31,10 +31,13 @@ const SeoTab = () => {
   const { data: settings = [], isLoading } = useSiteSettings();
   const bulkUpdate = useBulkUpdateSettings();
   const { data: articles = [] } = useArticles();
+  const updateArticle = useUpdateArticle();
   const { toast } = useToast();
   const [values, setValues] = useState<Record<string, string>>({});
   const [expandedSection, setExpandedSection] = useState<string | null>("global");
   const [expandedArticle, setExpandedArticle] = useState<string | null>(null);
+  const [schemaEdits, setSchemaEdits] = useState<Record<string, string>>({});
+  const [schemaErrors, setSchemaErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (settings.length > 0) {
@@ -357,7 +360,7 @@ const SeoTab = () => {
                           </button>
 
                           {isExpanded && (
-                            <div className="border-t px-3 py-2 space-y-1 bg-accent/10">
+                            <div className="border-t px-3 py-2 space-y-3 bg-accent/10">
                               {checks.map((check) => (
                                 <div key={check.id} className="flex items-start gap-2 py-1">
                                   {check.status === "good" ? (
@@ -373,6 +376,61 @@ const SeoTab = () => {
                                   </div>
                                 </div>
                               ))}
+
+                              {/* Custom Schema Editor */}
+                              <div className="border-t pt-3 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                    <Code className="h-3.5 w-3.5" />
+                                    Schema Markup Personalizado (JSON-LD)
+                                  </Label>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-6 text-[10px] px-2"
+                                    disabled={!!schemaErrors[article.id]}
+                                    onClick={() => {
+                                      const raw = schemaEdits[article.id];
+                                      if (raw === undefined) return;
+                                      try {
+                                        const parsed = raw.trim() ? JSON.parse(raw) : null;
+                                        updateArticle.mutate(
+                                          { id: article.id, custom_schema: parsed } as any,
+                                          { onSuccess: () => toast({ title: `Schema salvo para "${article.title}"` }) }
+                                        );
+                                      } catch {
+                                        setSchemaErrors((p) => ({ ...p, [article.id]: "JSON inválido" }));
+                                      }
+                                    }}
+                                  >
+                                    <Save className="h-3 w-3 mr-1" /> Salvar Schema
+                                  </Button>
+                                </div>
+                                <textarea
+                                  value={schemaEdits[article.id] ?? (article.custom_schema ? JSON.stringify(article.custom_schema, null, 2) : "")}
+                                  onChange={(e) => {
+                                    const v = e.target.value;
+                                    setSchemaEdits((p) => ({ ...p, [article.id]: v }));
+                                    if (v.trim()) {
+                                      try { JSON.parse(v); setSchemaErrors((p) => { const n = { ...p }; delete n[article.id]; return n; }); }
+                                      catch { setSchemaErrors((p) => ({ ...p, [article.id]: "JSON inválido" })); }
+                                    } else {
+                                      setSchemaErrors((p) => { const n = { ...p }; delete n[article.id]; return n; });
+                                    }
+                                  }}
+                                  placeholder='{"@context":"https://schema.org","@type":"HowTo","name":"..."}'
+                                  rows={5}
+                                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
+                                />
+                                {schemaErrors[article.id] && (
+                                  <p className="text-[11px] text-destructive flex items-center gap-1">
+                                    <XCircle className="h-3 w-3" /> {schemaErrors[article.id]}
+                                  </p>
+                                )}
+                                <p className="text-[10px] text-muted-foreground">
+                                  Adicione schemas como HowTo, FAQ, Recipe, etc. O schema Article é gerado automaticamente.
+                                </p>
+                              </div>
                             </div>
                           )}
                         </div>
