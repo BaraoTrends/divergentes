@@ -299,8 +299,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                   variant="ghost"
                   size="sm"
                   className="h-7 text-xs gap-1"
-                  disabled={isGeneratingExcerpt || !content.trim()}
-                  onClick={() => generateExcerpt("generate_excerpt", { content })}
+                  disabled={isGeneratingExcerpt || (!content.trim() && !title.trim())}
+                  onClick={() => generateExcerpt("generate_excerpt", { content: content || title })}
                 >
                   {isGeneratingExcerpt ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -493,25 +493,26 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             }}
           />
 
-          {/* AI Assistant */}
-          <AiAssistantPanel
-            content={content}
-            onContentGenerated={(html) => setContent(html)}
-            onTitleGenerated={(t) => setTitle(t)}
-            onExcerptGenerated={(e) => setExcerpt(e)}
-            onImageInserted={(url) => {
-              const imgTag = `<img src="${url}" alt="Imagem gerada por IA" style="max-width:100%;height:auto;border-radius:8px;margin:1em 0" />`;
-              setContent((prev) => prev + imgTag);
-            }}
-          />
-
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <Label>Conteúdo *</Label>
               <span className={`text-xs ${meetsMinimum ? "text-green-600" : "text-destructive"}`}>
                 {wordCount} palavras • {charCount} caracteres {meetsMinimum ? "✓" : `(mín. 400 palavras ou 3.000 caracteres)`}
               </span>
             </div>
+
+            {/* AI Assistant */}
+            <AiAssistantPanel
+              content={content}
+              onContentGenerated={(html) => setContent(html)}
+              onTitleGenerated={(t) => setTitle(t)}
+              onExcerptGenerated={(e) => setExcerpt(e)}
+              onImageInserted={(url) => {
+                const imgTag = `<img src="${url}" alt="Imagem gerada por IA" style="max-width:100%;height:auto;border-radius:8px;margin:1em 0" />`;
+                setContent((prev) => prev + imgTag);
+              }}
+            />
+
             <RichTextEditor
               content={content}
               onChange={setContent}
