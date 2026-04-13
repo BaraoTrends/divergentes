@@ -11,6 +11,7 @@ const Header = () => {
   const [isDark, setIsDark] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
