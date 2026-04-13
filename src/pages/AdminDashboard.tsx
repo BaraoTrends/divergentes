@@ -117,7 +117,7 @@ const AdminDashboard = () => {
           </aside>
 
           <main className="flex-1 min-w-0">
-            {activeTab === "dashboard" && <DashboardTab onEditArticle={(a) => { setActiveTab("artigos"); openEditor("edit", a); }} />}
+            {activeTab === "dashboard" && <DashboardTab onEditArticle={(a) => { setActiveTab("artigos"); openEditor("edit", a); }} onNavigate={(tab) => { setActiveTab(tab); closeEditor(); }} />}
             {activeTab === "artigos" && (
               editorMode ? (
                 <EditorWrapper
