@@ -8,6 +8,7 @@ import CategoryBadge from "@/components/CategoryBadge";
 import ShareButtons from "@/components/ShareButtons";
 import NewsletterCTA from "@/components/NewsletterCTA";
 import AdSlot from "@/components/AdSlot";
+import InternalLinksSuggestions from "@/components/InternalLinksSuggestions";
 import { blogPosts as staticPosts } from "@/lib/content";
 import { blogImages } from "@/lib/images";
 import { useArticleBySlug, useArticles } from "@/hooks/useArticles";
@@ -303,6 +304,8 @@ const BlogPost = () => {
             ) : (
               renderContent(post.content)
             )}
+
+            <InternalLinksSuggestions articleId={dbArticle?.id} currentSlug={post.slug} />
 
             <div className="mt-12">
               <NewsletterCTA />

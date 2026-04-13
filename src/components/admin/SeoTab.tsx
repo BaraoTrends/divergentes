@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import InternalLinksSection from "@/components/admin/InternalLinksSection";
 import {
   Save,
   Globe,
@@ -25,6 +26,7 @@ import {
   Code,
   BarChart3,
   ExternalLink,
+  Link2,
 } from "lucide-react";
 
 const SeoTab = () => {
@@ -304,6 +306,18 @@ const SeoTab = () => {
                 {renderField("seo_bing_verification", "Bing Webmaster Tools", "Meta tag de verificação do Bing", "", { mono: true })}
                 {renderField("gtm_id", "Google Tag Manager", "ID do container GTM", "GTM-XXXXXXX", { mono: true })}
                 {renderField("seo_ga_id", "Google Analytics (GA4)", "ID de medição do GA4", "G-XXXXXXXXXX", { mono: true })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Linkagem Interna */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="internal-links" icon={Link2} title="Linkagem Interna" badge="Auto" />
+          {expandedSection === "internal-links" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <InternalLinksSection />
               </div>
             </div>
           )}

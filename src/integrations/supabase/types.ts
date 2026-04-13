@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_internal_links: {
+        Row: {
+          anchor_text: string
+          approved: boolean
+          auto_generated: boolean
+          created_at: string
+          id: string
+          source_article_id: string
+          target_article_id: string
+          updated_at: string
+        }
+        Insert: {
+          anchor_text: string
+          approved?: boolean
+          auto_generated?: boolean
+          created_at?: string
+          id?: string
+          source_article_id: string
+          target_article_id: string
+          updated_at?: string
+        }
+        Update: {
+          anchor_text?: string
+          approved?: boolean
+          auto_generated?: boolean
+          created_at?: string
+          id?: string
+          source_article_id?: string
+          target_article_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_internal_links_source_article_id_fkey"
+            columns: ["source_article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_internal_links_target_article_id_fkey"
+            columns: ["target_article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author_id: string
