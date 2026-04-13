@@ -66,6 +66,13 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     onComplete: (text) => setExcerpt(text.trim()),
   });
   const { generate: generateKeywords, isGenerating: isGeneratingTags } = useAiWriter({
+  const { generate: generateFocusKw, isGenerating: isGeneratingFocusKw } = useAiWriter({
+    onComplete: (text) => {
+      const clean = text.replace(/```/g, "").replace(/"/g, "").trim();
+      const keyword = clean.split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)[0];
+      if (keyword) setFocusKeyword(keyword.toLowerCase());
+    },
+  });
     onComplete: (text) => {
       try {
         // Clean potential markdown code fences
