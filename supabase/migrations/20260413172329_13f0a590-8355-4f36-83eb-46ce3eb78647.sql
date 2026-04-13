@@ -1,0 +1,1 @@
+ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS custom_schema jsonb DEFAULT NULL;

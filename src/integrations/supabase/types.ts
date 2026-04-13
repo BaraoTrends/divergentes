@@ -20,6 +20,7 @@ export type Database = {
           category: string
           content: string
           created_at: string
+          custom_schema: Json | null
           excerpt: string | null
           featured: boolean
           id: string
@@ -36,6 +37,7 @@ export type Database = {
           category: string
           content: string
           created_at?: string
+          custom_schema?: Json | null
           excerpt?: string | null
           featured?: boolean
           id?: string
@@ -52,6 +54,7 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string
+          custom_schema?: Json | null
           excerpt?: string | null
           featured?: boolean
           id?: string
