@@ -74,11 +74,15 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
         const keywords: string[] = parsed.keywords?.map((k: any) => k.term) || [];
         if (keywords.length > 0) {
           setTags((prev) => [...new Set([...prev, ...keywords])]);
+          setFocusKeyword((prev) => prev.trim() ? prev : keywords[0]);
         }
       } catch {
         // If not JSON, try comma-separated
         const fallback = text.split(/[,\n]/).map((t: string) => t.trim()).filter(Boolean);
-        if (fallback.length > 0) setTags((prev) => [...new Set([...prev, ...fallback])]);
+        if (fallback.length > 0) {
+          setTags((prev) => [...new Set([...prev, ...fallback])]);
+          setFocusKeyword((prev) => prev.trim() ? prev : fallback[0]);
+        }
       }
     },
   });
