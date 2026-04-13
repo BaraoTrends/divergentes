@@ -220,6 +220,30 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     });
   };
 
+  const handlePublish = () => {
+    if (!meetsMinimum) {
+      toast({
+        title: "Conteúdo insuficiente",
+        description: `O artigo precisa ter no mínimo 400 palavras ou 3.000 caracteres. Atual: ${wordCount} palavras / ${charCount} caracteres.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    onSave({
+      title: title.trim(),
+      slug: slug.trim(),
+      excerpt: excerpt.trim(),
+      content,
+      category,
+      image_url: imageUrl.trim(),
+      published: true,
+      featured,
+      read_time: calculatedReadTime,
+      tags,
+      author_id: article?.author_id || userId,
+    });
+  };
+
   const handleSaveAsDraft = () => {
     onSave({
       title: title.trim(),
