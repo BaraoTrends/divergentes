@@ -565,6 +565,10 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                 if (title.trim()) {
                   generateKeywords("suggest_keywords", { topic: title.trim() });
                 }
+                // Auto-generate excerpt after AI content generation
+                generateExcerpt("generate_excerpt", { content: html });
+                // Auto-generate focus keyword
+                generateFocusKw("generate_focus_keyword", { topic: title.trim() || undefined, content: html.slice(0, 3000) });
               }}
               onTitleGenerated={(t) => setTitle(t)}
               onExcerptGenerated={(e) => setExcerpt(e)}
