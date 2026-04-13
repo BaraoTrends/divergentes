@@ -36,11 +36,9 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
       .select("value")
       .eq("key", "gtm_id")
       .maybeSingle()
-      .then(({ data, error }) => {
-        console.log("[GTM] Fetched gtm_id:", data, "error:", error);
+      .then(({ data }) => {
         const id = data?.value?.trim();
         if (id && id.length > 3 && id.startsWith("GTM-")) {
-          console.log("[GTM] Valid GTM ID found:", id);
           setGtmId(id);
         }
       });
