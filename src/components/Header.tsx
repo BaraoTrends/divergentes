@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Search, Moon, Sun, Settings } from "lucide-react";
+import { Menu, X, Search, Moon, Sun, Settings, LogOut } from "lucide-react";
 import { categories } from "@/lib/content";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +11,7 @@ const Header = () => {
   const [isDark, setIsDark] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -86,6 +86,11 @@ const Header = () => {
           {isAdmin && (
             <Button variant="ghost" size="icon" asChild aria-label="Painel Admin">
               <Link to="/admin"><Settings className="h-5 w-5" /></Link>
+            </Button>
+          )}
+          {user && (
+            <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sair">
+              <LogOut className="h-5 w-5" />
             </Button>
           )}
           <Button variant="ghost" size="icon" onClick={toggleDark} aria-label={isDark ? "Modo claro" : "Modo escuro"}>
