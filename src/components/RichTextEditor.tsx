@@ -204,7 +204,9 @@ const RichTextEditor = ({ content, onChange, placeholder, editorRef }: RichTextE
   return (
     <div className="border rounded-lg overflow-hidden bg-background">
       <MenuBar editor={editor} />
-      <EditorContent editor={editor} />
+      <div className="max-h-[500px] overflow-y-auto">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 };
