@@ -64,6 +64,25 @@ export function useApproveLink() {
   });
 }
 
+export function useUpdateAnchorText() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({ id, anchor_text }: { id: string; anchor_text: string }) => {
+      const { error } = await supabase
+        .from("article_internal_links")
+        .update({ anchor_text })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["internal-links"] });
+      toast({ title: "Texto âncora atualizado!" });
+    },
+    onError: (e: Error) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+}
+
 export function useDeleteInternalLink() {
   const qc = useQueryClient();
   const { toast } = useToast();
