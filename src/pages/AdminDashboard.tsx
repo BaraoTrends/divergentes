@@ -30,6 +30,7 @@ import {
 import UsuariosTab from "@/components/admin/UsuariosTab";
 import ConfiguracoesTab from "@/components/admin/ConfiguracoesTab";
 import AnunciosTab from "@/components/admin/AnunciosTab";
+import SeoTab from "@/components/admin/SeoTab";
 import {
   LayoutDashboard,
   FileText,
