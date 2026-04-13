@@ -3,6 +3,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import BackToTop from "./BackToTop";
 import AdSlot from "./AdSlot";
+import CookieConsent from "./CookieConsent";
 
 const Layout = ({ children }: { children: ReactNode }) => {
   return (
@@ -18,6 +19,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
       <main className="flex-1" id="main-content">{children}</main>
       <Footer />
       <BackToTop />
+      <CookieConsent />
     </div>
   );
 };
