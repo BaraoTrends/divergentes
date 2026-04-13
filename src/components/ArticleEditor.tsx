@@ -535,7 +535,13 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             <AiAssistantPanel
               title={title}
               content={content}
-              onContentGenerated={(html) => setContent(html)}
+              onContentGenerated={(html) => {
+                setContent(html);
+                // Auto-generate keywords/focus keyword after AI content generation
+                if (title.trim()) {
+                  generateKeywords("suggest_keywords", { topic: title.trim() });
+                }
+              }}
               onTitleGenerated={(t) => setTitle(t)}
               onExcerptGenerated={(e) => setExcerpt(e)}
               onImageInserted={(url) => {
