@@ -184,6 +184,13 @@ const RichTextEditor = ({ content, onChange, placeholder, editorRef }: RichTextE
     },
   });
 
+  // Expose editor instance to parent
+  useEffect(() => {
+    if (editorRef) {
+      editorRef.current = editor;
+    }
+  }, [editor, editorRef]);
+
   // Sync external content changes (e.g. from AI generation)
   useEffect(() => {
     if (editor && content !== lastExternalContent.current) {
