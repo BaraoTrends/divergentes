@@ -15,6 +15,8 @@ const STATIC_PAGES = [
   { path: "/glossario", priority: "0.6", changefreq: "monthly" },
   { path: "/sobre", priority: "0.5", changefreq: "yearly" },
   { path: "/contato", priority: "0.4", changefreq: "yearly" },
+  { path: "/termos-de-uso", priority: "0.3", changefreq: "yearly" },
+  { path: "/politica-de-privacidade", priority: "0.3", changefreq: "yearly" },
 ];
 
 serve(async () => {
