@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import Layout from "@/components/Layout";
@@ -12,6 +13,14 @@ import { useArticles } from "@/hooks/useArticles";
 
 const Index = () => {
   const { data: dbArticles = [] } = useArticles({ publishedOnly: true });
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const a of dbArticles) {
+      counts[a.category] = (counts[a.category] || 0) + 1;
+    }
+    return counts;
+  }, [dbArticles]);
 
   const recentPosts: BlogPost[] = dbArticles.slice(0, 4).map((a) => ({
     slug: a.slug,
@@ -88,9 +97,16 @@ const Index = () => {
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{cat.icon}</span>
                   <div>
-                    <h3 className="font-heading font-bold text-foreground group-hover:text-primary transition-colors">
-                      {cat.shortName}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-heading font-bold text-foreground group-hover:text-primary transition-colors">
+                        {cat.shortName}
+                      </h3>
+                      {categoryCounts[cat.slug] != null && (
+                        <span className="text-[11px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">
+                          {categoryCounts[cat.slug]} {categoryCounts[cat.slug] === 1 ? "artigo" : "artigos"}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{cat.description}</p>
                   </div>
                 </div>
