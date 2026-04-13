@@ -231,6 +231,7 @@ const DashboardTab = ({ onEditArticle, onNavigate }: { onEditArticle: (a: Articl
 
   const shortcuts = [
     { label: "Novo Artigo", icon: Plus, tab: "artigos" as Tab, action: "new" },
+    { label: "SEO", icon: SearchIcon, tab: "seo" as Tab },
     { label: "Usuários", icon: Users, tab: "usuarios" as Tab },
     { label: "Anúncios", icon: Megaphone, tab: "anuncios" as Tab },
     { label: "Configurações", icon: Wrench, tab: "configuracoes" as Tab },
