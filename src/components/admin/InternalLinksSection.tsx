@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   CheckCircle2,
@@ -24,6 +25,7 @@ import {
   Pencil,
   Save,
   X,
+  Plus,
 } from "lucide-react";
 
 const InternalLinksSection = () => {
