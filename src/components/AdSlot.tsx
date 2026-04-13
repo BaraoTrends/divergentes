@@ -1,4 +1,5 @@
-import { useIsAdEnabled } from "@/hooks/useAdSettings";
+import { useEffect, useRef } from "react";
+import { useIsAdEnabled, useAdCode } from "@/hooks/useAdSettings";
 import { useConsent } from "@/hooks/useConsent";
 
 interface AdSlotProps {
@@ -16,12 +17,45 @@ const sizeMap = {
 
 const AdSlot = ({ slotId, format = "banner", className = "" }: AdSlotProps) => {
   const enabled = useIsAdEnabled(slotId);
+  const adCode = useAdCode(slotId);
   const { consent } = useConsent();
   const size = sizeMap[format];
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Block ads until user accepts cookies
+  // Inject ad HTML and execute scripts
+  useEffect(() => {
+    if (!containerRef.current || !adCode || consent !== "accepted") return;
+
+    const container = containerRef.current;
+    container.innerHTML = adCode;
+
+    // Execute any script tags in the ad code
+    const scripts = container.querySelectorAll("script");
+    scripts.forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      Array.from(oldScript.attributes).forEach((attr) =>
+        newScript.setAttribute(attr.name, attr.value)
+      );
+      newScript.textContent = oldScript.textContent;
+      oldScript.parentNode?.replaceChild(newScript, oldScript);
+    });
+  }, [adCode, consent]);
+
   if (!enabled || consent !== "accepted") return null;
 
+  // If there's custom ad code, render it
+  if (adCode) {
+    return (
+      <div
+        className={`ad-slot flex items-center justify-center mx-auto ${className}`}
+        data-ad-slot={slotId}
+        style={{ maxWidth: size.width, minHeight: size.height }}
+        ref={containerRef}
+      />
+    );
+  }
+
+  // Placeholder
   return (
     <div
       className={`ad-slot flex items-center justify-center mx-auto ${className}`}
