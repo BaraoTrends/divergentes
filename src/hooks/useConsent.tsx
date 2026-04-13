@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type ConsentStatus = "pending" | "accepted" | "declined";
 
@@ -26,6 +27,22 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
     return "pending";
   });
 
+  const [gtmId, setGtmId] = useState<string | null>(null);
+
+  // Fetch GTM ID from site_settings
+  useEffect(() => {
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "gtm_id")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.value && data.value !== "" && !data.value.startsWith("GTM-XXXX")) {
+          setGtmId(data.value);
+        }
+      });
+  }, []);
+
   const accept = useCallback(() => {
     localStorage.setItem(COOKIE_KEY, "accepted");
     setConsent("accepted");
@@ -36,9 +53,9 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
     setConsent("declined");
   }, []);
 
-  // Inject GTM only after consent is accepted
+  // Inject GTM only after consent is accepted AND we have a valid GTM ID
   useEffect(() => {
-    if (consent !== "accepted") return;
+    if (consent !== "accepted" || !gtmId) return;
 
     // Check if GTM is already loaded
     if (document.querySelector('script[src*="googletagmanager.com/gtm.js"]')) return;
@@ -49,9 +66,20 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
     w.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
     const script = document.createElement("script");
     script.async = true;
-    script.src = "https://www.googletagmanager.com/gtm.js?id=GTM-XXXXXXX";
+    script.src = `https://www.googletagmanager.com/gtm.js?id=${gtmId}`;
     document.head.appendChild(script);
-  }, [consent]);
+
+    // Also inject noscript iframe in body
+    const noscript = document.createElement("noscript");
+    const iframe = document.createElement("iframe");
+    iframe.src = `https://www.googletagmanager.com/ns.html?id=${gtmId}`;
+    iframe.height = "0";
+    iframe.width = "0";
+    iframe.style.display = "none";
+    iframe.style.visibility = "hidden";
+    noscript.appendChild(iframe);
+    document.body.insertBefore(noscript, document.body.firstChild);
+  }, [consent, gtmId]);
 
   return (
     <ConsentContext.Provider value={{ consent, accept, decline }}>
