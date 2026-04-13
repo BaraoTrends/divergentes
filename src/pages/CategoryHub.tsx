@@ -4,7 +4,7 @@ import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ArticleCard from "@/components/ArticleCard";
 import NewsletterCTA from "@/components/NewsletterCTA";
-import { categories } from "@/lib/content";
+import { categories, blogPosts as staticPosts } from "@/lib/content";
 import type { BlogPost } from "@/lib/content";
 import { categoryImages } from "@/lib/images";
 import { generateBreadcrumbSchema } from "@/lib/seo";
@@ -64,7 +64,7 @@ const CategoryHub = () => {
   const category = categories.find((c) => c.slug === slug);
   const content = slug ? hubContent[slug] : undefined;
   const { data: dbArticles = [] } = useArticles({ publishedOnly: true });
-  const relatedPosts: BlogPost[] = dbArticles
+  const dbRelated: BlogPost[] = dbArticles
     .filter((a) => a.category === slug)
     .map((a) => ({
       slug: a.slug,
@@ -78,6 +78,9 @@ const CategoryHub = () => {
       image: a.image_url || "/placeholder.svg",
       content: a.content,
     }));
+  const dbSlugs = new Set(dbRelated.map((p) => p.slug));
+  const staticRelated = staticPosts.filter((p) => p.category === slug && !dbSlugs.has(p.slug));
+  const relatedPosts = [...dbRelated, ...staticRelated];
 
   if (!category || !content) {
     return (
