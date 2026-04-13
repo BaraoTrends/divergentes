@@ -33,23 +33,41 @@ const ConfiguracoesTab = () => {
   const generalSettings = settings.filter((s) => s.category === "general");
   const integrationSettings = settings.filter((s) => s.category === "integrations");
 
-  const renderField = (key: string, label: string, description: string, placeholder: string, charCount?: boolean) => (
-    <div key={key} className="bg-card border rounded-lg p-5 space-y-2">
-      <Label className="text-foreground font-semibold">{label}</Label>
-      <Input
-        value={values[key] || ""}
-        onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-        placeholder={placeholder}
-        className="font-mono text-sm"
-      />
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{description}</p>
-        {charCount && (
-          <span className="text-xs text-muted-foreground">{(values[key] || "").length} caracteres</span>
+  const renderField = (key: string, label: string, description: string, placeholder: string, options?: { charCount?: boolean; maxChars?: number; multiline?: boolean }) => {
+    const len = (values[key] || "").length;
+    const max = options?.maxChars;
+    const isOver = max ? len > max : false;
+
+    return (
+      <div key={key} className="bg-card border rounded-lg p-5 space-y-2">
+        <Label className="text-foreground font-semibold">{label}</Label>
+        {options?.multiline ? (
+          <textarea
+            value={values[key] || ""}
+            onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
+            placeholder={placeholder}
+            rows={3}
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
+          />
+        ) : (
+          <Input
+            value={values[key] || ""}
+            onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
+            placeholder={placeholder}
+            className="font-mono text-sm"
+          />
         )}
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">{description}</p>
+          {(options?.charCount || max) && (
+            <span className={`text-xs ${isOver ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+              {len}{max ? `/${max}` : ""} caracteres
+            </span>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div>
@@ -67,8 +85,8 @@ const ConfiguracoesTab = () => {
           <Globe className="h-5 w-5 text-primary" /> Site
         </h2>
         <div className="space-y-4">
-          {renderField("site_name", "Nome do Site", "Nome exibido no header e SEO", "Neuro Rotina")}
-          {renderField("site_description", "Descrição do Site", "Meta description padrão do site", "Informação acessível...")}
+          {renderField("site_name", "Nome do Site", "Nome exibido no header e SEO (ideal: até 60 caracteres)", "Neuro Rotina", { charCount: true, maxChars: 60 })}
+          {renderField("site_description", "Descrição do Site (SEO)", "Meta description padrão — inclua palavras-chave e CTA. Ideal: 120–160 caracteres.", "Informação acessível sobre neurodivergências...", { charCount: true, maxChars: 160, multiline: true })}
           {renderField("contact_email", "Email de Contato", "Email exibido na página de contato", "contato@exemplo.com")}
         </div>
       </div>
@@ -79,9 +97,9 @@ const ConfiguracoesTab = () => {
           <Code className="h-5 w-5 text-primary" /> Integrações
         </h2>
         <div className="space-y-4">
-          {renderField("gtm_id", "Google Tag Manager", "ID do Tag Manager", "GTM-XXXXXXX", true)}
-          {renderField("google_verification", "Google Verificação", "Código de verificação do Google", "Código de verificação...", true)}
-          {renderField("exoclick_verification", "ExoClick Verificação", "Código de verificação do ExoClick", "Code", true)}
+          {renderField("gtm_id", "Google Tag Manager", "ID do Tag Manager", "GTM-XXXXXXX", { charCount: true })}
+          {renderField("google_verification", "Google Verificação", "Código de verificação do Google", "Código de verificação...", { charCount: true })}
+          {renderField("exoclick_verification", "ExoClick Verificação", "Código de verificação do ExoClick", "Code", { charCount: true })}
         </div>
       </div>
     </div>
