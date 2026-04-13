@@ -5,9 +5,11 @@ import {
   useApproveLink,
   useDeleteInternalLink,
   useCreateInternalLink,
+  useUpdateAnchorText,
   generateLinkSuggestions,
 } from "@/hooks/useInternalLinks";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -19,6 +21,9 @@ import {
   ArrowRight,
   Loader2,
   Clock,
+  Pencil,
+  Save,
+  X,
 } from "lucide-react";
 
 const InternalLinksSection = () => {
@@ -27,6 +32,7 @@ const InternalLinksSection = () => {
   const approveLink = useApproveLink();
   const deleteLink = useDeleteInternalLink();
   const createLink = useCreateInternalLink();
+  const updateAnchor = useUpdateAnchorText();
   const { toast } = useToast();
   const [generating, setGenerating] = useState(false);
 
@@ -89,57 +95,99 @@ const InternalLinksSection = () => {
   const LinkRow = ({ link }: { link: typeof links[0] }) => {
     const source = articleMap[link.source_article_id];
     const target = articleMap[link.target_article_id];
+    const [editing, setEditing] = useState(false);
+    const [anchorDraft, setAnchorDraft] = useState(link.anchor_text);
+
     if (!source || !target) return null;
 
+    const handleSaveAnchor = () => {
+      if (anchorDraft.trim() && anchorDraft !== link.anchor_text) {
+        updateAnchor.mutate({ id: link.id, anchor_text: anchorDraft.trim() });
+      }
+      setEditing(false);
+    };
+
     return (
-      <div className="flex items-center gap-2 p-2.5 rounded-lg border bg-background text-sm">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs font-medium text-foreground truncate max-w-[140px]" title={source.title}>
-              {source.title}
-            </span>
-            <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-            <span className="text-xs font-medium text-primary truncate max-w-[140px]" title={target.title}>
-              {target.title}
-            </span>
+      <div className="flex flex-col gap-1.5 p-2.5 rounded-lg border bg-background text-sm">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs font-medium text-foreground truncate max-w-[140px]" title={source.title}>
+                {source.title}
+              </span>
+              <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+              <span className="text-xs font-medium text-primary truncate max-w-[140px]" title={target.title}>
+                {target.title}
+              </span>
+            </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-            Âncora: "{link.anchor_text}"
-          </p>
+          <div className="flex items-center gap-1 shrink-0">
+            {link.auto_generated && (
+              <Badge variant="outline" className="text-[9px] px-1 py-0">
+                <Zap className="h-2.5 w-2.5 mr-0.5" />Auto
+              </Badge>
+            )}
+            {!link.approved ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 text-[10px] px-1.5 text-green-600 border-green-500/30 hover:bg-green-500/10"
+                onClick={() => approveLink.mutate({ id: link.id, approved: true })}
+              >
+                <CheckCircle2 className="h-3 w-3 mr-0.5" /> Aprovar
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 text-[10px] px-1.5 text-yellow-600 border-yellow-500/30 hover:bg-yellow-500/10"
+                onClick={() => approveLink.mutate({ id: link.id, approved: false })}
+              >
+                <Clock className="h-3 w-3 mr-0.5" /> Desaprovar
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+              onClick={() => deleteLink.mutate(link.id)}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          {link.auto_generated && (
-            <Badge variant="outline" className="text-[9px] px-1 py-0">
-              <Zap className="h-2.5 w-2.5 mr-0.5" />Auto
-            </Badge>
-          )}
-          {!link.approved ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-6 text-[10px] px-1.5 text-green-600 border-green-500/30 hover:bg-green-500/10"
-              onClick={() => approveLink.mutate({ id: link.id, approved: true })}
-            >
-              <CheckCircle2 className="h-3 w-3 mr-0.5" /> Aprovar
-            </Button>
+
+        {/* Editable anchor text */}
+        <div className="flex items-center gap-1.5">
+          {editing ? (
+            <>
+              <Input
+                value={anchorDraft}
+                onChange={(e) => setAnchorDraft(e.target.value)}
+                className="h-6 text-[11px] flex-1"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveAnchor();
+                  if (e.key === "Escape") { setAnchorDraft(link.anchor_text); setEditing(false); }
+                }}
+              />
+              <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-green-600" onClick={handleSaveAnchor}>
+                <Save className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => { setAnchorDraft(link.anchor_text); setEditing(false); }}>
+                <X className="h-3 w-3" />
+              </Button>
+            </>
           ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-6 text-[10px] px-1.5 text-yellow-600 border-yellow-500/30 hover:bg-yellow-500/10"
-              onClick={() => approveLink.mutate({ id: link.id, approved: false })}
-            >
-              <Clock className="h-3 w-3 mr-0.5" /> Desaprovar
-            </Button>
+            <>
+              <p className="text-[10px] text-muted-foreground truncate flex-1">
+                Âncora: "<span className="text-foreground font-medium">{link.anchor_text}</span>"
+              </p>
+              <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground" onClick={() => setEditing(true)}>
+                <Pencil className="h-2.5 w-2.5" />
+              </Button>
+            </>
           )}
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
-            onClick={() => deleteLink.mutate(link.id)}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
         </div>
       </div>
     );
