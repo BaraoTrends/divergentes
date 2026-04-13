@@ -66,13 +66,6 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     onComplete: (text) => setExcerpt(text.trim()),
   });
   const { generate: generateKeywords, isGenerating: isGeneratingTags } = useAiWriter({
-  const { generate: generateFocusKw, isGenerating: isGeneratingFocusKw } = useAiWriter({
-    onComplete: (text) => {
-      const clean = text.replace(/```/g, "").replace(/"/g, "").trim();
-      const keyword = clean.split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)[0];
-      if (keyword) setFocusKeyword(keyword.toLowerCase());
-    },
-  });
     onComplete: (text) => {
       try {
         // Clean potential markdown code fences
@@ -91,6 +84,13 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           setFocusKeyword((prev) => prev.trim() ? prev : fallback[0]);
         }
       }
+    },
+  });
+  const { generate: generateFocusKw, isGenerating: isGeneratingFocusKw } = useAiWriter({
+    onComplete: (text) => {
+      const clean = text.replace(/```/g, "").replace(/"/g, "").trim();
+      const keyword = clean.split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)[0];
+      if (keyword) setFocusKeyword(keyword.toLowerCase());
     },
   });
 
@@ -357,7 +357,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="focusKeyword">Palavra-chave foco</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="focusKeyword">Palavra-chave foco</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  disabled={isGeneratingFocusKw || (!title.trim() && !content.trim())}
+                  onClick={() => generateFocusKw("generate_title", { topic: title || "artigo", content: content || undefined })}
+                >
+                  {isGeneratingFocusKw ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-3 w-3" />
+                  )}
+                  Gerar com IA
+                </Button>
+              </div>
               <Input
                 id="focusKeyword"
                 value={focusKeyword}
