@@ -311,6 +311,18 @@ const SeoTab = () => {
           )}
         </div>
 
+        {/* Linkagem Interna */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="internal-links" icon={Link2} title="Linkagem Interna" badge="Auto" />
+          {expandedSection === "internal-links" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <InternalLinksSection />
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Article SEO Analysis */}
         <div className="border rounded-xl bg-card overflow-hidden">
           <SectionHeader id="articles" icon={BarChart3} title="Análise SEO dos Artigos" badge={`${articleScores.length} artigos`} />
