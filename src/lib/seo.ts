@@ -1,4 +1,4 @@
-export const SITE_URL = "https://neurotoxina.com";
+export const SITE_URL = "https://neurorotina.com";
 export const SITE_NAME = "Neurodivergências";
 export const SITE_DESCRIPTION = "Portal informativo sobre neurodivergências: TDAH, TEA, Dislexia, Altas Habilidades, TOC e mais. Informação acessível e confiável para o público brasileiro.";
 

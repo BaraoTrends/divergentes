@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-const SITE_URL = "https://neurotoxina.com";
+const SITE_URL = "https://neurorotina.com";
 
 const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
