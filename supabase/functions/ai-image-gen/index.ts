@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,10 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Supabase environment variables are not configured");
+    }
 
     const { prompt, style, purpose } = await req.json();
 
@@ -81,27 +86,22 @@ serve(async (req) => {
       );
     }
 
-    // Upload the base64 image to storage
+    // Upload the base64 image to storage using Supabase client
     const base64Content = imageData.replace(/^data:image\/\w+;base64,/, "");
     const binaryData = Uint8Array.from(atob(base64Content), (c) => c.charCodeAt(0));
     const fileName = `ai/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
 
-    const uploadResp = await fetch(
-      `${SUPABASE_URL}/storage/v1/object/article-images/${fileName}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          "Content-Type": "image/png",
-          "x-upsert": "true",
-        },
-        body: binaryData,
-      }
-    );
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    if (!uploadResp.ok) {
-      const uploadErr = await uploadResp.text();
-      console.error("Storage upload error:", uploadErr);
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("article-images")
+      .upload(fileName, binaryData, {
+        contentType: "image/png",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError.message);
       // Fall back to returning base64
       return new Response(
         JSON.stringify({ image_url: imageData, source: "base64" }),
@@ -109,10 +109,12 @@ serve(async (req) => {
       );
     }
 
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/article-images/${fileName}`;
+    const { data: publicUrlData } = supabaseAdmin.storage
+      .from("article-images")
+      .getPublicUrl(fileName);
 
     return new Response(
-      JSON.stringify({ image_url: publicUrl, source: "storage" }),
+      JSON.stringify({ image_url: publicUrlData.publicUrl, source: "storage" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
