@@ -2,29 +2,19 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Cookie, X } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const COOKIE_KEY = "neurorotina_cookie_consent";
+import { useConsent } from "@/hooks/useConsent";
 
 const CookieConsent = () => {
+  const { consent, accept, decline } = useConsent();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem(COOKIE_KEY);
-    if (!consent) {
+    if (consent === "pending") {
       const timer = setTimeout(() => setVisible(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
-
-  const accept = () => {
-    localStorage.setItem(COOKIE_KEY, "accepted");
     setVisible(false);
-  };
-
-  const decline = () => {
-    localStorage.setItem(COOKIE_KEY, "declined");
-    setVisible(false);
-  };
+  }, [consent]);
 
   if (!visible) return null;
 

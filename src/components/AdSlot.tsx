@@ -1,4 +1,5 @@
 import { useIsAdEnabled } from "@/hooks/useAdSettings";
+import { useConsent } from "@/hooks/useConsent";
 
 interface AdSlotProps {
   slotId: string;
@@ -15,9 +16,11 @@ const sizeMap = {
 
 const AdSlot = ({ slotId, format = "banner", className = "" }: AdSlotProps) => {
   const enabled = useIsAdEnabled(slotId);
+  const { consent } = useConsent();
   const size = sizeMap[format];
 
-  if (!enabled) return null;
+  // Block ads until user accepts cookies
+  if (!enabled || consent !== "accepted") return null;
 
   return (
     <div
