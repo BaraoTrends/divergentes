@@ -30,6 +30,7 @@ import {
 import UsuariosTab from "@/components/admin/UsuariosTab";
 import ConfiguracoesTab from "@/components/admin/ConfiguracoesTab";
 import AnunciosTab from "@/components/admin/AnunciosTab";
+import SeoTab from "@/components/admin/SeoTab";
 import {
   LayoutDashboard,
   FileText,
@@ -44,9 +45,10 @@ import {
   Users,
   Megaphone,
   Wrench,
+  SearchIcon,
 } from "lucide-react";
 
-type Tab = "dashboard" | "artigos" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "perfil";
+type Tab = "dashboard" | "artigos" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "perfil";
 type EditorMode = null | "create" | "edit";
 
 const AdminDashboard = () => {
@@ -77,6 +79,7 @@ const AdminDashboard = () => {
     { id: "categorias" as Tab, label: "Categorias", icon: BarChart3 },
     { id: "usuarios" as Tab, label: "Usuários", icon: Users },
     { id: "configuracoes" as Tab, label: "Configurações", icon: Wrench },
+    { id: "seo" as Tab, label: "SEO", icon: SearchIcon },
     { id: "anuncios" as Tab, label: "Anúncios", icon: Megaphone },
     { id: "perfil" as Tab, label: "Perfil", icon: Settings },
   ];
@@ -136,6 +139,7 @@ const AdminDashboard = () => {
             {activeTab === "categorias" && <CategoriasTab />}
             {activeTab === "usuarios" && <UsuariosTab />}
             {activeTab === "configuracoes" && <ConfiguracoesTab />}
+            {activeTab === "seo" && <SeoTab />}
             {activeTab === "anuncios" && <AnunciosTab />}
             {activeTab === "perfil" && <PerfilTab />}
           </main>
@@ -227,6 +231,7 @@ const DashboardTab = ({ onEditArticle, onNavigate }: { onEditArticle: (a: Articl
 
   const shortcuts = [
     { label: "Novo Artigo", icon: Plus, tab: "artigos" as Tab, action: "new" },
+    { label: "SEO", icon: SearchIcon, tab: "seo" as Tab },
     { label: "Usuários", icon: Users, tab: "usuarios" as Tab },
     { label: "Anúncios", icon: Megaphone, tab: "anuncios" as Tab },
     { label: "Configurações", icon: Wrench, tab: "configuracoes" as Tab },
