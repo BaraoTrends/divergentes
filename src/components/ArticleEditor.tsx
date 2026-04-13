@@ -14,7 +14,7 @@ import {
 import { categories } from "@/lib/content";
 import RichTextEditor from "@/components/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2 } from "lucide-react";
+import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
 import SeoChecker from "@/components/SeoChecker";
@@ -207,6 +207,22 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     });
   };
 
+  const handleSaveAsDraft = () => {
+    onSave({
+      title: title.trim(),
+      slug: slug.trim(),
+      excerpt: excerpt.trim(),
+      content,
+      category,
+      image_url: imageUrl.trim(),
+      published: false,
+      featured,
+      read_time: calculatedReadTime,
+      tags,
+      author_id: article?.author_id || userId,
+    });
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between">
@@ -222,6 +238,16 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             className="gap-1"
           >
             <Eye className="h-4 w-4" /> {previewMode ? "Editar" : "Prévia"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={saving || !title.trim()}
+            onClick={handleSaveAsDraft}
+            className="gap-1"
+          >
+            <FileText className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar Rascunho"}
           </Button>
           <Button type="submit" size="sm" disabled={saving || !title.trim() || !content.trim()} className="gap-1">
             <Save className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar"}
