@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Megaphone, LayoutTemplate } from "lucide-react";
+import { Save, Megaphone, LayoutTemplate, Code } from "lucide-react";
 
 const AnunciosTab = () => {
   const { data: settings = [], isLoading } = useSiteSettings();
@@ -22,7 +23,11 @@ const AnunciosTab = () => {
   }, [settings]);
 
   const handleSave = () => {
-    const adKeys = ["adsense_publisher_id", "ads_header_enabled", "ads_footer_enabled", "ads_sidebar_enabled", "ads_between_posts_enabled"];
+    const adKeys = [
+      "adsense_publisher_id",
+      "ads_header_enabled", "ads_footer_enabled", "ads_sidebar_enabled", "ads_between_posts_enabled",
+      "ads_header_code", "ads_footer_code", "ads_sidebar_code", "ads_between_posts_code",
+    ];
     const changes = adKeys
       .filter((k) => values[k] !== undefined)
       .map((key) => ({ key, value: values[key] }));
@@ -39,10 +44,10 @@ const AnunciosTab = () => {
   if (isLoading) return <div className="text-muted-foreground text-sm">Carregando...</div>;
 
   const slots = [
-    { key: "ads_header_enabled", label: "Header", desc: "Banner no topo de todas as páginas" },
-    { key: "ads_footer_enabled", label: "Footer", desc: "Banner no rodapé de todas as páginas" },
-    { key: "ads_sidebar_enabled", label: "Sidebar (Posts)", desc: "Retângulos na barra lateral dos artigos" },
-    { key: "ads_between_posts_enabled", label: "Entre Artigos", desc: "Banner entre cards na listagem do blog" },
+    { key: "ads_header_enabled", codeKey: "ads_header_code", label: "Header", desc: "Banner no topo de todas as páginas" },
+    { key: "ads_footer_enabled", codeKey: "ads_footer_code", label: "Footer", desc: "Banner no rodapé de todas as páginas" },
+    { key: "ads_sidebar_enabled", codeKey: "ads_sidebar_code", label: "Sidebar (Posts)", desc: "Retângulos na barra lateral dos artigos" },
+    { key: "ads_between_posts_enabled", codeKey: "ads_between_posts_code", label: "Entre Artigos", desc: "Banner entre cards na listagem do blog" },
   ];
 
   return (
@@ -75,22 +80,40 @@ const AnunciosTab = () => {
         </div>
       </div>
 
-      {/* Slot toggles */}
+      {/* Slot toggles + code */}
       <div>
         <h2 className="flex items-center gap-2 font-heading text-lg font-semibold text-foreground mb-4">
           <LayoutTemplate className="h-5 w-5 text-primary" /> Posições de Anúncios
         </h2>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {slots.map((slot) => (
-            <div key={slot.key} className="bg-card border rounded-lg p-4 flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-foreground text-sm">{slot.label}</p>
-                <p className="text-xs text-muted-foreground">{slot.desc}</p>
+            <div key={slot.key} className="bg-card border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-foreground text-sm">{slot.label}</p>
+                  <p className="text-xs text-muted-foreground">{slot.desc}</p>
+                </div>
+                <Switch
+                  checked={values[slot.key] === "true"}
+                  onCheckedChange={() => toggleValue(slot.key)}
+                />
               </div>
-              <Switch
-                checked={values[slot.key] === "true"}
-                onCheckedChange={() => toggleValue(slot.key)}
-              />
+              {values[slot.key] === "true" && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Code className="h-3 w-3" /> Código HTML do Anúncio
+                  </Label>
+                  <Textarea
+                    value={values[slot.codeKey] || ""}
+                    onChange={(e) => setValues((v) => ({ ...v, [slot.codeKey]: e.target.value }))}
+                    placeholder={'<ins class="adsbygoogle" data-ad-client="ca-pub-XXX" data-ad-slot="YYY" ...></ins>\n<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>'}
+                    className="font-mono text-xs min-h-[100px] resize-y"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Cole o código HTML/JS fornecido pela rede de anúncios (AdSense, Ad Manager, etc.)
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -110,6 +133,9 @@ const AnunciosTab = () => {
               }`}
             >
               {slot.label}
+              {values[slot.key] === "true" && values[slot.codeKey] && (
+                <span className="block text-[10px] mt-1 text-primary/60">✓ código inserido</span>
+              )}
             </div>
           ))}
         </div>
