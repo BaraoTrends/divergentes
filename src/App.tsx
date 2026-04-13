@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ConsentProvider } from "@/hooks/useConsent";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 
@@ -39,6 +40,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ConsentProvider>
           <AuthProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
@@ -67,6 +69,7 @@ const App = () => (
               </Routes>
             </Suspense>
           </AuthProvider>
+          </ConsentProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
