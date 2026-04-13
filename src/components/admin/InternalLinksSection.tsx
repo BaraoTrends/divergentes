@@ -37,7 +37,12 @@ const InternalLinksSection = () => {
   const updateAnchor = useUpdateAnchorText();
   const { toast } = useToast();
   const [generating, setGenerating] = useState(false);
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualSource, setManualSource] = useState("");
+  const [manualTarget, setManualTarget] = useState("");
+  const [manualAnchor, setManualAnchor] = useState("");
 
+  const publishedArticles = useMemo(() => articles.filter((a) => a.published), [articles]);
   const articleMap = useMemo(() => {
     const map: Record<string, typeof articles[0]> = {};
     articles.forEach((a) => (map[a.id] = a));
