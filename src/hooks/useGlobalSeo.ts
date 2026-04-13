@@ -35,7 +35,7 @@ export const useGlobalSeo = (): GlobalSeo | null => {
       orgName: get("seo_org_name") || "Neurodivergências",
       orgLogo: get("seo_org_logo"),
       facebookAppId: get("seo_facebook_app_id"),
-      googleVerification: get("seo_google_verification"),
+      googleVerification: get("seo_google_verification") || get("google_verification"),
       bingVerification: get("seo_bing_verification"),
     };
   }, [settings]);
