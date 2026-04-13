@@ -365,7 +365,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                   size="sm"
                   className="h-7 text-xs gap-1"
                   disabled={isGeneratingFocusKw || (!title.trim() && !content.trim())}
-                  onClick={() => generateFocusKw("generate_title", { topic: title || "artigo", content: content || undefined })}
+                  onClick={() => generateFocusKw("generate_focus_keyword", { topic: title || undefined, content: content || undefined })}
                 >
                   {isGeneratingFocusKw ? (
                     <Loader2 className="h-3 w-3 animate-spin" />

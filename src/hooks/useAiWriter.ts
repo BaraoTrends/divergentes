@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-writer`;
 
-type AiAction = "generate_article" | "generate_excerpt" | "improve_text" | "expand_text" | "generate_title" | "suggest_keywords";
+type AiAction = "generate_article" | "generate_excerpt" | "improve_text" | "expand_text" | "generate_title" | "suggest_keywords" | "generate_focus_keyword";
 
 interface UseAiWriterOptions {
   onStream?: (text: string) => void;
