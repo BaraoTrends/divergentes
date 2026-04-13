@@ -1,9 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ArticleCard from "@/components/ArticleCard";
+import AdSlot from "@/components/AdSlot";
 import { blogPosts as staticPosts, categories } from "@/lib/content";
 import { useArticles } from "@/hooks/useArticles";
 import { generateBreadcrumbSchema } from "@/lib/seo";
@@ -204,8 +205,17 @@ const Blog = () => {
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {paginatedPosts.map((post) => (
-              <ArticleCard key={post.slug} post={post} />
+            {paginatedPosts.map((post, index) => (
+              <React.Fragment key={post.slug}>
+                <ArticleCard post={post} />
+                {/* Insert ad after every 2nd article */}
+                {index === 1 && paginatedPosts.length > 2 && (
+                  <div className="col-span-1 md:col-span-2 flex justify-center py-2">
+                    <AdSlot slotId="blog-between-articles" format="banner" className="hidden md:flex" />
+                    <AdSlot slotId="blog-between-articles-mobile" format="mobile" className="md:hidden" />
+                  </div>
+                )}
+              </React.Fragment>
             ))}
           </div>
         )}

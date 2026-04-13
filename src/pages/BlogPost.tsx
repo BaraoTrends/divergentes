@@ -7,6 +7,7 @@ import ReadingProgress from "@/components/ReadingProgress";
 import CategoryBadge from "@/components/CategoryBadge";
 import ShareButtons from "@/components/ShareButtons";
 import NewsletterCTA from "@/components/NewsletterCTA";
+import AdSlot from "@/components/AdSlot";
 import { blogPosts as staticPosts } from "@/lib/content";
 import { blogImages } from "@/lib/images";
 import { useArticleBySlug, useArticles } from "@/hooks/useArticles";
@@ -245,75 +246,86 @@ const BlogPost = () => {
       <article className="container py-8 md:py-12">
         <Breadcrumbs items={[{ label: "Blog", href: "/blog" }, { label: post.title }]} />
 
-        <div className="max-w-3xl">
-          <div className="flex items-center gap-3 mb-4">
-            <CategoryBadge category={post.category} />
-            <span className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Clock className="h-3.5 w-3.5" />
-              {post.readingTime} min de leitura
-            </span>
-          </div>
-
-          <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground leading-tight mb-4">
-            {post.title}
-          </h1>
-
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-muted-foreground mb-8 pb-8 border-b">
-            <div className="flex items-center gap-4">
-              <span>Por {post.author}</span>
-              <time dateTime={post.datePublished} className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                {new Date(post.datePublished).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
-              </time>
+        <div className="flex gap-8">
+          {/* Main content */}
+          <div className="max-w-3xl flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-4">
+              <CategoryBadge category={post.category} />
+              <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                {post.readingTime} min de leitura
+              </span>
             </div>
-            <ShareButtons title={post.title} slug={post.slug} />
-          </div>
 
-          {coverImage && (
-            <div className="rounded-lg overflow-hidden mb-8">
-              <img
-                src={coverImage}
-                alt={post.title}
-                width={1200}
-                height={672}
-                className="w-full h-auto"
+            <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground leading-tight mb-4">
+              {post.title}
+            </h1>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-muted-foreground mb-8 pb-8 border-b">
+              <div className="flex items-center gap-4">
+                <span>Por {post.author}</span>
+                <time dateTime={post.datePublished} className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                  {new Date(post.datePublished).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
+                </time>
+              </div>
+              <ShareButtons title={post.title} slug={post.slug} />
+            </div>
+
+            {coverImage && (
+              <div className="rounded-lg overflow-hidden mb-8">
+                <img
+                  src={coverImage}
+                  alt={post.title}
+                  width={1200}
+                  height={672}
+                  className="w-full h-auto"
+                />
+              </div>
+            )}
+
+            {isHtmlContent(post.content) ? (
+              <div
+                className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-heading prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:bg-accent/30 prose-blockquote:rounded-r-md prose-img:rounded-lg"
+                dangerouslySetInnerHTML={{ __html: post.content }}
               />
+            ) : (
+              renderContent(post.content)
+            )}
+
+            <div className="mt-12">
+              <NewsletterCTA />
             </div>
-          )}
 
-          {isHtmlContent(post.content) ? (
-            <div
-              className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-heading prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:bg-accent/30 prose-blockquote:rounded-r-md prose-img:rounded-lg"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
-          ) : (
-            renderContent(post.content)
-          )}
-
-          <div className="mt-12">
-            <NewsletterCTA />
+            {(() => {
+              const related = allPosts
+                .filter((p) => p.slug !== post.slug && p.category === post.category)
+                .slice(0, 2);
+              const extras = related.length < 2
+                ? allPosts.filter((p) => p.slug !== post.slug && p.category !== post.category).slice(0, 2 - related.length)
+                : [];
+              const relatedPosts = [...related, ...extras];
+              if (relatedPosts.length === 0) return null;
+              return (
+                <section className="mt-12 pt-8 border-t border-border">
+                  <h2 className="font-heading text-xl font-bold text-foreground mb-6">Artigos Relacionados</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {relatedPosts.map((rp) => (
+                      <ArticleCard key={rp.slug} post={rp} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
           </div>
 
-          {(() => {
-            const related = allPosts
-              .filter((p) => p.slug !== post.slug && p.category === post.category)
-              .slice(0, 2);
-            const extras = related.length < 2
-              ? allPosts.filter((p) => p.slug !== post.slug && p.category !== post.category).slice(0, 2 - related.length)
-              : [];
-            const relatedPosts = [...related, ...extras];
-            if (relatedPosts.length === 0) return null;
-            return (
-              <section className="mt-12 pt-8 border-t border-border">
-                <h2 className="font-heading text-xl font-bold text-foreground mb-6">Artigos Relacionados</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {relatedPosts.map((rp) => (
-                    <ArticleCard key={rp.slug} post={rp} />
-                  ))}
-                </div>
-              </section>
-            );
-          })()}
+          {/* Sidebar ads — desktop only */}
+          <aside className="hidden lg:block w-[300px] shrink-0">
+            <div className="sticky top-24 space-y-6">
+              <AdSlot slotId="sidebar-top" format="rectangle" />
+              <AdSlot slotId="sidebar-bottom" format="rectangle" />
+            </div>
+          </aside>
         </div>
       </article>
     </Layout>
