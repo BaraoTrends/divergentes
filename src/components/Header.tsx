@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Search, Moon, Sun } from "lucide-react";
+import { Menu, X, Search, Moon, Sun, Settings } from "lucide-react";
 import { categories } from "@/lib/content";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import logoImg from "@/assets/logo-neuro-rotina.png";
 
 const Header = () => {
@@ -10,6 +11,7 @@ const Header = () => {
   const [isDark, setIsDark] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -81,6 +83,11 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button variant="ghost" size="icon" asChild aria-label="Painel Admin">
+              <Link to="/admin"><Settings className="h-5 w-5" /></Link>
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={toggleDark} aria-label={isDark ? "Modo claro" : "Modo escuro"}>
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
@@ -119,6 +126,11 @@ const Header = () => {
             <Link to="/contato" className="block px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
               ✉️ Contato
             </Link>
+            {isAdmin && (
+              <Link to="/admin" className="block px-3 py-2.5 rounded-md text-sm font-medium text-primary hover:bg-accent hover:text-accent-foreground transition-colors">
+                ⚙️ Painel Admin
+              </Link>
+            )}
           </div>
         </nav>
       )}
