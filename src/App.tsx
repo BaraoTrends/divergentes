@@ -22,7 +22,6 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
 const TermosDeUso = lazy(() => import("./pages/TermosDeUso"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const SitemapRedirect = lazy(() => import("./pages/SitemapRedirect"));
 
 const queryClient = new QueryClient();
 
@@ -46,8 +45,6 @@ const App = () => (
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/sitemap.xml" element={<SitemapRedirect />} />
-                <Route path="/sitemap" element={<SitemapRedirect />} />
                 {categoryRoutes.map((slug) => (
                   <Route key={slug} path={`/${slug}`} element={<CategoryHub />} />
                 ))}
