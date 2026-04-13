@@ -13,6 +13,14 @@ import { useArticles } from "@/hooks/useArticles";
 const Index = () => {
   const { data: dbArticles = [] } = useArticles({ publishedOnly: true });
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const a of dbArticles) {
+      counts[a.category] = (counts[a.category] || 0) + 1;
+    }
+    return counts;
+  }, [dbArticles]);
+
   const recentPosts: BlogPost[] = dbArticles.slice(0, 4).map((a) => ({
     slug: a.slug,
     title: a.title,
