@@ -79,6 +79,7 @@ const AdminDashboard = () => {
     { id: "categorias" as Tab, label: "Categorias", icon: BarChart3 },
     { id: "usuarios" as Tab, label: "Usuários", icon: Users },
     { id: "configuracoes" as Tab, label: "Configurações", icon: Wrench },
+    { id: "seo" as Tab, label: "SEO", icon: SearchIcon },
     { id: "anuncios" as Tab, label: "Anúncios", icon: Megaphone },
     { id: "perfil" as Tab, label: "Perfil", icon: Settings },
   ];
