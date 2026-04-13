@@ -80,12 +80,12 @@ const BlogPost = () => {
   });
 
   // Collect all schemas: breadcrumb + article + custom per-article
-  const allSchemas = [breadcrumbSchema, articleSchema];
+  const allSchemas: object[] = [breadcrumbSchema, articleSchema];
   if (dbArticle?.custom_schema) {
     const cs = dbArticle.custom_schema;
     if (Array.isArray(cs)) {
-      allSchemas.push(...cs);
-    } else if (typeof cs === "object") {
+      allSchemas.push(...(cs as object[]));
+    } else if (typeof cs === "object" && cs !== null) {
       allSchemas.push(cs as object);
     }
   }
