@@ -45,6 +45,7 @@ import {
   Users,
   Megaphone,
   Wrench,
+  SearchIcon,
 } from "lucide-react";
 
 type Tab = "dashboard" | "artigos" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "perfil";
