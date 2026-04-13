@@ -58,16 +58,10 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
 
   // Inject GTM only after consent is accepted AND we have a valid GTM ID
   useEffect(() => {
-    console.log("[GTM] Injection check — consent:", consent, "gtmId:", gtmId);
     if (consent !== "accepted" || !gtmId) return;
 
     // Check if GTM is already loaded
-    if (document.querySelector('script[src*="googletagmanager.com/gtm.js"]')) {
-      console.log("[GTM] Already loaded, skipping");
-      return;
-    }
-
-    console.log("[GTM] Injecting script for", gtmId);
+    if (document.querySelector('script[src*="googletagmanager.com/gtm.js"]')) return;
 
     // Load GTM dynamically
     const w = window as any;
@@ -76,8 +70,6 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
     const script = document.createElement("script");
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtm.js?id=${gtmId}`;
-    script.onload = () => console.log("[GTM] Script loaded successfully");
-    script.onerror = (e) => console.error("[GTM] Script failed to load", e);
     document.head.appendChild(script);
 
     // Also inject noscript iframe in body
