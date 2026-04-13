@@ -79,6 +79,17 @@ const BlogPost = () => {
     author: post.author,
   });
 
+  // Collect all schemas: breadcrumb + article + custom per-article
+  const allSchemas = [breadcrumbSchema, articleSchema];
+  if (dbArticle?.custom_schema) {
+    const cs = dbArticle.custom_schema;
+    if (Array.isArray(cs)) {
+      allSchemas.push(...cs);
+    } else if (typeof cs === "object") {
+      allSchemas.push(cs as object);
+    }
+  }
+
   // Build all posts (DB + static) for related
   const dbAsBlogPosts: BlogPostType[] = dbArticles.map((a) => ({
     slug: a.slug,
