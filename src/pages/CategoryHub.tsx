@@ -4,7 +4,7 @@ import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ArticleCard from "@/components/ArticleCard";
 import NewsletterCTA from "@/components/NewsletterCTA";
-import { categories } from "@/lib/content";
+import { categories, blogPosts as staticPosts } from "@/lib/content";
 import type { BlogPost } from "@/lib/content";
 import { categoryImages } from "@/lib/images";
 import { generateBreadcrumbSchema } from "@/lib/seo";
