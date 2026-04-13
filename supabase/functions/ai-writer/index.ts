@@ -184,6 +184,18 @@ Regras para títulos:
         break;
 
       case "suggest_keywords":
+      case "generate_focus_keyword":
+        if (!topic && !content) {
+          return new Response(JSON.stringify({ error: "topic or content is required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        systemPrompt = `Você é um especialista em SEO brasileiro. Sua tarefa é identificar a melhor palavra-chave foco para um artigo.`;
+        userPrompt = `Analise o seguinte artigo e identifique a melhor palavra-chave foco para SEO.\n\n${topic ? `Título: "${topic}"` : ""}${content ? `\n\nConteúdo:\n${content.slice(0, 3000)}` : ""}\n\nRegras:\n- A palavra-chave deve ter 2-5 palavras\n- Deve ser algo que pessoas realmente pesquisam no Google\n- Em português brasileiro\n- Relevante para o nicho de neurodivergências/saúde mental\n\nRetorne APENAS a palavra-chave, sem aspas, sem explicações, sem pontuação final.`;
+        break;
+
+      case "suggest_keywords":
         if (!topic) {
           return new Response(JSON.stringify({ error: "topic (focus keyword) is required" }), {
             status: 400,
