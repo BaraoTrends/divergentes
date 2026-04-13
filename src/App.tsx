@@ -47,6 +47,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/sitemap.xml" element={<SitemapRedirect />} />
+                <Route path="/sitemap" element={<SitemapRedirect />} />
                 {categoryRoutes.map((slug) => (
                   <Route key={slug} path={`/${slug}`} element={<CategoryHub />} />
                 ))}
