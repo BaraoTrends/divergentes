@@ -45,14 +45,14 @@ const InternalLinksSuggestions = ({ articleId, currentSlug }: Props) => {
         Leia Também
       </h3>
       <ul className="space-y-2">
-        {allLinked.slice(0, 4).map((article) => (
-          <li key={article!.id}>
+        {allLinked.slice(0, 4).map((item) => (
+          <li key={item.article.id}>
             <Link
-              to={`/blog/${article!.slug}`}
+              to={`/blog/${item.article.slug}`}
               className="text-sm text-primary hover:underline flex items-center gap-1.5"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
-              {article!.title}
+              {item.anchor}
             </Link>
           </li>
         ))}
