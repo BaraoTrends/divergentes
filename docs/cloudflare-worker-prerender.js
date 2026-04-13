@@ -5,6 +5,8 @@
  * para a edge function de prerender, retornando HTML completo com 
  * conteúdo, meta tags e JSON-LD.
  * 
+ * Também serve como proxy reverso para o sitemap.xml,
+ * entregando o XML diretamente sem expor a URL do backend.
  * COMO CONFIGURAR:
  * 
  * 1. Acesse https://dash.cloudflare.com
@@ -12,9 +14,11 @@
  * 3. Cole este código
  * 4. Configure a rota para seu domínio (neurodivergencias.com.br/*)
  * 5. Defina as variáveis de ambiente:
- *    - ORIGIN_URL: URL do seu site (ex: https://neurodivergencias.com.br)
+ *    - ORIGIN_URL: URL do seu site (ex: https://neurorotina.com)
  *    - PRERENDER_URL: URL da edge function de prerender
  *      (ex: https://wmdjjvjmwvsceqbcmksb.supabase.co/functions/v1/prerender)
+ *    - SITEMAP_URL: URL da edge function de sitemap
+ *      (ex: https://wmdjjvjmwvsceqbcmksb.supabase.co/functions/v1/sitemap)
  * 
  * COMO FUNCIONA:
  * - Detecta User-Agents de bots (Googlebot, Bingbot, etc.)
@@ -77,7 +81,29 @@ const STATIC_EXTENSIONS = /\.(js|css|xml|json|png|jpg|jpeg|gif|svg|ico|webp|woff
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    
+
+    // Proxy reverso para sitemap — serve XML diretamente sem redirect
+    if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap') {
+      try {
+        const sitemapUrl = env.SITEMAP_URL || 'https://wmdjjvjmwvsceqbcmksb.supabase.co/functions/v1/sitemap';
+        const sitemapRes = await fetch(sitemapUrl, {
+          cf: { cacheTtl: 300, cacheEverything: true },
+        });
+        const xml = await sitemapRes.text();
+        return new Response(xml, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=300, s-maxage=300',
+            'X-Robots-Tag': 'noindex',
+          },
+        });
+      } catch (e) {
+        console.error('Sitemap proxy error:', e);
+        return fetch(request);
+      }
+    }
+
     // Não prerender arquivos estáticos
     if (STATIC_EXTENSIONS.test(url.pathname)) {
       return fetch(request);
