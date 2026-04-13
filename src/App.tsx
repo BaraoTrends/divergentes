@@ -42,6 +42,7 @@ const App = () => (
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/sitemap.xml" element={<SitemapRedirect />} />
                 {categoryRoutes.map((slug) => (
                   <Route key={slug} path={`/${slug}`} element={<CategoryHub />} />
                 ))}
