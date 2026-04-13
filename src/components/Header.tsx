@@ -83,6 +83,11 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button variant="ghost" size="icon" asChild aria-label="Painel Admin">
+              <Link to="/admin"><Settings className="h-5 w-5" /></Link>
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={toggleDark} aria-label={isDark ? "Modo claro" : "Modo escuro"}>
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
