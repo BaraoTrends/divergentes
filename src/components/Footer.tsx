@@ -1,10 +1,18 @@
 import { Link } from "react-router-dom";
 import { categories } from "@/lib/content";
 import logoImg from "@/assets/logo-neuro-rotina.png";
+import AdSlot from "./AdSlot";
 
 const Footer = () => {
   return (
     <footer className="border-t bg-card mt-16" role="contentinfo">
+      {/* Footer ad */}
+      <div className="container pt-8 hidden md:block">
+        <AdSlot slotId="footer-banner" format="leaderboard" />
+      </div>
+      <div className="container pt-8 md:hidden">
+        <AdSlot slotId="footer-mobile" format="mobile" />
+      </div>
       <div className="container py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About */}
