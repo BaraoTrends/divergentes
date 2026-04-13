@@ -305,6 +305,8 @@ const BlogPost = () => {
               renderContent(post.content)
             )}
 
+            <InternalLinksSuggestions articleId={dbArticle?.id} currentSlug={post.slug} />
+
             <div className="mt-12">
               <NewsletterCTA />
             </div>
