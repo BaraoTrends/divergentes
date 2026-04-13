@@ -31,10 +31,13 @@ const SeoTab = () => {
   const { data: settings = [], isLoading } = useSiteSettings();
   const bulkUpdate = useBulkUpdateSettings();
   const { data: articles = [] } = useArticles();
+  const updateArticle = useUpdateArticle();
   const { toast } = useToast();
   const [values, setValues] = useState<Record<string, string>>({});
   const [expandedSection, setExpandedSection] = useState<string | null>("global");
   const [expandedArticle, setExpandedArticle] = useState<string | null>(null);
+  const [schemaEdits, setSchemaEdits] = useState<Record<string, string>>({});
+  const [schemaErrors, setSchemaErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (settings.length > 0) {
