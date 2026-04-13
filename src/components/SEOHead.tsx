@@ -43,6 +43,8 @@ const SEOHead = ({ title, description, path, image, type = "website", schemas = 
       <meta name="twitter:image" content={ogImage} />
       {seo?.twitterHandle && <meta name="twitter:site" content={seo.twitterHandle} />}
       {seo?.facebookAppId && <meta property="fb:app_id" content={seo.facebookAppId} />}
+      {seo?.googleVerification && <meta name="google-site-verification" content={seo.googleVerification} />}
+      {seo?.bingVerification && <meta name="msvalidate.01" content={seo.bingVerification} />}
 
       {schemas.map((schema, i) => (
         <script key={i} type="application/ld+json">
