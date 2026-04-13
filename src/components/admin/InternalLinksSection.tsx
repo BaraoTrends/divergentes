@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   CheckCircle2,
@@ -24,6 +25,7 @@ import {
   Pencil,
   Save,
   X,
+  Plus,
 } from "lucide-react";
 
 const InternalLinksSection = () => {
@@ -35,7 +37,12 @@ const InternalLinksSection = () => {
   const updateAnchor = useUpdateAnchorText();
   const { toast } = useToast();
   const [generating, setGenerating] = useState(false);
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualSource, setManualSource] = useState("");
+  const [manualTarget, setManualTarget] = useState("");
+  const [manualAnchor, setManualAnchor] = useState("");
 
+  const publishedArticles = useMemo(() => articles.filter((a) => a.published), [articles]);
   const articleMap = useMemo(() => {
     const map: Record<string, typeof articles[0]> = {};
     articles.forEach((a) => (map[a.id] = a));
@@ -193,24 +200,125 @@ const InternalLinksSection = () => {
     );
   };
 
+  const handleManualCreate = async () => {
+    if (!manualSource || !manualTarget || !manualAnchor.trim()) {
+      toast({ title: "Preencha todos os campos", variant: "destructive" });
+      return;
+    }
+    if (manualSource === manualTarget) {
+      toast({ title: "Origem e destino devem ser diferentes", variant: "destructive" });
+      return;
+    }
+    if (existingPairs.has(`${manualSource}:${manualTarget}`)) {
+      toast({ title: "Este link já existe", variant: "destructive" });
+      return;
+    }
+    try {
+      await createLink.mutateAsync({
+        source_article_id: manualSource,
+        target_article_id: manualTarget,
+        anchor_text: manualAnchor.trim(),
+        auto_generated: false,
+        approved: true,
+      });
+      toast({ title: "Link manual criado e aprovado!" });
+      setManualSource("");
+      setManualTarget("");
+      setManualAnchor("");
+      setShowManualForm(false);
+    } catch {
+      toast({ title: "Erro ao criar link", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <p className="text-xs text-muted-foreground">
             {approvedLinks.length} aprovados · {pendingLinks.length} pendentes
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={handleAutoGenerate}
-          disabled={generating || articles.length < 2}
-          className="gap-1.5 h-8 text-xs"
-        >
-          {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-          Gerar Sugestões Automáticas
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowManualForm(!showManualForm)}
+            className="gap-1.5 h-8 text-xs"
+          >
+            {showManualForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+            {showManualForm ? "Cancelar" : "Criar Manual"}
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleAutoGenerate}
+            disabled={generating || articles.length < 2}
+            className="gap-1.5 h-8 text-xs"
+          >
+            {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            Gerar Automáticas
+          </Button>
+        </div>
       </div>
+
+      {showManualForm && (
+        <div className="p-3 rounded-lg border bg-muted/30 space-y-2.5">
+          <p className="text-xs font-semibold flex items-center gap-1">
+            <Plus className="h-3.5 w-3.5" /> Criar Link Manual
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] text-muted-foreground mb-0.5 block">Artigo Origem</label>
+              <Select value={manualSource} onValueChange={setManualSource}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {publishedArticles.map((a) => (
+                    <SelectItem key={a.id} value={a.id} className="text-xs">
+                      {a.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground mb-0.5 block">Artigo Destino</label>
+              <Select value={manualTarget} onValueChange={setManualTarget}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {publishedArticles
+                    .filter((a) => a.id !== manualSource)
+                    .map((a) => (
+                      <SelectItem key={a.id} value={a.id} className="text-xs">
+                        {a.title}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] text-muted-foreground mb-0.5 block">Texto Âncora</label>
+            <Input
+              value={manualAnchor}
+              onChange={(e) => setManualAnchor(e.target.value)}
+              placeholder="Ex: Saiba mais sobre TDAH"
+              className="h-8 text-xs"
+            />
+          </div>
+          <Button
+            size="sm"
+            onClick={handleManualCreate}
+            disabled={!manualSource || !manualTarget || !manualAnchor.trim()}
+            className="gap-1.5 h-8 text-xs w-full"
+          >
+            <Plus className="h-3.5 w-3.5" /> Criar Link
+          </Button>
+        </div>
+      )}
 
       {pendingLinks.length > 0 && (
         <div className="space-y-1.5">
