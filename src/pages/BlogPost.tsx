@@ -252,7 +252,7 @@ const BlogPost = () => {
         path={`/blog/${post.slug}`}
         image={ogImage}
         type="article"
-        schemas={[breadcrumbSchema, articleSchema]}
+        schemas={allSchemas}
       />
       <article className="container py-8 md:py-12">
         <Breadcrumbs items={[{ label: "Blog", href: "/blog" }, { label: post.title }]} />
