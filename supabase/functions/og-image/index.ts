@@ -71,7 +71,7 @@ function generateOgSvg(title: string, category: string, siteName: string): strin
   ${titleSvg}
   <line x1="80" y1="540" x2="1120" y2="540" stroke="#D6D3D1" stroke-width="1"/>
   <text x="80" y="580" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#78716C">&#x1F9E0; ${escapeXml(siteName)}</text>
-  <text x="1120" y="580" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#A8A29E" text-anchor="end">neurodivergencias.com.br</text>
+  <text x="1120" y="580" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#A8A29E" text-anchor="end"><text x="1120" y="580" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#A8A29E" text-anchor="end">neurotoxina.com</text></text>
   <circle cx="1140" cy="80" r="40" fill="${cat.color}" opacity="0.08"/>
   <circle cx="1100" cy="120" r="20" fill="${cat.color}" opacity="0.05"/>
 </svg>`;
