@@ -15,7 +15,7 @@ import {
 import { categories } from "@/lib/content";
 import RichTextEditor from "@/components/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2, FileText } from "lucide-react";
+import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2, FileText, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
 import SeoChecker from "@/components/SeoChecker";
@@ -220,6 +220,30 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     });
   };
 
+  const handlePublish = () => {
+    if (!meetsMinimum) {
+      toast({
+        title: "Conteúdo insuficiente",
+        description: `O artigo precisa ter no mínimo 400 palavras ou 3.000 caracteres. Atual: ${wordCount} palavras / ${charCount} caracteres.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    onSave({
+      title: title.trim(),
+      slug: slug.trim(),
+      excerpt: excerpt.trim(),
+      content,
+      category,
+      image_url: imageUrl.trim(),
+      published: true,
+      featured,
+      read_time: calculatedReadTime,
+      tags,
+      author_id: article?.author_id || userId,
+    });
+  };
+
   const handleSaveAsDraft = () => {
     onSave({
       title: title.trim(),
@@ -242,7 +266,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
         <Button type="button" variant="ghost" onClick={onCancel} className="gap-1">
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Button>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             type="button"
             variant="outline"
@@ -262,8 +286,14 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           >
             <FileText className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar Rascunho"}
           </Button>
-          <Button type="submit" size="sm" disabled={saving || !title.trim() || !content.trim()} className="gap-1">
-            <Save className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar"}
+          <Button
+            type="button"
+            size="sm"
+            disabled={saving || !title.trim() || !content.trim()}
+            onClick={handlePublish}
+            className="gap-1 bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Send className="h-4 w-4" /> {saving ? "Publicando..." : published ? "Atualizar e Publicar" : "Publicar"}
           </Button>
         </div>
       </div>
