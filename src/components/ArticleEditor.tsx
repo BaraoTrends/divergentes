@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import type { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -58,6 +59,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [uploading, setUploading] = useState(false);
   const [coverPrompt, setCoverPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorInstanceRef = useRef<Editor | null>(null);
   const { toast } = useToast();
   const { generateImage, isGenerating: isGeneratingCover } = useAiImageGen({
     onImageGenerated: (url) => setImageUrl(url),
@@ -573,8 +575,14 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               onTitleGenerated={(t) => setTitle(t)}
               onExcerptGenerated={(e) => setExcerpt(e)}
               onImageInserted={(url) => {
-                const imgTag = `<img src="${url}" alt="Imagem gerada por IA" style="max-width:100%;height:auto;border-radius:8px;margin:1em 0" />`;
-                setContent((prev) => prev + imgTag);
+                const editor = editorInstanceRef.current;
+                if (editor) {
+                  editor.chain().focus().setImage({ src: url, alt: "Imagem gerada por IA" }).run();
+                } else {
+                  // Fallback: append to HTML
+                  const imgTag = `<p><img src="${url}" alt="Imagem gerada por IA" class="rounded-lg max-w-full"></p>`;
+                  setContent((prev) => prev + imgTag);
+                }
               }}
             />
 
@@ -582,6 +590,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               content={content}
               onChange={setContent}
               placeholder="Comece a escrever o conteúdo do artigo..."
+              editorRef={editorInstanceRef}
             />
           </div>
 
