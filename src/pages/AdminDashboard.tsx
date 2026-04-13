@@ -48,7 +48,7 @@ import {
   SearchIcon,
 } from "lucide-react";
 
-type Tab = "dashboard" | "artigos" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "perfil";
+type Tab = "dashboard" | "artigos" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "perfil";
 type EditorMode = null | "create" | "edit";
 
 const AdminDashboard = () => {
