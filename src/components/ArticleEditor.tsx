@@ -86,6 +86,13 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       }
     },
   });
+  const { generate: generateFocusKw, isGenerating: isGeneratingFocusKw } = useAiWriter({
+    onComplete: (text) => {
+      const clean = text.replace(/```/g, "").replace(/"/g, "").trim();
+      const keyword = clean.split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)[0];
+      if (keyword) setFocusKeyword(keyword.toLowerCase());
+    },
+  });
 
   const handleAddTag = () => {
     const t = tagInput.trim().toLowerCase();
@@ -350,7 +357,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="focusKeyword">Palavra-chave foco</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="focusKeyword">Palavra-chave foco</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  disabled={isGeneratingFocusKw || (!title.trim() && !content.trim())}
+                  onClick={() => generateFocusKw("generate_focus_keyword", { topic: title || undefined, content: content || undefined })}
+                >
+                  {isGeneratingFocusKw ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-3 w-3" />
+                  )}
+                  Gerar com IA
+                </Button>
+              </div>
               <Input
                 id="focusKeyword"
                 value={focusKeyword}
