@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import InternalLinksSection from "@/components/admin/InternalLinksSection";
 import {
   Save,
   Globe,
@@ -25,6 +26,7 @@ import {
   Code,
   BarChart3,
   ExternalLink,
+  Link2,
 } from "lucide-react";
 
 const SeoTab = () => {
