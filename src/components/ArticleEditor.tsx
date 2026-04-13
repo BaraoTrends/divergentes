@@ -479,32 +479,67 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           <div className="space-y-2">
             <Label>Imagem de Capa</Label>
             {imageUrl ? (
-              <div className="relative rounded-lg overflow-hidden border bg-muted">
-                <img
-                  src={imageUrl}
-                  alt="Capa do artigo"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-2 right-2 flex gap-1">
+              <div className="space-y-2">
+                <div className="relative rounded-lg overflow-hidden border bg-muted">
+                  <img
+                    src={imageUrl}
+                    alt="Capa do artigo"
+                    className="w-full h-48 object-cover"
+                  />
                   <Button
                     type="button"
                     variant="secondary"
                     size="icon"
-                    className="h-8 w-8 bg-background/80 backdrop-blur-sm"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="h-8 w-8 bg-background/80 backdrop-blur-sm text-destructive"
+                    className="absolute top-2 right-2 h-8 w-8 bg-background/80 backdrop-blur-sm text-destructive"
                     onClick={removeImage}
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="gap-1 text-xs"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    {uploading ? "Enviando..." : "Selecionar imagem"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => generateImage(coverPrompt.trim() || title || "neurodiversidade", "cover")}
+                    disabled={isGeneratingCover}
+                    className="gap-1 text-xs"
+                  >
+                    {isGeneratingCover ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    Gerar nova imagem com IA
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={coverPrompt}
+                    onChange={(e) => setCoverPrompt(e.target.value)}
+                    placeholder="Descreva a imagem desejada para gerar com IA..."
+                    className="text-sm"
+                    disabled={isGeneratingCover}
+                    onKeyDown={(e) => e.key === "Enter" && coverPrompt.trim() && generateImage(coverPrompt.trim(), "cover")}
+                  />
+                </div>
+                <Input
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Ou cole a URL da imagem aqui..."
+                  className="text-sm"
+                />
               </div>
             ) : (
               <div className="space-y-2">
