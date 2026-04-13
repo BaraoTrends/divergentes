@@ -13,6 +13,8 @@ export interface GlobalSeo {
   orgName: string;
   orgLogo: string;
   facebookAppId: string;
+  googleVerification: string;
+  bingVerification: string;
 }
 
 export const useGlobalSeo = (): GlobalSeo | null => {
@@ -33,6 +35,8 @@ export const useGlobalSeo = (): GlobalSeo | null => {
       orgName: get("seo_org_name") || "Neurodivergências",
       orgLogo: get("seo_org_logo"),
       facebookAppId: get("seo_facebook_app_id"),
+      googleVerification: get("seo_google_verification"),
+      bingVerification: get("seo_bing_verification"),
     };
   }, [settings]);
 };

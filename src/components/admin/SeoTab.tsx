@@ -219,6 +219,8 @@ const SeoTab = () => {
           {expandedSection === "robots" && (
             <div className="p-4 pt-0 space-y-4 border-t">
               <div className="pt-4 space-y-4">
+                {renderField("seo_google_verification", "Google Search Console", "Cole o código de verificação (apenas o valor do content da meta tag)", "abc123...", { mono: true })}
+                {renderField("seo_bing_verification", "Bing Webmaster Tools", "Cole o código de verificação do Bing (apenas o valor do content)", "abc123...", { mono: true })}
                 {renderField("seo_robots_default", "Meta Robots Padrão", "Diretivas para crawlers (index, follow, noindex, nofollow)", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1")}
                 {renderField("seo_robots_txt_custom", "Robots.txt Personalizado", "Regras adicionais para o robots.txt (uma por linha)", "User-agent: *\nAllow: /", { multiline: true })}
                 <div className="flex items-center justify-between p-3 rounded-lg border bg-background">
