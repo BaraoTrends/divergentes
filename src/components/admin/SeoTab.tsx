@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSiteSettings, useBulkUpdateSettings } from "@/hooks/useSiteSettings";
-import { useArticles, type Article } from "@/hooks/useArticles";
+import { useArticles, useUpdateArticle, type Article } from "@/hooks/useArticles";
 import { analyzeSeo, calculateScore, countWords, type SeoCheck } from "@/lib/seoAnalysis";
 import { SITE_URL } from "@/lib/seo";
 import { Input } from "@/components/ui/input";

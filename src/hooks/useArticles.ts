@@ -15,6 +15,7 @@ export interface Article {
   featured: boolean;
   read_time: number;
   tags: string[];
+  custom_schema: object | null;
   created_at: string;
   updated_at: string;
 }
