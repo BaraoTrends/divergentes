@@ -266,7 +266,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
         <Button type="button" variant="ghost" onClick={onCancel} className="gap-1">
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Button>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             type="button"
             variant="outline"
@@ -286,8 +286,14 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           >
             <FileText className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar Rascunho"}
           </Button>
-          <Button type="submit" size="sm" disabled={saving || !title.trim() || !content.trim()} className="gap-1">
-            <Save className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar"}
+          <Button
+            type="button"
+            size="sm"
+            disabled={saving || !title.trim() || !content.trim()}
+            onClick={handlePublish}
+            className="gap-1 bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Send className="h-4 w-4" /> {saving ? "Publicando..." : published ? "Atualizar e Publicar" : "Publicar"}
           </Button>
         </div>
       </div>
