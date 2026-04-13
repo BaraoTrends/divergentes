@@ -126,6 +126,11 @@ const Header = () => {
             <Link to="/contato" className="block px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
               ✉️ Contato
             </Link>
+            {isAdmin && (
+              <Link to="/admin" className="block px-3 py-2.5 rounded-md text-sm font-medium text-primary hover:bg-accent hover:text-accent-foreground transition-colors">
+                ⚙️ Painel Admin
+              </Link>
+            )}
           </div>
         </nav>
       )}
