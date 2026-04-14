@@ -32,6 +32,7 @@ export interface Article {
   read_time: number;
   tags: string[];
   custom_schema: Json | null;
+  focus_keyword: string | null;
   created_at: string;
   updated_at: string;
 }
