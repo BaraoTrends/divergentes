@@ -38,8 +38,8 @@ const Index = () => {
   return (
     <Layout>
       <SEOHead
-        title="Informação sobre neurodivergências"
-        description="Portal informativo sobre neurodivergências: TDAH, TEA, Dislexia, Altas Habilidades, TOC e mais. Informação acessível e confiável para o público brasileiro."
+        title="TDAH, Autismo, Dislexia e Mais"
+        description="Guia completo sobre TDAH, Autismo (TEA), Dislexia, Altas Habilidades e TOC. Artigos baseados em evidências, glossário e recursos para famílias brasileiras."
         path="/"
         schemas={[generateWebSiteSchema(), generateOrganizationSchema()]}
       />
