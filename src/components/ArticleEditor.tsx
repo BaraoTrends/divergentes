@@ -199,7 +199,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     pendingTopicRef.current = suggestion;
     setTopicSuggestions([]);
     setAutoGenerating(true);
-    generateArticleFromTopic("generate_article", { topic: suggestion });
+    // First generate focus keyword, then use it to generate the article (in onComplete callback)
+    generateFocusKw("generate_focus_keyword", { topic: suggestion });
   };
 
   const handleAddTag = () => {
