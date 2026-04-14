@@ -15,7 +15,7 @@ import {
 import { categories } from "@/lib/content";
 import RichTextEditor from "@/components/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2, FileText, Send } from "lucide-react";
+import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2, FileText, Send, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
 import SeoChecker from "@/components/SeoChecker";
@@ -95,6 +95,23 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       if (keyword) setFocusKeyword(keyword.toLowerCase());
     },
   });
+
+  const [topicSuggestions, setTopicSuggestions] = useState<string[]>([]);
+  const { generate: generateTopics, isGenerating: isGeneratingTopics } = useAiWriter({
+    onComplete: (text) => {
+      const lines = text.split("\n").map(l => l.replace(/^\d+[\.\)]\s*/, "").trim()).filter(Boolean);
+      setTopicSuggestions(lines.slice(0, 8));
+    },
+  });
+
+  const handleSuggestTopics = () => {
+    const cat = categories.find(c => c.slug === category);
+    const catName = cat?.name || category;
+    generateTopics("generate_title", {
+      topic: `artigos sobre ${catName} para um blog sobre neurodivergências`,
+      content: `Categoria: ${catName}. Descrição: ${cat?.description || ""}. Sugira 8 temas de artigos variados, criativos e com bom potencial de SEO para essa categoria.`,
+    });
+  };
 
   const handleAddTag = () => {
     const t = tagInput.trim().toLowerCase();
@@ -336,9 +353,26 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Categoria *</Label>
-              <Select value={category} onValueChange={setCategory}>
+           <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="category">Categoria *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  disabled={isGeneratingTopics}
+                  onClick={handleSuggestTopics}
+                >
+                  {isGeneratingTopics ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Lightbulb className="h-3 w-3" />
+                  )}
+                  Sugerir temas
+                </Button>
+              </div>
+              <Select value={category} onValueChange={(val) => { setCategory(val); setTopicSuggestions([]); }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -350,6 +384,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                   ))}
                 </SelectContent>
               </Select>
+              {topicSuggestions.length > 0 && (
+                <div className="space-y-1.5 p-3 rounded-md border bg-muted/30">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">💡 Sugestões de temas:</p>
+                  {topicSuggestions.map((suggestion, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className="block w-full text-left text-sm px-2 py-1.5 rounded hover:bg-primary/10 text-foreground transition-colors"
+                      onClick={() => {
+                        setTitle(suggestion);
+                        setTopicSuggestions([]);
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Tempo de leitura</Label>
