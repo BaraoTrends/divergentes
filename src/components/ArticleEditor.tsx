@@ -115,6 +115,14 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       if (keyword) setFocusKeyword(keyword.toLowerCase());
     },
   });
+  const { generate: generateTitle, isGenerating: isGeneratingTitle } = useAiWriter({
+    onComplete: (text) => {
+      const clean = text.replace(/```/g, "").replace(/"/g, "").replace(/\n/g, " ").trim();
+      // Take the first line / suggestion
+      const suggestion = clean.split("\n").map(l => l.replace(/^\d+[\.\)]\s*/, "").trim()).filter(Boolean)[0];
+      if (suggestion) setTitle(suggestion);
+    },
+  });
 
   const [topicSuggestions, setTopicSuggestions] = useState<string[]>([]);
   const [autoGenerating, setAutoGenerating] = useState(false);
@@ -397,25 +405,69 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Título *</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Título do artigo"
-                maxLength={200}
-                required
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="title">Título *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  disabled={isGeneratingTitle || !title.trim()}
+                  onClick={() => generateTitle("generate_title", {
+                    topic: title,
+                    content: `Melhore ou sugira uma variação deste título para SEO (30-60 caracteres, natural e atrativo): "${title}". Retorne apenas o título melhorado, sem explicações.`,
+                  })}
+                >
+                  {isGeneratingTitle ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-3 w-3" />
+                  )}
+                  Melhorar com IA
+                </Button>
+              </div>
+              <div className="relative">
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Título do artigo"
+                  maxLength={200}
+                  required
+                  className={
+                    title.trim().length === 0 ? "border-destructive/50" :
+                    title.trim().length < 30 || title.trim().length > 60 ? "border-yellow-500/50" : "border-green-500/50"
+                  }
+                />
+                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium ${
+                  title.trim().length === 0 ? "text-destructive" :
+                  title.trim().length < 30 || title.trim().length > 60 ? "text-yellow-500" : "text-green-500"
+                }`}>
+                  {title.trim().length}/60
+                </span>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="slug">Slug (URL)</Label>
-              <Input
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="slug-do-artigo"
-                maxLength={200}
-              />
+              <div className="relative">
+                <Input
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="slug-do-artigo"
+                  maxLength={200}
+                  className={
+                    !slug.trim() ? "border-destructive/50" :
+                    slug.length > 75 ? "border-yellow-500/50" : "border-green-500/50"
+                  }
+                />
+                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium ${
+                  !slug.trim() ? "text-destructive" :
+                  slug.length > 75 ? "text-yellow-500" : "text-green-500"
+                }`}>
+                  {slug.length}/75
+                </span>
+              </div>
             </div>
           </div>
 
@@ -493,14 +545,26 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                   Gerar com IA
                 </Button>
               </div>
-              <Textarea
-                id="excerpt"
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                placeholder="Breve descrição do artigo..."
-                rows={2}
-                maxLength={500}
-              />
+              <div className="relative">
+                <Textarea
+                  id="excerpt"
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  placeholder="Breve descrição do artigo..."
+                  rows={2}
+                  maxLength={500}
+                  className={
+                    !excerpt.trim() ? "border-destructive/50" :
+                    excerpt.trim().length < 70 || excerpt.trim().length > 155 ? "border-yellow-500/50" : "border-green-500/50"
+                  }
+                />
+                <span className={`absolute right-2 bottom-2 text-[10px] font-medium ${
+                  !excerpt.trim() ? "text-destructive" :
+                  excerpt.trim().length < 70 || excerpt.trim().length > 155 ? "text-yellow-500" : "text-green-500"
+                }`}>
+                  {excerpt.trim().length}/155
+                </span>
+              </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
