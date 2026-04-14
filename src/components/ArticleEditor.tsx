@@ -146,12 +146,28 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     },
   });
 
-  const handleSuggestTopics = () => {
+  const handleSuggestTopics = async () => {
     const cat = categories.find(c => c.slug === category);
     const catName = cat?.name || category;
+
+    // Fetch existing article titles to avoid keyword cannibalization
+    let existingTitles: string[] = [];
+    try {
+      const { data } = await supabase
+        .from("articles")
+        .select("title, slug")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (data) existingTitles = data.map(a => a.title);
+    } catch {}
+
+    const avoidList = existingTitles.length > 0
+      ? `\n\nIMPORTANTE: Já existem os seguintes artigos publicados no blog. NÃO sugira temas iguais ou muito semelhantes a estes para evitar canibalização de palavras-chave:\n${existingTitles.map(t => `- ${t}`).join("\n")}`
+      : "";
+
     generateTopics("generate_title", {
       topic: `artigos sobre ${catName} para um blog sobre neurodivergências`,
-      content: `Categoria: ${catName}. Descrição: ${cat?.description || ""}. Sugira 8 temas de artigos variados, criativos e com bom potencial de SEO para essa categoria.`,
+      content: `Categoria: ${catName}. Descrição: ${cat?.description || ""}. Sugira 8 temas de artigos variados, criativos e com bom potencial de SEO para essa categoria. Cada tema deve abordar um ângulo diferente para não competir entre si.${avoidList}`,
     });
   };
 
