@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSiteSettings, useBulkUpdateSettings } from "@/hooks/useSiteSettings";
+import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Globe, Code, Tag } from "lucide-react";
+import { Save, Globe, Code, Trash2, Loader2 } from "lucide-react";
 
 const ConfiguracoesTab = () => {
   const { data: settings = [], isLoading } = useSiteSettings();
