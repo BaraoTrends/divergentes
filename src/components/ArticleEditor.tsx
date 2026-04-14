@@ -43,6 +43,15 @@ interface ArticleEditorProps {
   userId: string;
 }
 
+const COVER_STYLES = [
+  { value: "ilustracao", label: "🎨 Ilustração", prompt: "Ilustração digital profissional e acolhedora, estilo editorial moderno, cores suaves e inclusivas" },
+  { value: "fotografia", label: "📷 Fotografia", prompt: "Fotografia profissional editorial, iluminação natural, composição equilibrada, cores quentes" },
+  { value: "minimalista", label: "✨ Minimalista", prompt: "Design minimalista e limpo, formas geométricas simples, paleta de cores reduzida, muito espaço negativo" },
+  { value: "aquarela", label: "🖌️ Aquarela", prompt: "Pintura em aquarela suave e delicada, tons pastel, bordas fluidas e orgânicas" },
+  { value: "flat", label: "🟦 Flat Design", prompt: "Flat design moderno com cores vibrantes, sem sombras, ícones e formas vetoriais" },
+  { value: "abstrato", label: "🌀 Abstrato", prompt: "Arte abstrata contemporânea, formas fluidas e orgânicas, gradientes suaves, textura sutil" },
+];
+
 const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEditorProps) => {
   const [title, setTitle] = useState(article?.title || "");
   const [slug, setSlug] = useState(article?.slug || "");
