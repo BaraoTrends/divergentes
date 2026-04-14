@@ -1,7 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SITE_URL } from "@/lib/seo";
 import type { Json } from "@/integrations/supabase/types";
+
+/** Fire-and-forget: notify Google Indexing API about a published URL */
+async function notifyGoogleIndexing(slug: string) {
+  try {
+    const url = `${SITE_URL}/blog/${slug}`;
+    await supabase.functions.invoke("google-indexing", {
+      body: { urls: [url], type: "URL_UPDATED" },
+    });
+    console.log("[Indexing] Enviado para indexação:", url);
+  } catch (e) {
+    // Non-blocking — don't break the publish flow
+    console.warn("[Indexing] Falha ao enviar para indexação:", e);
+  }
+}
 
 export interface Article {
   id: string;
