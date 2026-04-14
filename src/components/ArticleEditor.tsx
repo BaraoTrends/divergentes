@@ -140,6 +140,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
   const [topicSuggestions, setTopicSuggestions] = useState<string[]>([]);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const autoGeneratingRef = useRef(false);
   const pendingTopicRef = useRef<string>("");
   const { generate: generateTopics, isGenerating: isGeneratingTopics } = useAiWriter({
     onComplete: (text) => {
