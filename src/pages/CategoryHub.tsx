@@ -4,11 +4,14 @@ import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ArticleCard from "@/components/ArticleCard";
 import NewsletterCTA from "@/components/NewsletterCTA";
+import { Button } from "@/components/ui/button";
 import { categories, blogPosts as staticPosts } from "@/lib/content";
 import type { BlogPost } from "@/lib/content";
 import { categoryImages } from "@/lib/images";
 import { generateBreadcrumbSchema } from "@/lib/seo";
 import { useArticles } from "@/hooks/useArticles";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const hubContent: Record<string, { intro: string; sections: { title: string; content: string }[] }> = {
   tdah: {
@@ -58,8 +61,11 @@ const hubContent: Record<string, { intro: string; sections: { title: string; con
   },
 };
 
+const POSTS_PER_PAGE = 6;
+
 const CategoryHub = () => {
   const location = useLocation();
+  const [page, setPage] = useState(1);
   const slug = location.pathname.replace("/", "");
   const category = categories.find((c) => c.slug === slug);
   const content = slug ? hubContent[slug] : undefined;
@@ -81,6 +87,8 @@ const CategoryHub = () => {
   const dbSlugs = new Set(dbRelated.map((p) => p.slug));
   const staticRelated = staticPosts.filter((p) => p.category === slug && !dbSlugs.has(p.slug));
   const relatedPosts = [...dbRelated, ...staticRelated];
+  const totalPages = Math.ceil(relatedPosts.length / POSTS_PER_PAGE);
+  const paginatedPosts = relatedPosts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
 
   if (!category || !content) {
     return (
@@ -141,10 +149,46 @@ const CategoryHub = () => {
           <div className="mt-12">
             <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Artigos sobre {category.shortName}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {relatedPosts.map((post) => (
+              {paginatedPosts.map((post) => (
                 <ArticleCard key={post.slug} post={post} />
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <nav aria-label="Paginação" className="mt-8 flex items-center justify-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <Button
+                    key={p}
+                    variant={p === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-9 w-9"
+                    onClick={() => setPage(p)}
+                  >
+                    {p}
+                  </Button>
+                ))}
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </nav>
+            )}
           </div>
         )}
 
