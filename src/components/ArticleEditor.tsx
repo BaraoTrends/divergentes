@@ -153,9 +153,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       setContent(html);
       setAutoGenerating(false);
       toast({ title: "Artigo gerado com sucesso!", description: "Gerando imagem de capa..." });
-      // Auto-generate excerpt, keywords, focus keyword
-      generateExcerpt("generate_excerpt", { content: html });
-      generateFocusKw("generate_focus_keyword", { topic: pendingTopicRef.current || undefined, content: html.slice(0, 3000) });
+      // Auto-generate excerpt with focus keyword, and keywords
+      const kw = pendingFocusKwRef.current || undefined;
+      generateExcerpt("generate_excerpt", { content: html, focusKeyword: kw });
       generateKeywords("suggest_keywords", { topic: pendingTopicRef.current || "artigo" });
       // Auto-generate cover image with selected style
       const coverTopic = pendingTopicRef.current;
