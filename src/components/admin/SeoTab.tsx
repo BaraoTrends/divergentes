@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import InternalLinksSection from "@/components/admin/InternalLinksSection";
 import SeoAuditSection from "@/components/admin/SeoAuditSection";
+import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
 import {
   Save,
   Globe,
@@ -28,6 +29,7 @@ import {
   BarChart3,
   ExternalLink,
   Link2,
+  Zap,
 } from "lucide-react";
 
 const SeoTab = () => {
@@ -280,7 +282,18 @@ const SeoTab = () => {
           )}
         </div>
 
-        {/* Schema / Dados Estruturados */}
+        {/* Google Indexing API */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="indexing" icon={Zap} title="Indexação Instantânea (Google)" badge="API" />
+          {expandedSection === "indexing" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <GoogleIndexingSection />
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="border rounded-xl bg-card overflow-hidden">
           <SectionHeader id="schema" icon={Code} title="Dados Estruturados (Schema.org)" />
           {expandedSection === "schema" && (
