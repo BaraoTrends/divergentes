@@ -68,6 +68,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [uploading, setUploading] = useState(false);
   const [coverPrompt, setCoverPrompt] = useState("");
   const [coverStyle, setCoverStyle] = useState("ilustracao");
+  const coverStyleRef = useRef(coverStyle);
+  useEffect(() => { coverStyleRef.current = coverStyle; }, [coverStyle]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorInstanceRef = useRef<Editor | null>(null);
   const { toast } = useToast();
