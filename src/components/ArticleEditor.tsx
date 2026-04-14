@@ -96,6 +96,23 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     },
   });
 
+  const [topicSuggestions, setTopicSuggestions] = useState<string[]>([]);
+  const { generate: generateTopics, isGenerating: isGeneratingTopics } = useAiWriter({
+    onComplete: (text) => {
+      const lines = text.split("\n").map(l => l.replace(/^\d+[\.\)]\s*/, "").trim()).filter(Boolean);
+      setTopicSuggestions(lines.slice(0, 8));
+    },
+  });
+
+  const handleSuggestTopics = () => {
+    const cat = categories.find(c => c.slug === category);
+    const catName = cat?.name || category;
+    generateTopics("generate_title", {
+      topic: `artigos sobre ${catName} para um blog sobre neurodivergências`,
+      content: `Categoria: ${catName}. Descrição: ${cat?.description || ""}. Sugira 8 temas de artigos variados, criativos e com bom potencial de SEO para essa categoria.`,
+    });
+  };
+
   const handleAddTag = () => {
     const t = tagInput.trim().toLowerCase();
     if (t && !tags.includes(t)) {
