@@ -132,7 +132,7 @@ Regras para a meta description:
 - Use linguagem que desperte curiosidade ou prometa valor
 - Inclua um verbo de ação (descubra, aprenda, entenda, conheça)
 - Evite frases genéricas — seja específico sobre o que o leitor vai encontrar`;
-        userPrompt = `Com base no seguinte conteúdo de artigo, gere uma meta description otimizada para SEO. REGRA ABSOLUTA: o texto DEVE ter entre 120 e 150 caracteres (conte cada caractere!). NUNCA ultrapasse 150 caracteres. Se ultrapassar, encurte até caber.\n\n${content}\n\nRetorne APENAS o texto da meta description, sem aspas, sem explicações. Máximo 150 caracteres.`;
+        userPrompt = `Com base no seguinte conteúdo de artigo, gere uma meta description otimizada para SEO. REGRA ABSOLUTA: o texto DEVE ter entre 120 e 150 caracteres (conte cada caractere!). NUNCA ultrapasse 150 caracteres. Se ultrapassar, encurte até caber.${focusKeyword ? `\n\nIMPORTANTE: A palavra-chave foco é "${focusKeyword}". Ela DEVE aparecer na meta description, preferencialmente no início.` : ""}\n\n${content}\n\nRetorne APENAS o texto da meta description, sem aspas, sem explicações. Máximo 150 caracteres.`;
         break;
 
       case "improve_text":
