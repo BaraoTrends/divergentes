@@ -109,11 +109,23 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       }
     },
   });
+  const pendingFocusKwRef = useRef<string>("");
   const { generate: generateFocusKw, isGenerating: isGeneratingFocusKw } = useAiWriter({
     onComplete: (text) => {
       const clean = text.replace(/```/g, "").replace(/"/g, "").trim();
       const keyword = clean.split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)[0];
-      if (keyword) setFocusKeyword(keyword.toLowerCase());
+      if (keyword) {
+        const kw = keyword.toLowerCase();
+        setFocusKeyword(kw);
+        pendingFocusKwRef.current = kw;
+        // If auto-generating, now generate the article WITH the focus keyword
+        if (autoGenerating && pendingTopicRef.current) {
+          generateArticleFromTopic("generate_article", {
+            topic: pendingTopicRef.current,
+            focusKeyword: kw,
+          });
+        }
+      }
     },
   });
   const { generate: generateTitle, isGenerating: isGeneratingTitle } = useAiWriter({
