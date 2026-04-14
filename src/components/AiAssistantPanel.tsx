@@ -76,7 +76,7 @@ const AiAssistantPanel = ({
     if (!effectiveTopic) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("generate_article", { topic: effectiveTopic, model: selectedModel });
+    const result = await generate("generate_article", { topic: effectiveTopic, model: selectedModel, focusKeyword: focusKeyword || undefined });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
