@@ -45,7 +45,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const { action, topic, content, language, model: modelKey } = await req.json();
+    const { action, topic, content, language, model: modelKey, focusKeyword } = await req.json();
 
     const MODEL_MAP: Record<string, string> = {
       fast: "google/gemini-3-flash-preview",
@@ -81,7 +81,18 @@ Formate o conteúdo em HTML semântico com tags como <h2>, <h3>, <p>, <ul>, <li>
 
 ${SEO_AND_HUMAN_RULES}`;
 
-        userPrompt = `Escreva um artigo completo e aprofundado sobre: "${topic}".
+        const kwInstruction = focusKeyword
+          ? `\n\nPALAVRA-CHAVE FOCO (OBRIGATÓRIO): "${focusKeyword}"
+- A frase EXATA "${focusKeyword}" DEVE aparecer:
+  1. No PRIMEIRO parágrafo (introdução), preferencialmente em negrito (<strong>)
+  2. Em pelo menos 1 subtítulo H2 (use a frase exata, não palavras separadas)
+  3. Em pelo menos mais 3-5 ocorrências ao longo do corpo do texto, de forma natural
+  4. Na conclusão do artigo
+- A densidade da palavra-chave foco deve ficar entre 1-2% do texto
+- ATENÇÃO: use a frase COMPLETA e EXATA "${focusKeyword}" — não separe as palavras com pontuação ou outras palavras entre elas`
+          : "";
+
+        userPrompt = `Escreva um artigo completo e aprofundado sobre: "${topic}".${kwInstruction}
 
 REGRA CRÍTICA DE TAMANHO: O artigo DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Artigos abaixo desse limite são inaceitáveis. O ideal é entre 1500-2500 palavras.
 
@@ -121,7 +132,7 @@ Regras para a meta description:
 - Use linguagem que desperte curiosidade ou prometa valor
 - Inclua um verbo de ação (descubra, aprenda, entenda, conheça)
 - Evite frases genéricas — seja específico sobre o que o leitor vai encontrar`;
-        userPrompt = `Com base no seguinte conteúdo de artigo, gere uma meta description otimizada para SEO. REGRA ABSOLUTA: o texto DEVE ter entre 120 e 150 caracteres (conte cada caractere!). NUNCA ultrapasse 150 caracteres. Se ultrapassar, encurte até caber.\n\n${content}\n\nRetorne APENAS o texto da meta description, sem aspas, sem explicações. Máximo 150 caracteres.`;
+        userPrompt = `Com base no seguinte conteúdo de artigo, gere uma meta description otimizada para SEO. REGRA ABSOLUTA: o texto DEVE ter entre 120 e 150 caracteres (conte cada caractere!). NUNCA ultrapasse 150 caracteres. Se ultrapassar, encurte até caber.${focusKeyword ? `\n\nIMPORTANTE: A palavra-chave foco é "${focusKeyword}". Ela DEVE aparecer na meta description, preferencialmente no início.` : ""}\n\n${content}\n\nRetorne APENAS o texto da meta description, sem aspas, sem explicações. Máximo 150 caracteres.`;
         break;
 
       case "improve_text":

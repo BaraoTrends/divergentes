@@ -15,7 +15,7 @@ export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
   const { toast } = useToast();
 
   const generate = useCallback(
-    async (action: AiAction, params: { topic?: string; content?: string; model?: string }) => {
+    async (action: AiAction, params: { topic?: string; content?: string; model?: string; focusKeyword?: string }) => {
       setIsGenerating(true);
       let fullText = "";
 

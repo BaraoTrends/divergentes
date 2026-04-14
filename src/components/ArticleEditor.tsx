@@ -109,11 +109,23 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       }
     },
   });
+  const pendingFocusKwRef = useRef<string>("");
   const { generate: generateFocusKw, isGenerating: isGeneratingFocusKw } = useAiWriter({
     onComplete: (text) => {
       const clean = text.replace(/```/g, "").replace(/"/g, "").trim();
       const keyword = clean.split("\n").map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)[0];
-      if (keyword) setFocusKeyword(keyword.toLowerCase());
+      if (keyword) {
+        const kw = keyword.toLowerCase();
+        setFocusKeyword(kw);
+        pendingFocusKwRef.current = kw;
+        // If auto-generating, now generate the article WITH the focus keyword
+        if (autoGenerating && pendingTopicRef.current) {
+          generateArticleFromTopic("generate_article", {
+            topic: pendingTopicRef.current,
+            focusKeyword: kw,
+          });
+        }
+      }
     },
   });
   const { generate: generateTitle, isGenerating: isGeneratingTitle } = useAiWriter({
@@ -141,9 +153,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       setContent(html);
       setAutoGenerating(false);
       toast({ title: "Artigo gerado com sucesso!", description: "Gerando imagem de capa..." });
-      // Auto-generate excerpt, keywords, focus keyword
-      generateExcerpt("generate_excerpt", { content: html });
-      generateFocusKw("generate_focus_keyword", { topic: pendingTopicRef.current || undefined, content: html.slice(0, 3000) });
+      // Auto-generate excerpt with focus keyword, and keywords
+      const kw = pendingFocusKwRef.current || undefined;
+      generateExcerpt("generate_excerpt", { content: html, focusKeyword: kw });
       generateKeywords("suggest_keywords", { topic: pendingTopicRef.current || "artigo" });
       // Auto-generate cover image with selected style
       const coverTopic = pendingTopicRef.current;
@@ -187,7 +199,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     pendingTopicRef.current = suggestion;
     setTopicSuggestions([]);
     setAutoGenerating(true);
-    generateArticleFromTopic("generate_article", { topic: suggestion });
+    // First generate focus keyword, then use it to generate the article (in onComplete callback)
+    generateFocusKw("generate_focus_keyword", { topic: suggestion });
   };
 
   const handleAddTag = () => {
@@ -876,6 +889,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             <AiAssistantPanel
               title={title}
               content={content}
+              focusKeyword={focusKeyword}
               onContentGenerated={(html) => {
                 setContent(html);
                 // Auto-generate keywords/focus keyword after AI content generation

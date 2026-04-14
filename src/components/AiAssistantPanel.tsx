@@ -20,6 +20,7 @@ import {
 interface AiAssistantPanelProps {
   title?: string;
   content: string;
+  focusKeyword?: string;
   onContentGenerated: (html: string) => void;
   onTitleGenerated?: (title: string) => void;
   onExcerptGenerated?: (excerpt: string) => void;
@@ -28,6 +29,7 @@ interface AiAssistantPanelProps {
 
 const AiAssistantPanel = ({
   title,
+  focusKeyword,
   content,
   onContentGenerated,
   onTitleGenerated,
@@ -74,7 +76,7 @@ const AiAssistantPanel = ({
     if (!effectiveTopic) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("generate_article", { topic: effectiveTopic, model: selectedModel });
+    const result = await generate("generate_article", { topic: effectiveTopic, model: selectedModel, focusKeyword: focusKeyword || undefined });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
