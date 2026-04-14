@@ -449,13 +449,25 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             </div>
             <div className="space-y-2">
               <Label htmlFor="slug">Slug (URL)</Label>
-              <Input
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="slug-do-artigo"
-                maxLength={200}
-              />
+              <div className="relative">
+                <Input
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="slug-do-artigo"
+                  maxLength={200}
+                  className={
+                    !slug.trim() ? "border-destructive/50" :
+                    slug.length > 75 ? "border-yellow-500/50" : "border-green-500/50"
+                  }
+                />
+                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium ${
+                  !slug.trim() ? "text-destructive" :
+                  slug.length > 75 ? "text-yellow-500" : "text-green-500"
+                }`}>
+                  {slug.length}/75
+                </span>
+              </div>
             </div>
           </div>
 
@@ -533,14 +545,26 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                   Gerar com IA
                 </Button>
               </div>
-              <Textarea
-                id="excerpt"
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                placeholder="Breve descrição do artigo..."
-                rows={2}
-                maxLength={500}
-              />
+              <div className="relative">
+                <Textarea
+                  id="excerpt"
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  placeholder="Breve descrição do artigo..."
+                  rows={2}
+                  maxLength={500}
+                  className={
+                    !excerpt.trim() ? "border-destructive/50" :
+                    excerpt.trim().length < 70 || excerpt.trim().length > 155 ? "border-yellow-500/50" : "border-green-500/50"
+                  }
+                />
+                <span className={`absolute right-2 bottom-2 text-[10px] font-medium ${
+                  !excerpt.trim() ? "text-destructive" :
+                  excerpt.trim().length < 70 || excerpt.trim().length > 155 ? "text-yellow-500" : "text-green-500"
+                }`}>
+                  {excerpt.trim().length}/155
+                </span>
+              </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
