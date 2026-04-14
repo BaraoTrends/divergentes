@@ -633,6 +633,35 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
+                {/* Quick style re-generate */}
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-muted-foreground">Regenerar com outro estilo:</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {COVER_STYLES.map((s) => (
+                      <button
+                        key={s.value}
+                        type="button"
+                        disabled={isGeneratingCover}
+                        onClick={() => {
+                          setCoverStyle(s.value);
+                          coverStyleRef.current = s.value;
+                          const prompt = coverPrompt.trim()
+                            ? `${coverPrompt.trim()}. ${s.prompt}`
+                            : `${s.prompt} para artigo sobre: ${title || "neurodiversidade"}. Sem texto na imagem.`;
+                          generateImage(prompt, "cover");
+                        }}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] font-medium transition-all disabled:opacity-50 ${
+                          coverStyle === s.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        }`}
+                      >
+                        <img src={s.thumb} alt="" className="w-5 h-5 rounded-sm object-cover" />
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="flex gap-2 flex-wrap">
                   <Button
                     type="button"
@@ -645,27 +674,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                     <Upload className="h-3.5 w-3.5" />
                     {uploading ? "Enviando..." : "Selecionar imagem"}
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
-                      const prompt = coverPrompt.trim()
-                        ? `${coverPrompt.trim()}. ${styleObj.prompt}`
-                        : `${styleObj.prompt} para artigo sobre: ${title || "neurodiversidade"}. Sem texto na imagem.`;
-                      generateImage(prompt, "cover");
-                    }}
-                    disabled={isGeneratingCover}
-                    className="gap-1 text-xs"
-                  >
-                    {isGeneratingCover ? (
+                  {isGeneratingCover && (
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-3.5 w-3.5" />
-                    )}
-                    Gerar nova imagem com IA
-                  </Button>
+                      Gerando imagem...
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Input
