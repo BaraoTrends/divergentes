@@ -1,5 +1,4 @@
 import { useParams, Link } from "react-router-dom";
-import ArticleCard from "@/components/ArticleCard";
 import Layout from "@/components/Layout";
 import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";

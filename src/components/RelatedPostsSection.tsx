@@ -44,16 +44,7 @@ const RelatedPostsSection = ({ currentSlug, currentCategory, posts }: RelatedPos
 
   return (
     <section className="mt-12 border-t border-border pt-8">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h2 className="font-heading text-xl font-bold text-foreground">Artigos Relacionados</h2>
-
-        {relatedPosts.length > 1 && (
-          <div className="flex items-center gap-2 md:hidden">
-            <CarouselPrevious className="static size-9 translate-x-0 translate-y-0" />
-            <CarouselNext className="static size-9 translate-x-0 translate-y-0" />
-          </div>
-        )}
-      </div>
+      <h2 className="mb-6 font-heading text-xl font-bold text-foreground">Artigos Relacionados</h2>
 
       <div className="md:hidden">
         <Carousel opts={{ align: "start" }} className="w-full">
@@ -64,6 +55,13 @@ const RelatedPostsSection = ({ currentSlug, currentCategory, posts }: RelatedPos
               </CarouselItem>
             ))}
           </CarouselContent>
+
+          {relatedPosts.length > 1 && (
+            <div className="mt-4 flex items-center justify-end gap-2 pr-1">
+              <CarouselPrevious className="static size-9 translate-x-0 translate-y-0" />
+              <CarouselNext className="static size-9 translate-x-0 translate-y-0" />
+            </div>
+          )}
         </Carousel>
       </div>
 
