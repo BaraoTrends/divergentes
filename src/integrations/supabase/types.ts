@@ -71,6 +71,7 @@ export type Database = {
           custom_schema: Json | null
           excerpt: string | null
           featured: boolean
+          focus_keyword: string | null
           id: string
           image_url: string | null
           published: boolean
@@ -88,6 +89,7 @@ export type Database = {
           custom_schema?: Json | null
           excerpt?: string | null
           featured?: boolean
+          focus_keyword?: string | null
           id?: string
           image_url?: string | null
           published?: boolean
@@ -105,6 +107,7 @@ export type Database = {
           custom_schema?: Json | null
           excerpt?: string | null
           featured?: boolean
+          focus_keyword?: string | null
           id?: string
           image_url?: string | null
           published?: boolean

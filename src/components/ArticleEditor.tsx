@@ -45,6 +45,7 @@ interface ArticleEditorProps {
     read_time: number;
     tags: string[];
     author_id: string;
+    focus_keyword?: string;
   }) => void;
   onCancel: () => void;
   saving?: boolean;
@@ -71,7 +72,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [featured, setFeatured] = useState(article?.featured || false);
   const [tags, setTags] = useState<string[]>(article?.tags || []);
   const [tagInput, setTagInput] = useState("");
-  const [focusKeyword, setFocusKeyword] = useState("");
+  const [focusKeyword, setFocusKeyword] = useState(article?.focus_keyword || "");
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverPrompt, setCoverPrompt] = useState("");
@@ -309,6 +310,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       read_time: calculatedReadTime,
       tags,
       author_id: article?.author_id || userId,
+      focus_keyword: focusKeyword.trim(),
     });
   };
 
@@ -333,6 +335,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       read_time: calculatedReadTime,
       tags,
       author_id: article?.author_id || userId,
+      focus_keyword: focusKeyword.trim(),
     });
   };
 
@@ -349,6 +352,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       read_time: calculatedReadTime,
       tags,
       author_id: article?.author_id || userId,
+      focus_keyword: focusKeyword.trim(),
     });
   };
 
