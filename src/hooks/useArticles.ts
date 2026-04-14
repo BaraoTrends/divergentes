@@ -78,7 +78,7 @@ export function useCreateArticle() {
 
   return useMutation({
     mutationFn: async (article: Omit<ArticleInsert, "slug"> & { slug?: string }) => {
-      const slug = article.slug || generateSlug(article.title);
+      const slug = generateSlug(article.slug || article.title);
       const { data, error } = await supabase
         .from("articles")
         .insert({ ...article, slug })
