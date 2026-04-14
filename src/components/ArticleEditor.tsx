@@ -127,11 +127,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       generateExcerpt("generate_excerpt", { content: html });
       generateFocusKw("generate_focus_keyword", { topic: pendingTopicRef.current || undefined, content: html.slice(0, 3000) });
       generateKeywords("suggest_keywords", { topic: pendingTopicRef.current || "artigo" });
-      // Auto-generate cover image
+      // Auto-generate cover image with selected style
       const coverTopic = pendingTopicRef.current;
       if (coverTopic) {
+        const styleObj = COVER_STYLES.find(s => s.value === coverStyleRef.current) || COVER_STYLES[0];
         generateImage(
-          `Ilustração profissional e acolhedora para artigo sobre: ${coverTopic}. Estilo editorial moderno, cores suaves e inclusivas, sem texto na imagem.`,
+          `${styleObj.prompt} para artigo sobre: ${coverTopic}. Sem texto na imagem.`,
           "cover"
         );
       }
