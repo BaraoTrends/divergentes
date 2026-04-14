@@ -165,7 +165,8 @@ Ao melhorar o texto:
 - Melhore a estrutura SEO dos subtítulos se necessário
 - Garanta que o texto flua como uma conversa natural
 - Mantenha a formatação HTML`;
-        userPrompt = `Melhore o seguinte texto, tornando-o mais humano, natural e otimizado para SEO. Elimine qualquer vestígio de escrita artificial. Mantenha a formatação HTML.\n\nREGRA CRÍTICA: O texto resultante DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Se o texto original for menor, expanda-o mantendo a qualidade.\n\n${content}\n\nRetorne APENAS o texto melhorado em HTML.`;
+        const kwRuleImprove = focusKeyword ? `\n\nPALAVRA-CHAVE FOCO: "${focusKeyword}". Garanta que essa frase EXATA apareça pelo menos 8-12 vezes distribuídas no texto (introdução, H2, corpo, conclusão). Densidade ideal: 0.5-2%.` : "";
+        userPrompt = `Melhore o seguinte texto, tornando-o mais humano, natural e otimizado para SEO. Elimine qualquer vestígio de escrita artificial. Mantenha a formatação HTML.${kwRuleImprove}\n\nREGRA CRÍTICA: O texto resultante DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Se o texto original for menor, expanda-o mantendo a qualidade.\n\n${content}\n\nRetorne APENAS o texto melhorado em HTML.`;
         break;
 
       case "expand_text":
