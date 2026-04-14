@@ -9,6 +9,7 @@ import ShareButtons from "@/components/ShareButtons";
 import NewsletterCTA from "@/components/NewsletterCTA";
 import AdSlot from "@/components/AdSlot";
 import InternalLinksSuggestions from "@/components/InternalLinksSuggestions";
+import RelatedPostsSection from "@/components/RelatedPostsSection";
 import { blogPosts as staticPosts } from "@/lib/content";
 import { blogImages } from "@/lib/images";
 import { useArticleBySlug, useArticles } from "@/hooks/useArticles";
@@ -311,26 +312,11 @@ const BlogPost = () => {
               <NewsletterCTA />
             </div>
 
-            {(() => {
-              const related = allPosts
-                .filter((p) => p.slug !== post.slug && p.category === post.category)
-                .slice(0, 2);
-              const extras = related.length < 2
-                ? allPosts.filter((p) => p.slug !== post.slug && p.category !== post.category).slice(0, 2 - related.length)
-                : [];
-              const relatedPosts = [...related, ...extras];
-              if (relatedPosts.length === 0) return null;
-              return (
-                <section className="mt-12 pt-8 border-t border-border">
-                  <h2 className="font-heading text-xl font-bold text-foreground mb-6">Artigos Relacionados</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {relatedPosts.map((rp) => (
-                      <ArticleCard key={rp.slug} post={rp} />
-                    ))}
-                  </div>
-                </section>
-              );
-            })()}
+            <RelatedPostsSection
+              currentSlug={post.slug}
+              currentCategory={post.category}
+              posts={allPosts}
+            />
           </div>
 
           {/* Sidebar ads — desktop only */}
