@@ -420,7 +420,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                   disabled={isGeneratingTitle || !title.trim()}
                   onClick={() => generateTitle("generate_title", {
                     topic: title,
-                    content: `Melhore ou sugira uma variação deste título para SEO (30-60 caracteres, natural e atrativo): "${title}". Retorne apenas o título melhorado, sem explicações.`,
+                    content: `Melhore este título para SEO. Regras: máximo 60 caracteres, natural e atrativo, inclua a palavra-chave principal. Título atual: "${title}". Retorne APENAS UM título melhorado, sem numeração, sem aspas, sem explicações.`,
                   })}
                 >
                   {isGeneratingTitle ? (
