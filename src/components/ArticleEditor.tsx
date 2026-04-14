@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,10 @@ import {
 import { categories } from "@/lib/content";
 import RichTextEditor from "@/components/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2, FileText, Send, Lightbulb } from "lucide-react";
+import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2, FileText, Send, Lightbulb, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
+import TopicSlider from "@/components/TopicSlider";
 import SeoChecker from "@/components/SeoChecker";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
 import { useAiWriter } from "@/hooks/useAiWriter";
@@ -451,20 +452,11 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                 </SelectContent>
               </Select>
               {topicSuggestions.length > 0 && (
-                <div className="space-y-1.5 p-3 rounded-md border bg-muted/30">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">💡 Clique em um tema para gerar o artigo automaticamente:</p>
-                  {topicSuggestions.map((suggestion, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      disabled={isGeneratingArticle}
-                      className="block w-full text-left text-sm px-2 py-1.5 rounded hover:bg-primary/10 text-foreground transition-colors disabled:opacity-50"
-                      onClick={() => handleSelectTopic(suggestion)}
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
+                <TopicSlider
+                  suggestions={topicSuggestions}
+                  disabled={isGeneratingArticle}
+                  onSelect={handleSelectTopic}
+                />
               )}
               {autoGenerating && (
                 <div className="flex items-center gap-2 p-3 rounded-md border bg-primary/5 text-sm text-primary">
