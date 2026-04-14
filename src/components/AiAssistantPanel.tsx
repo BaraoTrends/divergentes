@@ -20,6 +20,7 @@ import {
 interface AiAssistantPanelProps {
   title?: string;
   content: string;
+  focusKeyword?: string;
   onContentGenerated: (html: string) => void;
   onTitleGenerated?: (title: string) => void;
   onExcerptGenerated?: (excerpt: string) => void;
@@ -28,6 +29,7 @@ interface AiAssistantPanelProps {
 
 const AiAssistantPanel = ({
   title,
+  focusKeyword,
   content,
   onContentGenerated,
   onTitleGenerated,
