@@ -186,7 +186,8 @@ Ao expandir:
 - Crie novas sub-seções com subtítulos SEO-friendly
 - Mantenha a variação de tom e estilo
 - Use HTML semântico`;
-        userPrompt = `Expanda e enriqueça o seguinte texto com mais informações, exemplos práticos e detalhes relevantes. Adicione sub-seções com subtítulos otimizados para SEO. Mantenha o estilo humano e natural. Formatação HTML.\n\nREGRA CRÍTICA: O texto resultante DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Garanta que o resultado final atinja esse limite.\n\n${content}\n\nRetorne APENAS o texto expandido em HTML.`;
+        const kwRuleExpand = focusKeyword ? `\n\nPALAVRA-CHAVE FOCO: "${focusKeyword}". Garanta que essa frase EXATA apareça pelo menos 8-12 vezes distribuídas no texto (introdução, H2, corpo, conclusão). Densidade ideal: 0.5-2%.` : "";
+        userPrompt = `Expanda e enriqueça o seguinte texto com mais informações, exemplos práticos e detalhes relevantes. Adicione sub-seções com subtítulos otimizados para SEO. Mantenha o estilo humano e natural. Formatação HTML.${kwRuleExpand}\n\nREGRA CRÍTICA: O texto resultante DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Garanta que o resultado final atinja esse limite.\n\n${content}\n\nRetorne APENAS o texto expandido em HTML.`;
         break;
 
       case "generate_title":
