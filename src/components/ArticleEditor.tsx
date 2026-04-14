@@ -406,20 +406,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               </Select>
               {topicSuggestions.length > 0 && (
                 <div className="space-y-1.5 p-3 rounded-md border bg-muted/30">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">💡 Sugestões de temas:</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">💡 Clique em um tema para gerar o artigo automaticamente:</p>
                   {topicSuggestions.map((suggestion, i) => (
                     <button
                       key={i}
                       type="button"
-                      className="block w-full text-left text-sm px-2 py-1.5 rounded hover:bg-primary/10 text-foreground transition-colors"
-                      onClick={() => {
-                        setTitle(suggestion);
-                        setTopicSuggestions([]);
-                      }}
+                      disabled={isGeneratingArticle}
+                      className="block w-full text-left text-sm px-2 py-1.5 rounded hover:bg-primary/10 text-foreground transition-colors disabled:opacity-50"
+                      onClick={() => handleSelectTopic(suggestion)}
                     >
                       {suggestion}
                     </button>
                   ))}
+                </div>
+              )}
+              {autoGenerating && (
+                <div className="flex items-center gap-2 p-3 rounded-md border bg-primary/5 text-sm text-primary">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Gerando artigo completo... Aguarde.
                 </div>
               )}
             </div>
