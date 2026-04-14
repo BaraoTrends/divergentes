@@ -889,6 +889,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             <AiAssistantPanel
               title={title}
               content={content}
+              focusKeyword={focusKeyword}
               onContentGenerated={(html) => {
                 setContent(html);
                 // Auto-generate keywords/focus keyword after AI content generation
