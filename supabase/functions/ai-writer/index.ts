@@ -236,8 +236,7 @@ Retorne APENAS o JSON.`;
           { role: "user", content: userPrompt },
         ],
         stream: true,
-        temperature: 0.85,
-        top_p: 0.92,
+        ...(selectedModel.startsWith("openai/") ? {} : { temperature: 0.85, top_p: 0.92 }),
       }),
     });
 
