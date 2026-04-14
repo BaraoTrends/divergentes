@@ -14,7 +14,8 @@ const SEOHead = ({ title, description, path, image, type = "website", schemas = 
   const siteName = seo?.orgName || SITE_NAME;
   const baseUrl = seo?.canonicalBase || SITE_URL;
 
-  const fullTitle = path === "/" ? `${siteName} — ${title}` : `${title} ${separator} ${siteName}`;
+  const rawTitle = path === "/" ? `${siteName} — ${title}` : `${title} ${separator} ${siteName}`;
+  const fullTitle = rawTitle.length > 60 ? title : rawTitle;
   const canonical = `${baseUrl}${path}`;
   const ogImage = image || seo?.defaultOgImage || `${baseUrl}/og-default.jpg`;
   const descTrimmed = description.length > 160 ? description.slice(0, 157) + "..." : description;

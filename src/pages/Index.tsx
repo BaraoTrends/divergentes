@@ -38,7 +38,7 @@ const Index = () => {
   return (
     <Layout>
       <SEOHead
-        title="Informação acessível sobre neurodivergências"
+        title="Informação sobre neurodivergências"
         description="Portal informativo sobre neurodivergências: TDAH, TEA, Dislexia, Altas Habilidades, TOC e mais. Informação acessível e confiável para o público brasileiro."
         path="/"
         schemas={[generateWebSiteSchema(), generateOrganizationSchema()]}

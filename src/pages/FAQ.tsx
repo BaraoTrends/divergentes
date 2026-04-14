@@ -15,7 +15,7 @@ const FAQ = () => {
   return (
     <Layout>
       <SEOHead
-        title="Perguntas Frequentes sobre Neurodivergências"
+        title="Perguntas Frequentes"
         description="Respostas para as dúvidas mais comuns sobre TDAH, TEA, Dislexia, Altas Habilidades, TOC e outras neurodivergências."
         path="/perguntas-frequentes"
         schemas={[breadcrumbSchema, faqSchema]}
