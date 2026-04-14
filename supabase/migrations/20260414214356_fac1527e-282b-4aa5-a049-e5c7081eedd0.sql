@@ -1,0 +1,1 @@
+UPDATE public.articles SET slug = 'masking-o-que-e-e-por-que-deixar-a-mascara-e-libertador' WHERE id = '1e84d4a6-a956-4e97-8f34-9194e5b10cf9';
