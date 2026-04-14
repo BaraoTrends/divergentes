@@ -585,20 +585,32 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           <div className="space-y-2">
             <Label>Imagem de Capa</Label>
 
-            {/* Style selector - always visible */}
-            <div className="flex flex-wrap gap-1.5">
+            {/* Style selector with thumbnails */}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {COVER_STYLES.map((s) => (
                 <button
                   key={s.value}
                   type="button"
                   onClick={() => setCoverStyle(s.value)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  className={`group relative flex flex-col items-center gap-1 p-1.5 rounded-lg border-2 transition-all ${
                     coverStyle === s.value
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-muted/50 text-muted-foreground border-border hover:border-primary/50"
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-transparent hover:border-primary/30 bg-muted/30"
                   }`}
                 >
-                  {s.label}
+                  <div className="w-full aspect-square rounded-md overflow-hidden">
+                    <img
+                      src={s.thumb}
+                      alt={s.label}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className={`text-[10px] font-medium leading-tight text-center ${
+                    coverStyle === s.value ? "text-primary" : "text-muted-foreground"
+                  }`}>
+                    {s.label}
+                  </span>
                 </button>
               ))}
             </div>
