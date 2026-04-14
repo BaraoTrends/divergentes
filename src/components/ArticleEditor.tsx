@@ -353,9 +353,26 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Categoria *</Label>
-              <Select value={category} onValueChange={setCategory}>
+           <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="category">Categoria *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  disabled={isGeneratingTopics}
+                  onClick={handleSuggestTopics}
+                >
+                  {isGeneratingTopics ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Lightbulb className="h-3 w-3" />
+                  )}
+                  Sugerir temas
+                </Button>
+              </div>
+              <Select value={category} onValueChange={(val) => { setCategory(val); setTopicSuggestions([]); }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -367,6 +384,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                   ))}
                 </SelectContent>
               </Select>
+              {topicSuggestions.length > 0 && (
+                <div className="space-y-1.5 p-3 rounded-md border bg-muted/30">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">💡 Sugestões de temas:</p>
+                  {topicSuggestions.map((suggestion, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className="block w-full text-left text-sm px-2 py-1.5 rounded hover:bg-primary/10 text-foreground transition-colors"
+                      onClick={() => {
+                        setTitle(suggestion);
+                        setTopicSuggestions([]);
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Tempo de leitura</Label>
