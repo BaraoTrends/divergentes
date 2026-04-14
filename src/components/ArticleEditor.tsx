@@ -45,6 +45,7 @@ interface ArticleEditorProps {
     read_time: number;
     tags: string[];
     author_id: string;
+    focus_keyword?: string;
   }) => void;
   onCancel: () => void;
   saving?: boolean;
