@@ -577,6 +577,25 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
           <div className="space-y-2">
             <Label>Imagem de Capa</Label>
+
+            {/* Style selector - always visible */}
+            <div className="flex flex-wrap gap-1.5">
+              {COVER_STYLES.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => setCoverStyle(s.value)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    coverStyle === s.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/50 text-muted-foreground border-border hover:border-primary/50"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
             {imageUrl ? (
               <div className="space-y-2">
                 <div className="relative rounded-lg overflow-hidden border bg-muted">
@@ -611,7 +630,13 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => generateImage(coverPrompt.trim() || title || "neurodiversidade", "cover")}
+                    onClick={() => {
+                      const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
+                      const prompt = coverPrompt.trim()
+                        ? `${coverPrompt.trim()}. ${styleObj.prompt}`
+                        : `${styleObj.prompt} para artigo sobre: ${title || "neurodiversidade"}. Sem texto na imagem.`;
+                      generateImage(prompt, "cover");
+                    }}
                     disabled={isGeneratingCover}
                     className="gap-1 text-xs"
                   >
@@ -630,7 +655,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                     placeholder="Descreva a imagem desejada para gerar com IA..."
                     className="text-sm"
                     disabled={isGeneratingCover}
-                    onKeyDown={(e) => e.key === "Enter" && coverPrompt.trim() && generateImage(coverPrompt.trim(), "cover")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && coverPrompt.trim()) {
+                        const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
+                        generateImage(`${coverPrompt.trim()}. ${styleObj.prompt}`, "cover");
+                      }
+                    }}
                   />
                 </div>
                 <Input
@@ -670,13 +700,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                     placeholder="Descreva a imagem de capa desejada..."
                     className="text-sm"
                     disabled={isGeneratingCover}
-                    onKeyDown={(e) => e.key === "Enter" && coverPrompt.trim() && generateImage(coverPrompt.trim(), "cover")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && coverPrompt.trim()) {
+                        const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
+                        generateImage(`${coverPrompt.trim()}. ${styleObj.prompt}`, "cover");
+                      }
+                    }}
                   />
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => generateImage(coverPrompt.trim() || title || "neurodiversidade", "cover")}
+                    onClick={() => {
+                      const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
+                      const prompt = coverPrompt.trim()
+                        ? `${coverPrompt.trim()}. ${styleObj.prompt}`
+                        : `${styleObj.prompt} para artigo sobre: ${title || "neurodiversidade"}. Sem texto na imagem.`;
+                      generateImage(prompt, "cover");
+                    }}
                     disabled={isGeneratingCover}
                     className="gap-1 shrink-0"
                   >
