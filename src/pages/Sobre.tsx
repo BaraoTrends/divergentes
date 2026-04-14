@@ -12,7 +12,7 @@ const Sobre = () => {
   return (
     <Layout>
       <SEOHead
-        title="Sobre o Projeto"
+        title="Sobre"
         description="Conheça o Neurodivergências: um portal dedicado a oferecer informação acessível e confiável sobre neurodivergências para o público brasileiro."
         path="/sobre"
         schemas={[breadcrumbSchema]}

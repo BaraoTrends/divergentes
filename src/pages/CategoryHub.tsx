@@ -101,7 +101,7 @@ const CategoryHub = () => {
   return (
     <Layout>
       <SEOHead
-        title={`${category.shortName} — ${category.name}`}
+        title={category.shortName}
         description={category.description}
         path={`/${category.slug}`}
         schemas={[breadcrumbSchema]}

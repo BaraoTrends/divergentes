@@ -37,7 +37,8 @@ function buildHtml(opts: {
   schemas?: object[];
   article?: { datePublished: string; dateModified: string; author: string };
 }): string {
-  const fullTitle = opts.path === "/" ? `${SITE_NAME} — ${opts.title}` : `${opts.title} | ${SITE_NAME}`;
+  const rawTitle = opts.path === "/" ? `${SITE_NAME} — ${opts.title}` : `${opts.title} | ${SITE_NAME}`;
+  const fullTitle = rawTitle.length > 60 ? opts.title : rawTitle;
   const canonical = `${SITE_URL}${opts.path}`;
   const ogImage = opts.image || `${SITE_URL}/og-default.jpg`;
   const desc = opts.description.length > 160 ? opts.description.slice(0, 157) + "..." : opts.description;
@@ -194,7 +195,7 @@ serve(async (req) => {
 
       return new Response(
         buildHtml({
-          title: "Informação acessível sobre neurodivergências",
+          title: "Informação sobre neurodivergências",
           description: SITE_DESC,
           path: "/",
           body: `
@@ -233,7 +234,7 @@ serve(async (req) => {
 
       return new Response(
         buildHtml({
-          title: `${cat.shortName} — ${cat.name}`,
+          title: cat.shortName,
           description: cat.description,
           path,
           body: `
@@ -356,11 +357,60 @@ serve(async (req) => {
     }
 
     // STATIC PAGES (FAQ, Glossário, Sobre, Contato)
-    const staticPages: Record<string, { title: string; description: string }> = {
-      "/perguntas-frequentes": { title: "Perguntas Frequentes sobre Neurodivergências", description: "Respostas para as dúvidas mais comuns sobre TDAH, TEA, Dislexia, Altas Habilidades e TOC." },
-      "/glossario": { title: "Glossário de Neurodivergências", description: "Termos e definições importantes sobre neurodivergências." },
-      "/sobre": { title: "Sobre o Neurodivergências", description: "Conheça o projeto Neurodivergências e nossa missão de levar informação acessível." },
-      "/contato": { title: "Contato", description: "Entre em contato com a equipe do Neurodivergências." },
+    const staticPages: Record<string, { title: string; description: string; body: string }> = {
+      "/perguntas-frequentes": {
+        title: "Perguntas Frequentes",
+        description: "Respostas para as dúvidas mais comuns sobre TDAH, TEA, Dislexia, Altas Habilidades e TOC.",
+        body: `<h1>Perguntas Frequentes</h1>
+          <p>Respostas claras e baseadas em evidências para as dúvidas mais comuns sobre neurodivergências.</p>
+          <h2>O que são neurodivergências?</h2><p>Neurodivergência reconhece que os cérebros humanos funcionam de maneiras diferentes. TDAH, autismo (TEA), dislexia, altas habilidades e TOC são variações neurológicas da diversidade humana.</p>
+          <h2>Neurodivergência é uma doença?</h2><p>Não. O paradigma da neurodiversidade entende essas condições como variações naturais do funcionamento cerebral.</p>
+          <h2>Como saber se sou neurodivergente?</h2><p>A identificação requer avaliação profissional por psicólogos, neuropsicólogos, psiquiatras ou neurologistas.</p>
+          <h2>TDAH tem cura?</h2><p>O TDAH não tem cura, pois é uma condição neurobiológica. Com tratamento adequado é possível ter uma vida plena e produtiva.</p>
+          <h2>Qual a diferença entre autismo leve e severo?</h2><p>A classificação atual utiliza níveis de suporte (1, 2 e 3) em vez de termos como leve ou severo.</p>
+          <h2>Dislexia afeta a inteligência?</h2><p>Não. A dislexia é uma dificuldade específica de aprendizagem que não está relacionada à inteligência.</p>`,
+      },
+      "/glossario": {
+        title: "Glossário de Neurodivergências",
+        description: "Glossário com os principais termos relacionados a neurodivergências: definições claras e acessíveis.",
+        body: `<h1>Glossário de Neurodivergências</h1>
+          <p>Termos importantes para entender o universo das neurodivergências.</p>
+          <dl>
+            <dt><strong>Neurodiversidade</strong></dt><dd>Conceito que reconhece a variação natural no funcionamento neurológico humano como parte da biodiversidade.</dd>
+            <dt><strong>Neurodivergente</strong></dt><dd>Pessoa cujo funcionamento neurológico difere significativamente do padrão típico.</dd>
+            <dt><strong>Neurotípico</strong></dt><dd>Pessoa cujo funcionamento neurológico se enquadra nos padrões considerados típicos.</dd>
+            <dt><strong>Comorbidade</strong></dt><dd>Ocorrência simultânea de duas ou mais condições em uma mesma pessoa.</dd>
+            <dt><strong>Hiperfoco</strong></dt><dd>Estado de concentração intensa e prolongada em uma atividade de interesse.</dd>
+            <dt><strong>Stimming</strong></dt><dd>Comportamentos repetitivos de autoestimulação usados para autorregulação sensorial.</dd>
+            <dt><strong>Masking</strong></dt><dd>Estratégia de esconder características neurodivergentes para se adequar às expectativas sociais.</dd>
+            <dt><strong>Disfunção executiva</strong></dt><dd>Dificuldade em funções cerebrais de planejamento, organização e controle de impulsos.</dd>
+          </dl>`,
+      },
+      "/sobre": {
+        title: "Sobre",
+        description: "Conheça o Neurodivergências: portal dedicado a informação acessível e confiável sobre neurodivergências para o público brasileiro.",
+        body: `<h1>Sobre o projeto</h1>
+          <p>O Neurodivergências nasceu da necessidade de oferecer informação acessível, confiável e em português brasileiro sobre as diversas formas de neurodiversidade.</p>
+          <h2>Nossa missão</h2>
+          <p>Democratizar o acesso à informação de qualidade sobre TDAH, Autismo (TEA), Dislexia, Altas Habilidades/Superdotação, TOC e outras condições neurodivergentes. Acreditamos que o conhecimento é o primeiro passo para a inclusão e o acolhimento.</p>
+          <h2>Nossos valores</h2>
+          <ul>
+            <li><strong>Acessibilidade</strong> — conteúdo pensado para todos, incluindo pessoas neurodivergentes.</li>
+            <li><strong>Base em evidências</strong> — informações fundamentadas em pesquisa científica atual.</li>
+            <li><strong>Acolhimento</strong> — linguagem respeitosa e empática, sem julgamentos.</li>
+            <li><strong>Inclusão</strong> — reconhecimento da neurodiversidade como parte da diversidade humana.</li>
+          </ul>
+          <h2>Aviso importante</h2>
+          <p>Este site tem caráter exclusivamente informativo e educacional. O conteúdo não substitui avaliação, diagnóstico ou tratamento profissional.</p>`,
+      },
+      "/contato": {
+        title: "Contato",
+        description: "Entre em contato com a equipe do Neurodivergências. Envie dúvidas, sugestões ou colaborações.",
+        body: `<h1>Contato</h1>
+          <p>Tem alguma dúvida, sugestão ou quer colaborar com o projeto? Entre em contato conosco.</p>
+          <p>O Neurodivergências é um projeto dedicado a oferecer informação acessível sobre TDAH, TEA, Dislexia, Altas Habilidades e TOC. Valorizamos o contato com nossos leitores e estamos sempre abertos a sugestões, correções e propostas de colaboração.</p>
+          <p>Responderemos sua mensagem o mais breve possível. Agradecemos seu interesse em contribuir com a disseminação de informação de qualidade sobre neurodivergências no Brasil.</p>`,
+      },
     };
 
     if (staticPages[path]) {
@@ -372,7 +422,7 @@ serve(async (req) => {
           path,
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
-            <main><h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.description)}</p></main>
+            <main>${page.body}</main>
           `,
           schemas: [buildBreadcrumbSchema([{ name: "Início", url: "/" }, { name: page.title, url: path }])],
         }),
