@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import InternalLinksSection from "@/components/admin/InternalLinksSection";
+import SeoAuditSection from "@/components/admin/SeoAuditSection";
 import {
   Save,
   Globe,
@@ -306,6 +307,18 @@ const SeoTab = () => {
                 {renderField("seo_bing_verification", "Bing Webmaster Tools", "Meta tag de verificação do Bing", "", { mono: true })}
                 {renderField("gtm_id", "Google Tag Manager", "ID do container GTM", "GTM-XXXXXXX", { mono: true })}
                 {renderField("seo_ga_id", "Google Analytics (GA4)", "ID de medição do GA4", "G-XXXXXXXXXX", { mono: true })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Linkagem Interna */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="audit" icon={Shield} title="Auditoria SEO por Rota" badge="Novo" />
+          {expandedSection === "audit" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <SeoAuditSection />
               </div>
             </div>
           )}
