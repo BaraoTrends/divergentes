@@ -183,7 +183,6 @@ Regras para títulos:
         userPrompt = `Gere 5 opções de título SEO para um artigo sobre: "${topic || "o conteúdo a seguir"}"\n\n${content ? `Conteúdo:\n${content}` : ""}\n\nRetorne APENAS os 5 títulos, um por linha, numerados (1. 2. 3. 4. 5.). Cada um com no máximo 60 caracteres. Sem explicações.`;
         break;
 
-      case "suggest_keywords":
       case "generate_focus_keyword":
         if (!topic && !content) {
           return new Response(JSON.stringify({ error: "topic or content is required" }), {
