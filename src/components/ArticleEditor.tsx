@@ -310,6 +310,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       read_time: calculatedReadTime,
       tags,
       author_id: article?.author_id || userId,
+      focus_keyword: focusKeyword.trim(),
     });
   };
 
@@ -334,6 +335,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       read_time: calculatedReadTime,
       tags,
       author_id: article?.author_id || userId,
+      focus_keyword: focusKeyword.trim(),
     });
   };
 
@@ -350,6 +352,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       read_time: calculatedReadTime,
       tags,
       author_id: article?.author_id || userId,
+      focus_keyword: focusKeyword.trim(),
     });
   };
 
