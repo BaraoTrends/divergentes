@@ -102,9 +102,12 @@ export function useCreateArticle() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       toast({ title: "Artigo criado com sucesso!" });
+      if (data.published) {
+        notifyGoogleIndexing(data.slug);
+      }
     },
     onError: (error: Error) => {
       toast({ title: "Erro ao criar artigo", description: error.message, variant: "destructive" });
@@ -127,9 +130,12 @@ export function useUpdateArticle() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       toast({ title: "Artigo atualizado com sucesso!" });
+      if (data.published) {
+        notifyGoogleIndexing(data.slug);
+      }
     },
     onError: (error: Error) => {
       toast({ title: "Erro ao atualizar artigo", description: error.message, variant: "destructive" });
