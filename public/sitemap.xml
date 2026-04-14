@@ -2,96 +2,114 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://neurorotina.com/</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/blog</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/tdah</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/tea</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/dislexia</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/altas-habilidades</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/toc</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/perguntas-frequentes</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/glossario</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/sobre</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/contato</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/termos-de-uso</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/politica-de-privacidade</loc>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://neurorotina.com/blog/tratamento-para-tdah-opcoes-alem-do-uso-de-medicacao</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://neurorotina.com/blog/tea-guia-de-temas-para-blogs-sobre-inclusao-e-intervencao</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://neurorotina.com/blog/vida-cotidiana-10-life-hacks-que-vao-facilitar-sua-rotina</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://neurorotina.com/blog/dislexia-na-infancia-como-identificar-e-apoiar-o-desenvolvimento-da-leitura</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://neurorotina.com/blog/altas-habilidades-na-infancia-sinais-e-estimulos</loc>
     <lastmod>2026-04-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://neurorotina.com/blog/toc-de-ordem-e-simetria-na-pre-escola</loc>
-    <lastmod>2026-04-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://neurorotina.com/blog/altas-habilidades-na-infancia-sinais-e-estimulos</loc>
     <lastmod>2026-04-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
