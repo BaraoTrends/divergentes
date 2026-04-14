@@ -88,7 +88,7 @@ const AiAssistantPanel = ({
     if (!content.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("improve_text", { content, model: selectedModel });
+    const result = await generate("improve_text", { content, model: selectedModel, focusKeyword: focusKeyword || undefined });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -100,7 +100,7 @@ const AiAssistantPanel = ({
     if (!content.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("expand_text", { content, model: selectedModel });
+    const result = await generate("expand_text", { content, model: selectedModel, focusKeyword: focusKeyword || undefined });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
