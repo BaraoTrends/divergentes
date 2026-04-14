@@ -166,8 +166,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       : "";
 
     generateTopics("generate_title", {
-      topic: `artigos sobre ${catName} para um blog sobre neurodivergências`,
-      content: `Categoria: ${catName}. Descrição: ${cat?.description || ""}. Sugira 8 temas de artigos variados, criativos e com bom potencial de SEO para essa categoria. Cada tema deve abordar um ângulo diferente para não competir entre si.${avoidList}`,
+      topic: catName,
+      content: `Categoria: ${catName}. Descrição: ${cat?.description || ""}. Sugira 8 títulos de artigos sobre ${catName} voltados para pessoas neurodivergentes, familiares e educadores. Os títulos devem ser naturais, como se fossem artigos reais de um portal de saúde ou educação — NÃO use títulos que mencionem "blog", "ideias de conteúdo", "temas para blog", "estratégicos" ou qualquer referência a criação de conteúdo. Foque em títulos informativos, práticos e acolhedores que alguém pesquisaria no Google (ex: "Como identificar sinais de dislexia em crianças", "TDAH na vida adulta: o que ninguém te conta"). Cada título deve abordar um ângulo diferente para não competir entre si.${avoidList}`,
     });
   };
 
