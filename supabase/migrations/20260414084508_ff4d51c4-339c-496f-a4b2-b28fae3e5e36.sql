@@ -1,0 +1,1 @@
+UPDATE public.articles SET title = 'Dislexia na Infância: Sinais e Apoio à Leitura' WHERE id = 'a3e7affd-11e3-4b26-901e-2caddf36c13f';
