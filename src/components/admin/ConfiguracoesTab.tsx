@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSiteSettings, useBulkUpdateSettings } from "@/hooks/useSiteSettings";
+import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Globe, Code, Tag } from "lucide-react";
+import { Save, Globe, Code, Trash2, Loader2 } from "lucide-react";
 
 const ConfiguracoesTab = () => {
   const { data: settings = [], isLoading } = useSiteSettings();
@@ -102,6 +103,80 @@ const ConfiguracoesTab = () => {
           {renderField("exoclick_verification", "ExoClick Verificação", "Código de verificação do ExoClick", "Code", { charCount: true })}
         </div>
       </div>
+
+      {/* Cache */}
+      <div className="mt-8">
+        <h2 className="flex items-center gap-2 font-heading text-lg font-semibold text-foreground mb-4">
+          <Trash2 className="h-5 w-5 text-primary" /> Cache
+        </h2>
+        <ClearCacheSection />
+      </div>
+    </div>
+  );
+};
+
+const ClearCacheSection = () => {
+  const [clearing, setClearing] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const handleClearCache = async () => {
+    setClearing(true);
+    try {
+      // 1. Clear React Query cache
+      queryClient.clear();
+
+      // 2. Clear browser caches (Cache API)
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+
+      // 3. Unregister service workers
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((r) => r.unregister()));
+      }
+
+      // 4. Clear localStorage/sessionStorage caches (preserve auth)
+      const authKeys: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("sb-")) authKeys.push(key);
+      }
+      const savedAuth = authKeys.map((k) => [k, localStorage.getItem(k)!]);
+      localStorage.clear();
+      savedAuth.forEach(([k, v]) => localStorage.setItem(k, v));
+      sessionStorage.clear();
+
+      // 5. Refetch all active queries
+      await queryClient.refetchQueries();
+
+      toast({ title: "Cache limpo!", description: "Todos os caches foram limpos com sucesso." });
+    } catch (e: any) {
+      toast({ title: "Erro ao limpar cache", description: e.message, variant: "destructive" });
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  return (
+    <div className="bg-card border rounded-lg p-5 space-y-3">
+      <div>
+        <p className="text-sm font-semibold text-foreground">Limpar todo o cache</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Remove cache de dados, cache do navegador, service workers e armazenamento local (exceto sessão de login).
+        </p>
+      </div>
+      <Button
+        variant="destructive"
+        onClick={handleClearCache}
+        disabled={clearing}
+        className="gap-2"
+      >
+        {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+        {clearing ? "Limpando..." : "Limpar Cache"}
+      </Button>
     </div>
   );
 };
