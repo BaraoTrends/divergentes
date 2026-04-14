@@ -115,6 +115,14 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       if (keyword) setFocusKeyword(keyword.toLowerCase());
     },
   });
+  const { generate: generateTitle, isGenerating: isGeneratingTitle } = useAiWriter({
+    onComplete: (text) => {
+      const clean = text.replace(/```/g, "").replace(/"/g, "").replace(/\n/g, " ").trim();
+      // Take the first line / suggestion
+      const suggestion = clean.split("\n").map(l => l.replace(/^\d+[\.\)]\s*/, "").trim()).filter(Boolean)[0];
+      if (suggestion) setTitle(suggestion);
+    },
+  });
 
   const [topicSuggestions, setTopicSuggestions] = useState<string[]>([]);
   const [autoGenerating, setAutoGenerating] = useState(false);
