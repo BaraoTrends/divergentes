@@ -23,6 +23,13 @@ import { useAiImageGen } from "@/hooks/useAiImageGen";
 import { useAiWriter } from "@/hooks/useAiWriter";
 import type { Article } from "@/hooks/useArticles";
 
+import coverIlustracao from "@/assets/cover-styles/ilustracao.jpg";
+import coverFotografia from "@/assets/cover-styles/fotografia.jpg";
+import coverMinimalista from "@/assets/cover-styles/minimalista.jpg";
+import coverAquarela from "@/assets/cover-styles/aquarela.jpg";
+import coverFlat from "@/assets/cover-styles/flat.jpg";
+import coverAbstrato from "@/assets/cover-styles/abstrato.jpg";
+
 interface ArticleEditorProps {
   article?: Article | null;
   onSave: (data: {
@@ -44,12 +51,12 @@ interface ArticleEditorProps {
 }
 
 const COVER_STYLES = [
-  { value: "ilustracao", label: "🎨 Ilustração", prompt: "Ilustração digital profissional e acolhedora, estilo editorial moderno, cores suaves e inclusivas" },
-  { value: "fotografia", label: "📷 Fotografia", prompt: "Fotografia profissional editorial, iluminação natural, composição equilibrada, cores quentes" },
-  { value: "minimalista", label: "✨ Minimalista", prompt: "Design minimalista e limpo, formas geométricas simples, paleta de cores reduzida, muito espaço negativo" },
-  { value: "aquarela", label: "🖌️ Aquarela", prompt: "Pintura em aquarela suave e delicada, tons pastel, bordas fluidas e orgânicas" },
-  { value: "flat", label: "🟦 Flat Design", prompt: "Flat design moderno com cores vibrantes, sem sombras, ícones e formas vetoriais" },
-  { value: "abstrato", label: "🌀 Abstrato", prompt: "Arte abstrata contemporânea, formas fluidas e orgânicas, gradientes suaves, textura sutil" },
+  { value: "ilustracao", label: "🎨 Ilustração", prompt: "Ilustração digital profissional e acolhedora, estilo editorial moderno, cores suaves e inclusivas", thumb: coverIlustracao },
+  { value: "fotografia", label: "📷 Fotografia", prompt: "Fotografia profissional editorial, iluminação natural, composição equilibrada, cores quentes", thumb: coverFotografia },
+  { value: "minimalista", label: "✨ Minimalista", prompt: "Design minimalista e limpo, formas geométricas simples, paleta de cores reduzida, muito espaço negativo", thumb: coverMinimalista },
+  { value: "aquarela", label: "🖌️ Aquarela", prompt: "Pintura em aquarela suave e delicada, tons pastel, bordas fluidas e orgânicas", thumb: coverAquarela },
+  { value: "flat", label: "🟦 Flat Design", prompt: "Flat design moderno com cores vibrantes, sem sombras, ícones e formas vetoriais", thumb: coverFlat },
+  { value: "abstrato", label: "🌀 Abstrato", prompt: "Arte abstrata contemporânea, formas fluidas e orgânicas, gradientes suaves, textura sutil", thumb: coverAbstrato },
 ];
 
 const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEditorProps) => {
