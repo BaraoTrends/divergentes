@@ -118,10 +118,11 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   });
   const { generate: generateTitle, isGenerating: isGeneratingTitle } = useAiWriter({
     onComplete: (text) => {
-      const clean = text.replace(/```/g, "").replace(/"/g, "").replace(/\n/g, " ").trim();
-      // Take the first line / suggestion
-      const suggestion = clean.split("\n").map(l => l.replace(/^\d+[\.\)]\s*/, "").trim()).filter(Boolean)[0];
-      if (suggestion) setTitle(suggestion);
+      // Split by newlines first, then clean each line
+      const lines = text.split(/\r?\n/).map(l => l.replace(/```/g, "").replace(/"/g, "").replace(/^\d+[\.\)]\s*/, "").trim()).filter(Boolean);
+      // Take the first valid line that's under 70 chars
+      const suggestion = lines.find(l => l.length > 5 && l.length <= 70) || lines[0];
+      if (suggestion) setTitle(suggestion.slice(0, 65));
     },
   });
 
@@ -419,7 +420,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                   disabled={isGeneratingTitle || !title.trim()}
                   onClick={() => generateTitle("generate_title", {
                     topic: title,
-                    content: `Melhore ou sugira uma variação deste título para SEO (30-60 caracteres, natural e atrativo): "${title}". Retorne apenas o título melhorado, sem explicações.`,
+                    content: `Melhore este título para SEO. Regras: máximo 60 caracteres, natural e atrativo, inclua a palavra-chave principal. Título atual: "${title}". Retorne APENAS UM título melhorado, sem numeração, sem aspas, sem explicações.`,
                   })}
                 >
                   {isGeneratingTitle ? (
