@@ -1,0 +1,1 @@
+UPDATE articles SET slug = 'vida-cotidiana-10-life-hacks-que-vao-facilitar-sua-rotina' WHERE slug = 'Vida Cotidiana: 10 Life Hacks que Vão Facilitar sua Rotina';
