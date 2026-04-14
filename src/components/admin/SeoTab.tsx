@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import InternalLinksSection from "@/components/admin/InternalLinksSection";
 import SeoAuditSection from "@/components/admin/SeoAuditSection";
+import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
 import {
   Save,
   Globe,
