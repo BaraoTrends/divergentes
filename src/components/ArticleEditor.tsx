@@ -43,6 +43,15 @@ interface ArticleEditorProps {
   userId: string;
 }
 
+const COVER_STYLES = [
+  { value: "ilustracao", label: "🎨 Ilustração", prompt: "Ilustração digital profissional e acolhedora, estilo editorial moderno, cores suaves e inclusivas" },
+  { value: "fotografia", label: "📷 Fotografia", prompt: "Fotografia profissional editorial, iluminação natural, composição equilibrada, cores quentes" },
+  { value: "minimalista", label: "✨ Minimalista", prompt: "Design minimalista e limpo, formas geométricas simples, paleta de cores reduzida, muito espaço negativo" },
+  { value: "aquarela", label: "🖌️ Aquarela", prompt: "Pintura em aquarela suave e delicada, tons pastel, bordas fluidas e orgânicas" },
+  { value: "flat", label: "🟦 Flat Design", prompt: "Flat design moderno com cores vibrantes, sem sombras, ícones e formas vetoriais" },
+  { value: "abstrato", label: "🌀 Abstrato", prompt: "Arte abstrata contemporânea, formas fluidas e orgânicas, gradientes suaves, textura sutil" },
+];
+
 const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEditorProps) => {
   const [title, setTitle] = useState(article?.title || "");
   const [slug, setSlug] = useState(article?.slug || "");
@@ -58,6 +67,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverPrompt, setCoverPrompt] = useState("");
+  const [coverStyle, setCoverStyle] = useState("ilustracao");
+  const coverStyleRef = useRef(coverStyle);
+  useEffect(() => { coverStyleRef.current = coverStyle; }, [coverStyle]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorInstanceRef = useRef<Editor | null>(null);
   const { toast } = useToast();
@@ -115,11 +127,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       generateExcerpt("generate_excerpt", { content: html });
       generateFocusKw("generate_focus_keyword", { topic: pendingTopicRef.current || undefined, content: html.slice(0, 3000) });
       generateKeywords("suggest_keywords", { topic: pendingTopicRef.current || "artigo" });
-      // Auto-generate cover image
+      // Auto-generate cover image with selected style
       const coverTopic = pendingTopicRef.current;
       if (coverTopic) {
+        const styleObj = COVER_STYLES.find(s => s.value === coverStyleRef.current) || COVER_STYLES[0];
         generateImage(
-          `Ilustração profissional e acolhedora para artigo sobre: ${coverTopic}. Estilo editorial moderno, cores suaves e inclusivas, sem texto na imagem.`,
+          `${styleObj.prompt} para artigo sobre: ${coverTopic}. Sem texto na imagem.`,
           "cover"
         );
       }
@@ -564,6 +577,25 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
           <div className="space-y-2">
             <Label>Imagem de Capa</Label>
+
+            {/* Style selector - always visible */}
+            <div className="flex flex-wrap gap-1.5">
+              {COVER_STYLES.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => setCoverStyle(s.value)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    coverStyle === s.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/50 text-muted-foreground border-border hover:border-primary/50"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
             {imageUrl ? (
               <div className="space-y-2">
                 <div className="relative rounded-lg overflow-hidden border bg-muted">
@@ -598,7 +630,13 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => generateImage(coverPrompt.trim() || title || "neurodiversidade", "cover")}
+                    onClick={() => {
+                      const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
+                      const prompt = coverPrompt.trim()
+                        ? `${coverPrompt.trim()}. ${styleObj.prompt}`
+                        : `${styleObj.prompt} para artigo sobre: ${title || "neurodiversidade"}. Sem texto na imagem.`;
+                      generateImage(prompt, "cover");
+                    }}
                     disabled={isGeneratingCover}
                     className="gap-1 text-xs"
                   >
@@ -617,7 +655,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                     placeholder="Descreva a imagem desejada para gerar com IA..."
                     className="text-sm"
                     disabled={isGeneratingCover}
-                    onKeyDown={(e) => e.key === "Enter" && coverPrompt.trim() && generateImage(coverPrompt.trim(), "cover")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && coverPrompt.trim()) {
+                        const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
+                        generateImage(`${coverPrompt.trim()}. ${styleObj.prompt}`, "cover");
+                      }
+                    }}
                   />
                 </div>
                 <Input
@@ -657,13 +700,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                     placeholder="Descreva a imagem de capa desejada..."
                     className="text-sm"
                     disabled={isGeneratingCover}
-                    onKeyDown={(e) => e.key === "Enter" && coverPrompt.trim() && generateImage(coverPrompt.trim(), "cover")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && coverPrompt.trim()) {
+                        const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
+                        generateImage(`${coverPrompt.trim()}. ${styleObj.prompt}`, "cover");
+                      }
+                    }}
                   />
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => generateImage(coverPrompt.trim() || title || "neurodiversidade", "cover")}
+                    onClick={() => {
+                      const styleObj = COVER_STYLES.find(s => s.value === coverStyle) || COVER_STYLES[0];
+                      const prompt = coverPrompt.trim()
+                        ? `${coverPrompt.trim()}. ${styleObj.prompt}`
+                        : `${styleObj.prompt} para artigo sobre: ${title || "neurodiversidade"}. Sem texto na imagem.`;
+                      generateImage(prompt, "cover");
+                    }}
                     disabled={isGeneratingCover}
                     className="gap-1 shrink-0"
                   >
