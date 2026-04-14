@@ -83,13 +83,26 @@ ${SEO_AND_HUMAN_RULES}`;
 
         const kwInstruction = focusKeyword
           ? `\n\nPALAVRA-CHAVE FOCO (OBRIGATÓRIO): "${focusKeyword}"
-- A frase EXATA "${focusKeyword}" DEVE aparecer:
-  1. No PRIMEIRO parágrafo (introdução), preferencialmente em negrito (<strong>)
-  2. Em pelo menos 1 subtítulo H2 (use a frase exata, não palavras separadas)
-  3. Em pelo menos mais 3-5 ocorrências ao longo do corpo do texto, de forma natural
-  4. Na conclusão do artigo
-- A densidade da palavra-chave foco deve ficar entre 1-2% do texto
-- ATENÇÃO: use a frase COMPLETA e EXATA "${focusKeyword}" — não separe as palavras com pontuação ou outras palavras entre elas`
+
+REGRAS DE DENSIDADE — SIGA À RISCA:
+Para um artigo de ~1500 palavras, a keyword "${focusKeyword}" deve aparecer entre 8 e 15 vezes no texto total. Isso garante densidade de 0.5-1.5%.
+
+DISTRIBUIÇÃO OBRIGATÓRIA da frase EXATA "${focusKeyword}":
+  1. No PRIMEIRO parágrafo (introdução) — em negrito (<strong>${focusKeyword}</strong>)
+  2. Em pelo menos 2 subtítulos H2 (use a frase exata dentro do H2)
+  3. Em pelo menos 1 subtítulo H3
+  4. No SEGUNDO ou TERCEIRO parágrafo novamente
+  5. Em pelo menos 1 item de lista (<li>)
+  6. Em pelo menos 2-3 parágrafos do corpo (distribuídos uniformemente)
+  7. Na conclusão/último parágrafo
+  8. No texto de pelo menos 1 link interno (<a>)
+
+CÁLCULO: Se o artigo tem 1500 palavras e a keyword tem 3 palavras, 10 ocorrências = (10×3)/1500 = 2% — IDEAL.
+Se a keyword tem 2 palavras, use 12-15 ocorrências.
+
+ATENÇÃO CRÍTICA: use a frase COMPLETA e EXATA "${focusKeyword}" — NUNCA separe as palavras com pontuação, vírgulas ou outras palavras entre elas. A frase deve aparecer como uma unidade contígua.
+
+ERRO COMUM A EVITAR: NÃO escreva variações como "método multissensorial para dislexia" quando a keyword é "método multissensorial dislexia". Use a frase EXATA.`
           : "";
 
         userPrompt = `Escreva um artigo completo e aprofundado sobre: "${topic}".${kwInstruction}
