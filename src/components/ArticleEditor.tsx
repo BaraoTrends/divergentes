@@ -119,7 +119,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
         setFocusKeyword(kw);
         pendingFocusKwRef.current = kw;
         // If auto-generating, now generate the article WITH the focus keyword
-        if (autoGenerating && pendingTopicRef.current) {
+        if (autoGeneratingRef.current && pendingTopicRef.current) {
           generateArticleFromTopic("generate_article", {
             topic: pendingTopicRef.current,
             focusKeyword: kw,
@@ -153,6 +153,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     onComplete: (html) => {
       setContent(html);
       setAutoGenerating(false);
+      autoGeneratingRef.current = false;
       toast({ title: "Artigo gerado com sucesso!", description: "Gerando imagem de capa..." });
       // Auto-generate excerpt with focus keyword, and keywords
       const kw = pendingFocusKwRef.current || undefined;
@@ -200,6 +201,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     pendingTopicRef.current = suggestion;
     setTopicSuggestions([]);
     setAutoGenerating(true);
+    autoGeneratingRef.current = true;
     // First generate focus keyword, then use it to generate the article (in onComplete callback)
     generateFocusKw("generate_focus_keyword", { topic: suggestion });
   };
