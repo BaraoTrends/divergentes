@@ -38,7 +38,7 @@ const Index = () => {
   return (
     <Layout>
       <SEOHead
-        title="TDAH, Autismo, Dislexia e Mais"
+        title="TDAH, Autismo, Dislexia, Altas Habilidades e TOC"
         description="Guia completo sobre TDAH, Autismo (TEA), Dislexia, Altas Habilidades e TOC. Artigos baseados em evidências, glossário e recursos para famílias brasileiras."
         path="/"
         schemas={[generateWebSiteSchema(), generateOrganizationSchema()]}

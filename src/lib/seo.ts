@@ -1,5 +1,5 @@
 export const SITE_URL = "https://neurorotina.com";
-export const SITE_NAME = "Neurodivergências";
+export const SITE_NAME = "Neuro Rotina";
 export const SITE_DESCRIPTION = "Guia completo sobre TDAH, Autismo (TEA), Dislexia, Altas Habilidades e TOC. Artigos baseados em evidências, glossário e recursos para famílias brasileiras.";
 
 export interface SEOData {
