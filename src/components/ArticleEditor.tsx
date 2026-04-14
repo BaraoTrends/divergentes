@@ -97,10 +97,23 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   });
 
   const [topicSuggestions, setTopicSuggestions] = useState<string[]>([]);
+  const [autoGenerating, setAutoGenerating] = useState(false);
   const { generate: generateTopics, isGenerating: isGeneratingTopics } = useAiWriter({
     onComplete: (text) => {
       const lines = text.split("\n").map(l => l.replace(/^\d+[\.\)]\s*/, "").trim()).filter(Boolean);
       setTopicSuggestions(lines.slice(0, 8));
+    },
+  });
+  const { generate: generateArticleFromTopic, isGenerating: isGeneratingArticle } = useAiWriter({
+    onStream: (text) => setContent(text),
+    onComplete: (html) => {
+      setContent(html);
+      setAutoGenerating(false);
+      toast({ title: "Artigo gerado com sucesso!", description: "Revise o conteúdo e ajuste conforme necessário." });
+      // Auto-generate excerpt, keywords, focus keyword
+      generateExcerpt("generate_excerpt", { content: html });
+      generateFocusKw("generate_focus_keyword", { topic: title || undefined, content: html.slice(0, 3000) });
+      generateKeywords("suggest_keywords", { topic: title || "artigo" });
     },
   });
 
@@ -111,6 +124,13 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       topic: `artigos sobre ${catName} para um blog sobre neurodivergências`,
       content: `Categoria: ${catName}. Descrição: ${cat?.description || ""}. Sugira 8 temas de artigos variados, criativos e com bom potencial de SEO para essa categoria.`,
     });
+  };
+
+  const handleSelectTopic = (suggestion: string) => {
+    setTitle(suggestion);
+    setTopicSuggestions([]);
+    setAutoGenerating(true);
+    generateArticleFromTopic("generate_article", { topic: suggestion });
   };
 
   const handleAddTag = () => {
@@ -386,20 +406,24 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               </Select>
               {topicSuggestions.length > 0 && (
                 <div className="space-y-1.5 p-3 rounded-md border bg-muted/30">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">💡 Sugestões de temas:</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">💡 Clique em um tema para gerar o artigo automaticamente:</p>
                   {topicSuggestions.map((suggestion, i) => (
                     <button
                       key={i}
                       type="button"
-                      className="block w-full text-left text-sm px-2 py-1.5 rounded hover:bg-primary/10 text-foreground transition-colors"
-                      onClick={() => {
-                        setTitle(suggestion);
-                        setTopicSuggestions([]);
-                      }}
+                      disabled={isGeneratingArticle}
+                      className="block w-full text-left text-sm px-2 py-1.5 rounded hover:bg-primary/10 text-foreground transition-colors disabled:opacity-50"
+                      onClick={() => handleSelectTopic(suggestion)}
                     >
                       {suggestion}
                     </button>
                   ))}
+                </div>
+              )}
+              {autoGenerating && (
+                <div className="flex items-center gap-2 p-3 rounded-md border bg-primary/5 text-sm text-primary">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Gerando artigo completo... Aguarde.
                 </div>
               )}
             </div>
