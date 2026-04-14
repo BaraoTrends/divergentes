@@ -32,7 +32,17 @@ export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
 
         if (!resp.ok) {
           const errData = await resp.json().catch(() => ({ error: "Erro desconhecido" }));
-          throw new Error(errData.error || `Erro ${resp.status}`);
+          const msg = errData.error || `Erro ${resp.status}`;
+          toast({
+            title: resp.status === 402 ? "Créditos esgotados" : resp.status === 429 ? "Limite excedido" : "Erro na IA",
+            description: resp.status === 402
+              ? "Os créditos de IA foram esgotados. Adicione mais créditos em Settings → Workspace → Usage."
+              : resp.status === 429
+              ? "Muitas requisições. Aguarde alguns instantes e tente novamente."
+              : msg,
+            variant: "destructive",
+          });
+          return null;
         }
 
         if (!resp.body) throw new Error("Resposta sem conteúdo");
