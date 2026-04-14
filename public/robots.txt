@@ -16,4 +16,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://neurorotina.com/sitemap.xml
+Sitemap: https://wmdjjvjmwvsceqbcmksb.supabase.co/functions/v1/sitemap
