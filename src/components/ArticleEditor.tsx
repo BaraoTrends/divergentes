@@ -98,6 +98,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
   const [topicSuggestions, setTopicSuggestions] = useState<string[]>([]);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const pendingTopicRef = useRef<string>("");
   const { generate: generateTopics, isGenerating: isGeneratingTopics } = useAiWriter({
     onComplete: (text) => {
       const lines = text.split("\n").map(l => l.replace(/^\d+[\.\)]\s*/, "").trim()).filter(Boolean);
@@ -109,11 +110,19 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     onComplete: (html) => {
       setContent(html);
       setAutoGenerating(false);
-      toast({ title: "Artigo gerado com sucesso!", description: "Revise o conteúdo e ajuste conforme necessário." });
+      toast({ title: "Artigo gerado com sucesso!", description: "Gerando imagem de capa..." });
       // Auto-generate excerpt, keywords, focus keyword
       generateExcerpt("generate_excerpt", { content: html });
-      generateFocusKw("generate_focus_keyword", { topic: title || undefined, content: html.slice(0, 3000) });
-      generateKeywords("suggest_keywords", { topic: title || "artigo" });
+      generateFocusKw("generate_focus_keyword", { topic: pendingTopicRef.current || undefined, content: html.slice(0, 3000) });
+      generateKeywords("suggest_keywords", { topic: pendingTopicRef.current || "artigo" });
+      // Auto-generate cover image
+      const coverTopic = pendingTopicRef.current;
+      if (coverTopic) {
+        generateImage(
+          `Ilustração profissional e acolhedora para artigo sobre: ${coverTopic}. Estilo editorial moderno, cores suaves e inclusivas, sem texto na imagem.`,
+          "cover"
+        );
+      }
     },
   });
 
@@ -128,6 +137,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
   const handleSelectTopic = (suggestion: string) => {
     setTitle(suggestion);
+    pendingTopicRef.current = suggestion;
     setTopicSuggestions([]);
     setAutoGenerating(true);
     generateArticleFromTopic("generate_article", { topic: suggestion });
