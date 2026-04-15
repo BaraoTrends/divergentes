@@ -1,15 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar,
+} from "recharts";
+import {
   Search,
   RefreshCw,
   TrendingUp,
-  TrendingDown,
-  Minus,
   ArrowUpDown,
   ExternalLink,
   MousePointerClick,
@@ -113,6 +125,33 @@ const KeywordRankingsSection = () => {
     return <Badge variant="outline" className="text-[10px]">{pos.toFixed(1)}</Badge>;
   };
 
+  // Chart data: aggregate by date
+  const chartData = useMemo(() => {
+    const byDate: Record<string, { totalPos: number; count: number; clicks: number; impressions: number }> = {};
+    rows.forEach((r) => {
+      if (!byDate[r.date]) byDate[r.date] = { totalPos: 0, count: 0, clicks: 0, impressions: 0 };
+      byDate[r.date].totalPos += r.position;
+      byDate[r.date].count += 1;
+      byDate[r.date].clicks += r.clicks;
+      byDate[r.date].impressions += r.impressions;
+    });
+    return Object.entries(byDate)
+      .map(([date, v]) => ({
+        date,
+        label: new Date(date + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }),
+        position: parseFloat((v.totalPos / v.count).toFixed(1)),
+        clicks: v.clicks,
+        impressions: v.impressions,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [rows]);
+
+  const chartConfig = {
+    position: { label: "Posição Média", color: "hsl(var(--primary))" },
+    clicks: { label: "Cliques", color: "hsl(142, 71%, 45%)" },
+    impressions: { label: "Impressões", color: "hsl(217, 91%, 60%)" },
+  };
+
   const latestDate = rows.length > 0 ? rows.reduce((max, r) => (r.date > max ? r.date : max), rows[0].date) : null;
 
   return (
@@ -184,6 +223,50 @@ const KeywordRankingsSection = () => {
         </div>
       )}
 
+      {/* Evolution Charts */}
+      {chartData.length > 1 && (
+        <div className="space-y-4">
+          {/* Position Evolution */}
+          <div className="border rounded-xl bg-card p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-3">Evolução da Posição Média</h3>
+            <ChartContainer config={chartConfig} className="h-[200px] w-full">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} className="text-muted-foreground" />
+                <YAxis reversed tick={{ fontSize: 11 }} domain={["dataMin - 1", "dataMax + 1"]} className="text-muted-foreground" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line
+                  type="monotone"
+                  dataKey="position"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: "hsl(var(--primary))" }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ChartContainer>
+            <p className="text-[10px] text-muted-foreground mt-2 text-center">
+              ↑ Menor posição = melhor ranking (eixo invertido)
+            </p>
+          </div>
+
+          {/* Clicks & Impressions Evolution */}
+          <div className="border rounded-xl bg-card p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-3">Cliques e Impressões por Dia</h3>
+            <ChartContainer config={chartConfig} className="h-[200px] w-full">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} className="text-muted-foreground" />
+                <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="impressions" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} opacity={0.4} />
+                <Bar dataKey="clicks" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
@@ -215,7 +298,8 @@ const KeywordRankingsSection = () => {
 
           <div className="divide-y max-h-[500px] overflow-y-auto">
             {filtered.slice(0, 100).map((r) => {
-              const pagePath = r.page ? new URL(r.page).pathname : "";
+              let pagePath = "";
+              try { pagePath = r.page ? new URL(r.page).pathname : ""; } catch { pagePath = r.page || ""; }
               return (
                 <div
                   key={r.id}
