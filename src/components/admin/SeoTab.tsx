@@ -323,7 +323,18 @@ const SeoTab = () => {
           )}
         </div>
 
+        {/* Keyword Rankings */}
         <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="keywords" icon={Target} title="Rastreamento de Keywords" badge="Search Console" />
+          {expandedSection === "keywords" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <KeywordRankingsSection />
+              </div>
+            </div>
+          )}
+        </div>
+
           <SectionHeader id="schema" icon={Code} title="Dados Estruturados (Schema.org)" />
           {expandedSection === "schema" && (
             <div className="p-4 pt-0 space-y-4 border-t">
