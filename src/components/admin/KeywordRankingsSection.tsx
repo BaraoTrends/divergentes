@@ -246,8 +246,21 @@ const KeywordRankingsSection = () => {
       {/* Evolution Charts */}
       {chartData.length > 1 && (
         <div className="space-y-4">
-          {/* Position Evolution */}
-          <div className="border rounded-xl bg-card p-4">
+          {/* Period filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground mr-1">Período:</span>
+            {PERIOD_OPTIONS.map((opt) => (
+              <Button
+                key={opt.value}
+                variant={period === opt.value ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs px-2.5"
+                onClick={() => setPeriod(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
             <h3 className="text-sm font-semibold text-foreground mb-3">Evolução da Posição Média</h3>
             <ChartContainer config={chartConfig} className="h-[200px] w-full">
               <LineChart data={chartData}>
