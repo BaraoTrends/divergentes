@@ -128,7 +128,33 @@ const KeywordRankingsSection = () => {
     return <Badge variant="outline" className="text-[10px]">{pos.toFixed(1)}</Badge>;
   };
 
-  const latestDate = rows.length > 0 ? rows.reduce((max, r) => (r.date > max ? r.date : max), rows[0].date) : null;
+  // Chart data: aggregate by date
+  const chartData = useMemo(() => {
+    const byDate: Record<string, { totalPos: number; count: number; clicks: number; impressions: number }> = {};
+    rows.forEach((r) => {
+      if (!byDate[r.date]) byDate[r.date] = { totalPos: 0, count: 0, clicks: 0, impressions: 0 };
+      byDate[r.date].totalPos += r.position;
+      byDate[r.date].count += 1;
+      byDate[r.date].clicks += r.clicks;
+      byDate[r.date].impressions += r.impressions;
+    });
+    return Object.entries(byDate)
+      .map(([date, v]) => ({
+        date,
+        label: new Date(date + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }),
+        position: parseFloat((v.totalPos / v.count).toFixed(1)),
+        clicks: v.clicks,
+        impressions: v.impressions,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [rows]);
+
+  const chartConfig = {
+    position: { label: "Posição Média", color: "hsl(var(--primary))" },
+    clicks: { label: "Cliques", color: "hsl(142, 71%, 45%)" },
+    impressions: { label: "Impressões", color: "hsl(217, 91%, 60%)" },
+  };
+
 
   return (
     <div className="space-y-4">
