@@ -32,6 +32,7 @@ import {
   ExternalLink,
   Link2,
   Zap,
+  Bell,
 } from "lucide-react";
 
 const SeoTab = () => {
@@ -320,6 +321,8 @@ const SeoTab = () => {
           )}
         </div>
 
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="schema" icon={Code} title="Dados Estruturados (Schema.org)" />
           {expandedSection === "schema" && (
             <div className="p-4 pt-0 space-y-4 border-t">
               <div className="pt-4 space-y-4">
