@@ -261,6 +261,9 @@ const KeywordRankingsSection = () => {
               </Button>
             ))}
           </div>
+
+          {/* Position Evolution */}
+          <div className="border rounded-xl bg-card p-4">
             <h3 className="text-sm font-semibold text-foreground mb-3">Evolução da Posição Média</h3>
             <ChartContainer config={chartConfig} className="h-[200px] w-full">
               <LineChart data={chartData}>
