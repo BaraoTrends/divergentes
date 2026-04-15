@@ -41,6 +41,15 @@ interface KeywordRow {
 
 type SortField = "clicks" | "impressions" | "position" | "ctr";
 type SortDir = "asc" | "desc";
+type PeriodFilter = "7d" | "14d" | "28d" | "90d" | "all";
+
+const PERIOD_OPTIONS: { value: PeriodFilter; label: string }[] = [
+  { value: "7d", label: "7 dias" },
+  { value: "14d", label: "14 dias" },
+  { value: "28d", label: "28 dias" },
+  { value: "90d", label: "90 dias" },
+  { value: "all", label: "Tudo" },
+];
 
 const KeywordRankingsSection = () => {
   const [rows, setRows] = useState<KeywordRow[]>([]);
@@ -49,6 +58,7 @@ const KeywordRankingsSection = () => {
   const [filter, setFilter] = useState("");
   const [sortField, setSortField] = useState<SortField>("clicks");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [period, setPeriod] = useState<PeriodFilter>("28d");
   const { toast } = useToast();
 
   const fetchRankings = async () => {
@@ -96,9 +106,19 @@ const KeywordRankingsSection = () => {
     }
   };
 
+  // Filter rows by period
+  const periodFilteredRows = useMemo(() => {
+    if (period === "all") return rows;
+    const days = parseInt(period);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().split("T")[0];
+    return rows.filter((r) => r.date >= cutoffStr);
+  }, [rows, period]);
+
   // Aggregate by query (latest date)
   const aggregated = Object.values(
-    rows.reduce<Record<string, KeywordRow>>((acc, r) => {
+    periodFilteredRows.reduce<Record<string, KeywordRow>>((acc, r) => {
       const key = `${r.query}||${r.page}`;
       if (!acc[key] || r.date > acc[key].date) {
         acc[key] = r;
@@ -128,7 +148,7 @@ const KeywordRankingsSection = () => {
   // Chart data: aggregate by date
   const chartData = useMemo(() => {
     const byDate: Record<string, { totalPos: number; count: number; clicks: number; impressions: number }> = {};
-    rows.forEach((r) => {
+    periodFilteredRows.forEach((r) => {
       if (!byDate[r.date]) byDate[r.date] = { totalPos: 0, count: 0, clicks: 0, impressions: 0 };
       byDate[r.date].totalPos += r.position;
       byDate[r.date].count += 1;
@@ -144,7 +164,7 @@ const KeywordRankingsSection = () => {
         impressions: v.impressions,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [rows]);
+  }, [periodFilteredRows]);
 
   const chartConfig = {
     position: { label: "Posição Média", color: "hsl(var(--primary))" },
@@ -226,6 +246,22 @@ const KeywordRankingsSection = () => {
       {/* Evolution Charts */}
       {chartData.length > 1 && (
         <div className="space-y-4">
+          {/* Period filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground mr-1">Período:</span>
+            {PERIOD_OPTIONS.map((opt) => (
+              <Button
+                key={opt.value}
+                variant={period === opt.value ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs px-2.5"
+                onClick={() => setPeriod(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
+
           {/* Position Evolution */}
           <div className="border rounded-xl bg-card p-4">
             <h3 className="text-sm font-semibold text-foreground mb-3">Evolução da Posição Média</h3>
