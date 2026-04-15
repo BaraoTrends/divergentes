@@ -8,6 +8,7 @@ import {
   useUpdateAnchorText,
   generateLinkSuggestions,
 } from "@/hooks/useInternalLinks";
+import { useAiWriter } from "@/hooks/useAiWriter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +27,16 @@ import {
   Save,
   X,
   Plus,
+  Sparkles,
 } from "lucide-react";
+
+const QUANTITY_OPTIONS = [
+  { value: "5", label: "5 links" },
+  { value: "10", label: "10 links" },
+  { value: "15", label: "15 links" },
+  { value: "20", label: "20 links" },
+  { value: "30", label: "30 links" },
+];
 
 const InternalLinksSection = () => {
   const { data: articles = [] } = useArticles();
@@ -37,10 +47,14 @@ const InternalLinksSection = () => {
   const updateAnchor = useUpdateAnchorText();
   const { toast } = useToast();
   const [generating, setGenerating] = useState(false);
+  const [autoQuantity, setAutoQuantity] = useState("10");
   const [showManualForm, setShowManualForm] = useState(false);
   const [manualSource, setManualSource] = useState("");
   const [manualTarget, setManualTarget] = useState("");
   const [manualAnchor, setManualAnchor] = useState("");
+  const [suggestingAnchor, setSuggestingAnchor] = useState(false);
+
+  const { generate: aiGenerate } = useAiWriter();
 
   const publishedArticles = useMemo(() => articles.filter((a) => a.published), [articles]);
   const articleMap = useMemo(() => {
@@ -57,11 +71,13 @@ const InternalLinksSection = () => {
 
   const handleAutoGenerate = async () => {
     setGenerating(true);
+    const maxLinks = parseInt(autoQuantity, 10);
     try {
       const suggestions = generateLinkSuggestions(articles);
       let created = 0;
 
       for (const s of suggestions) {
+        if (created >= maxLinks) break;
         const key = `${s.source.id}:${s.target.id}`;
         if (existingPairs.has(key)) continue;
 
@@ -85,6 +101,30 @@ const InternalLinksSection = () => {
       });
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleSuggestAnchor = async () => {
+    if (!manualSource || !manualTarget) {
+      toast({ title: "Selecione origem e destino primeiro", variant: "destructive" });
+      return;
+    }
+    const source = articleMap[manualSource];
+    const target = articleMap[manualTarget];
+    if (!source || !target) return;
+
+    setSuggestingAnchor(true);
+    try {
+      const result = await aiGenerate("generate_title", {
+        topic: `Sugira um texto âncora curto (máximo 8 palavras) para um link interno que vai do artigo "${source.title}" para o artigo "${target.title}". O texto âncora deve ser natural, descritivo e convidativo para o leitor clicar. Responda APENAS com o texto âncora, sem numeração, sem aspas, sem explicação.`,
+        model: "fast",
+      });
+      if (result) {
+        const clean = result.trim().replace(/^["']|["']$/g, "").replace(/^\d+\.\s*/, "").trim();
+        setManualAnchor(clean);
+      }
+    } finally {
+      setSuggestingAnchor(false);
     }
   };
 
@@ -249,16 +289,40 @@ const InternalLinksSection = () => {
             {showManualForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
             {showManualForm ? "Cancelar" : "Criar Manual"}
           </Button>
+        </div>
+      </div>
+
+      {/* Auto-generate with quantity selector */}
+      <div className="p-3 rounded-lg border bg-muted/30 space-y-2">
+        <p className="text-xs font-semibold flex items-center gap-1">
+          <Zap className="h-3.5 w-3.5" /> Geração Automática
+        </p>
+        <div className="flex items-center gap-2">
+          <Select value={autoQuantity} onValueChange={setAutoQuantity}>
+            <SelectTrigger className="h-8 text-xs w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {QUANTITY_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             size="sm"
             onClick={handleAutoGenerate}
             disabled={generating || articles.length < 2}
-            className="gap-1.5 h-8 text-xs"
+            className="gap-1.5 h-8 text-xs flex-1"
           >
             {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-            Gerar Automáticas
+            Gerar {autoQuantity} Links
           </Button>
         </div>
+        <p className="text-[10px] text-muted-foreground">
+          Gera até {autoQuantity} sugestões baseadas em categoria e palavras-chave em comum.
+        </p>
       </div>
 
       {showManualForm && (
@@ -302,12 +366,30 @@ const InternalLinksSection = () => {
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground mb-0.5 block">Texto Âncora</label>
-            <Input
-              value={manualAnchor}
-              onChange={(e) => setManualAnchor(e.target.value)}
-              placeholder="Ex: Saiba mais sobre TDAH"
-              className="h-8 text-xs"
-            />
+            <div className="flex gap-1.5">
+              <Input
+                value={manualAnchor}
+                onChange={(e) => setManualAnchor(e.target.value)}
+                placeholder="Ex: Saiba mais sobre TDAH"
+                className="h-8 text-xs flex-1"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleSuggestAnchor}
+                disabled={suggestingAnchor || !manualSource || !manualTarget}
+                className="gap-1 h-8 text-xs shrink-0"
+                title="Sugerir texto âncora com IA"
+              >
+                {suggestingAnchor ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
+                IA
+              </Button>
+            </div>
           </div>
           <Button
             size="sm"
@@ -342,7 +424,7 @@ const InternalLinksSection = () => {
         <div className="text-center py-8 text-sm text-muted-foreground">
           <Link2 className="h-8 w-8 mx-auto mb-2 opacity-30" />
           <p>Nenhum link interno ainda.</p>
-          <p className="text-xs mt-1">Clique em "Gerar Sugestões" para analisar seus artigos.</p>
+          <p className="text-xs mt-1">Use a geração automática ou crie manualmente.</p>
         </div>
       )}
     </div>
