@@ -1,10 +1,12 @@
 User-agent: Googlebot
 Allow: /
 Disallow: /admin/
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
 Disallow: /admin/
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -17,3 +19,6 @@ Allow: /
 Disallow: /admin/
 
 Sitemap: https://neurorotina.com/sitemap.xml
+
+# IndexNow
+# Key file: https://neurorotina.com/indexnow-key.txt
