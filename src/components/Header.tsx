@@ -48,7 +48,7 @@ const Header = () => {
     >
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center max-w-full overflow-hidden">
-          <img src={logoImg} alt="Neuro Rotina" className="w-[500px] h-[80px] max-w-full object-contain object-left" width={500} height={80} />
+          <img src={logoImg} alt="Neuro Rotina" className="w-[500px] h-[80px] max-w-full object-contain object-left" width={500} height={80} fetchPriority="high" decoding="sync" />
         </Link>
 
         {/* Desktop nav */}
