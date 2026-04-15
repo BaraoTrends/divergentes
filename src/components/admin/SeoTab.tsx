@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import InternalLinksSection from "@/components/admin/InternalLinksSection";
 import SeoAuditSection from "@/components/admin/SeoAuditSection";
 import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
+import IndexingStatusSection from "@/components/admin/IndexingStatusSection";
 import {
   Save,
   Globe,
@@ -289,6 +290,18 @@ const SeoTab = () => {
             <div className="p-4 pt-0 border-t">
               <div className="pt-4">
                 <GoogleIndexingSection />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Indexing Status Panel */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="indexing-status" icon={Globe} title="Status de Indexação (Google)" badge="Search Console" />
+          {expandedSection === "indexing-status" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <IndexingStatusSection />
               </div>
             </div>
           )}
