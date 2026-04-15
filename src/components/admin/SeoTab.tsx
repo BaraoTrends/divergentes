@@ -295,6 +295,18 @@ const SeoTab = () => {
           )}
         </div>
 
+        {/* Indexing Status Panel */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="indexing-status" icon={Globe} title="Status de Indexação (Google)" badge="Search Console" />
+          {expandedSection === "indexing-status" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <IndexingStatusSection />
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="border rounded-xl bg-card overflow-hidden">
           <SectionHeader id="schema" icon={Code} title="Dados Estruturados (Schema.org)" />
           {expandedSection === "schema" && (
