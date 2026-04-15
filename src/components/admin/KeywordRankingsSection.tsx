@@ -149,7 +149,7 @@ const KeywordRankingsSection = () => {
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [rows]);
 
-  const chartConfig = {
+  const latestDate = rows.length > 0 ? rows.reduce((max, r) => (r.date > max ? r.date : max), rows[0].date) : null;
     position: { label: "Posição Média", color: "hsl(var(--primary))" },
     clicks: { label: "Cliques", color: "hsl(142, 71%, 45%)" },
     impressions: { label: "Impressões", color: "hsl(217, 91%, 60%)" },
