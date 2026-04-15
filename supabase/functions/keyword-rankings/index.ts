@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
     const serviceAccount = JSON.parse(saJson);
     const body = await req.json();
     const {
-      siteUrl = "sc-domain:neurorotina.com",
+      siteUrl = "https://neurorotina.com/",
       startDate,
       endDate,
       rowLimit = 100,
