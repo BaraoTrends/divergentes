@@ -148,7 +148,7 @@ const KeywordRankingsSection = () => {
   // Chart data: aggregate by date
   const chartData = useMemo(() => {
     const byDate: Record<string, { totalPos: number; count: number; clicks: number; impressions: number }> = {};
-    rows.forEach((r) => {
+    periodFilteredRows.forEach((r) => {
       if (!byDate[r.date]) byDate[r.date] = { totalPos: 0, count: 0, clicks: 0, impressions: 0 };
       byDate[r.date].totalPos += r.position;
       byDate[r.date].count += 1;
@@ -164,7 +164,7 @@ const KeywordRankingsSection = () => {
         impressions: v.impressions,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [rows]);
+  }, [periodFilteredRows]);
 
   const chartConfig = {
     position: { label: "Posição Média", color: "hsl(var(--primary))" },
