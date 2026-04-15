@@ -119,6 +119,85 @@ export type Database = {
         }
         Relationships: []
       }
+      indexing_alerts: {
+        Row: {
+          alert_type: string
+          article_id: string
+          created_at: string
+          id: string
+          message: string
+          resolved: boolean
+        }
+        Insert: {
+          alert_type?: string
+          article_id: string
+          created_at?: string
+          id?: string
+          message: string
+          resolved?: boolean
+        }
+        Update: {
+          alert_type?: string
+          article_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          resolved?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indexing_alerts_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      indexing_status: {
+        Row: {
+          article_id: string
+          changed_at: string | null
+          coverage_state: string | null
+          created_at: string
+          id: string
+          last_crawl_time: string | null
+          previous_verdict: string | null
+          url: string
+          verdict: string
+        }
+        Insert: {
+          article_id: string
+          changed_at?: string | null
+          coverage_state?: string | null
+          created_at?: string
+          id?: string
+          last_crawl_time?: string | null
+          previous_verdict?: string | null
+          url: string
+          verdict?: string
+        }
+        Update: {
+          article_id?: string
+          changed_at?: string | null
+          coverage_state?: string | null
+          created_at?: string
+          id?: string
+          last_crawl_time?: string | null
+          previous_verdict?: string | null
+          url?: string
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indexing_status_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: true
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

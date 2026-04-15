@@ -13,6 +13,7 @@ import InternalLinksSection from "@/components/admin/InternalLinksSection";
 import SeoAuditSection from "@/components/admin/SeoAuditSection";
 import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
 import IndexingStatusSection from "@/components/admin/IndexingStatusSection";
+import IndexingAlertsSection from "@/components/admin/IndexingAlertsSection";
 import {
   Save,
   Globe,
@@ -31,6 +32,7 @@ import {
   ExternalLink,
   Link2,
   Zap,
+  Bell,
 } from "lucide-react";
 
 const SeoTab = () => {
@@ -302,6 +304,18 @@ const SeoTab = () => {
             <div className="p-4 pt-0 border-t">
               <div className="pt-4">
                 <IndexingStatusSection />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Indexing Alerts (Cron) */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="indexing-alerts" icon={Bell} title="Alertas de Indexação" badge="Cron diário" />
+          {expandedSection === "indexing-alerts" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <IndexingAlertsSection />
               </div>
             </div>
           )}
