@@ -177,8 +177,11 @@ const IndexingStatusSection = () => {
               <div className="shrink-0">
                 {isChecking ? (
                   <Loader2 className="h-5 w-5 text-primary animate-spin" />
-                ) : result ? (
-                  <verdictInfo!.icon className={`h-5 w-5 ${verdictInfo!.color.split(" ")[0]}`} />
+                ) : result && verdictInfo ? (
+                  (() => {
+                    const VIcon = verdictInfo.icon;
+                    return <VIcon className={`h-5 w-5 ${verdictInfo.color.split(" ")[0]}`} />;
+                  })()
                 ) : (
                   <Clock className="h-5 w-5 text-muted-foreground/40" />
                 )}
