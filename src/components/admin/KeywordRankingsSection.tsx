@@ -41,6 +41,15 @@ interface KeywordRow {
 
 type SortField = "clicks" | "impressions" | "position" | "ctr";
 type SortDir = "asc" | "desc";
+type PeriodFilter = "7d" | "14d" | "28d" | "90d" | "all";
+
+const PERIOD_OPTIONS: { value: PeriodFilter; label: string }[] = [
+  { value: "7d", label: "7 dias" },
+  { value: "14d", label: "14 dias" },
+  { value: "28d", label: "28 dias" },
+  { value: "90d", label: "90 dias" },
+  { value: "all", label: "Tudo" },
+];
 
 const KeywordRankingsSection = () => {
   const [rows, setRows] = useState<KeywordRow[]>([]);
@@ -49,6 +58,7 @@ const KeywordRankingsSection = () => {
   const [filter, setFilter] = useState("");
   const [sortField, setSortField] = useState<SortField>("clicks");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [period, setPeriod] = useState<PeriodFilter>("28d");
   const { toast } = useToast();
 
   const fetchRankings = async () => {
