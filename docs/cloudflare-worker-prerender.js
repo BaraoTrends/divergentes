@@ -82,6 +82,14 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // Serve IndexNow key file
+    if (url.pathname.endsWith('.txt') && url.pathname.includes('indexnow')) {
+      const key = env.INDEXNOW_KEY || '';
+      return new Response(key, {
+        headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=86400' },
+      });
+    }
+
     // Proxy reverso para sitemap — serve XML diretamente sem redirect
     if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap') {
       try {
