@@ -4,18 +4,21 @@ import { useToast } from "@/hooks/use-toast";
 import { SITE_URL } from "@/lib/seo";
 import type { Json } from "@/integrations/supabase/types";
 
-/** Fire-and-forget: notify Google Indexing API about a published URL */
-async function notifyGoogleIndexing(slug: string) {
-  try {
-    const url = `${SITE_URL}/blog/${slug}`;
-    await supabase.functions.invoke("google-indexing", {
-      body: { urls: [url], type: "URL_UPDATED" },
-    });
-    console.log("[Indexing] Enviado para indexação:", url);
-  } catch (e) {
-    // Non-blocking — don't break the publish flow
-    console.warn("[Indexing] Falha ao enviar para indexação:", e);
-  }
+/** Fire-and-forget: notify Google Indexing API + ping search engines about a published URL */
+async function notifySearchEngines(slug: string) {
+  const url = `${SITE_URL}/blog/${slug}`;
+
+  // 1. Google Indexing API (if service account configured)
+  supabase.functions.invoke("google-indexing", {
+    body: { urls: [url], type: "URL_UPDATED" },
+  }).then(() => console.log("[Indexing] Google Indexing API enviado:", url))
+    .catch((e) => console.warn("[Indexing] Google Indexing API falhou:", e));
+
+  // 2. Ping Google/Bing sitemaps + IndexNow
+  supabase.functions.invoke("ping-search-engines", {
+    body: { url },
+  }).then(() => console.log("[Indexing] Sitemap ping + IndexNow enviado:", url))
+    .catch((e) => console.warn("[Indexing] Ping falhou:", e));
 }
 
 export interface Article {
@@ -107,7 +110,7 @@ export function useCreateArticle() {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       toast({ title: "Artigo criado com sucesso!" });
       if (data.published) {
-        notifyGoogleIndexing(data.slug);
+        notifySearchEngines(data.slug);
       }
     },
     onError: (error: Error) => {
@@ -135,7 +138,7 @@ export function useUpdateArticle() {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       toast({ title: "Artigo atualizado com sucesso!" });
       if (data.published) {
-        notifyGoogleIndexing(data.slug);
+        notifySearchEngines(data.slug);
       }
     },
     onError: (error: Error) => {
