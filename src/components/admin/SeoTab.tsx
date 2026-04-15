@@ -308,8 +308,18 @@ const SeoTab = () => {
           )}
         </div>
 
+        {/* Indexing Alerts (Cron) */}
         <div className="border rounded-xl bg-card overflow-hidden">
-          <SectionHeader id="schema" icon={Code} title="Dados Estruturados (Schema.org)" />
+          <SectionHeader id="indexing-alerts" icon={Bell} title="Alertas de Indexação" badge="Cron diário" />
+          {expandedSection === "indexing-alerts" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <IndexingAlertsSection />
+              </div>
+            </div>
+          )}
+        </div>
+
           {expandedSection === "schema" && (
             <div className="p-4 pt-0 space-y-4 border-t">
               <div className="pt-4 space-y-4">
