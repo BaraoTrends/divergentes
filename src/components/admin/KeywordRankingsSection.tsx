@@ -106,9 +106,19 @@ const KeywordRankingsSection = () => {
     }
   };
 
+  // Filter rows by period
+  const periodFilteredRows = useMemo(() => {
+    if (period === "all") return rows;
+    const days = parseInt(period);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().split("T")[0];
+    return rows.filter((r) => r.date >= cutoffStr);
+  }, [rows, period]);
+
   // Aggregate by query (latest date)
   const aggregated = Object.values(
-    rows.reduce<Record<string, KeywordRow>>((acc, r) => {
+    periodFilteredRows.reduce<Record<string, KeywordRow>>((acc, r) => {
       const key = `${r.query}||${r.page}`;
       if (!acc[key] || r.date > acc[key].date) {
         acc[key] = r;
