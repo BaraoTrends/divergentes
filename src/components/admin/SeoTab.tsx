@@ -14,6 +14,7 @@ import SeoAuditSection from "@/components/admin/SeoAuditSection";
 import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
 import IndexingStatusSection from "@/components/admin/IndexingStatusSection";
 import IndexingAlertsSection from "@/components/admin/IndexingAlertsSection";
+import KeywordRankingsSection from "@/components/admin/KeywordRankingsSection";
 import {
   Save,
   Globe,
@@ -33,6 +34,7 @@ import {
   Link2,
   Zap,
   Bell,
+  Target,
 } from "lucide-react";
 
 const SeoTab = () => {
@@ -316,6 +318,18 @@ const SeoTab = () => {
             <div className="p-4 pt-0 border-t">
               <div className="pt-4">
                 <IndexingAlertsSection />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Keyword Rankings */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="keywords" icon={Target} title="Rastreamento de Keywords" badge="Search Console" />
+          {expandedSection === "keywords" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <KeywordRankingsSection />
               </div>
             </div>
           )}

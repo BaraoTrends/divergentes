@@ -198,6 +198,48 @@ export type Database = {
           },
         ]
       }
+      keyword_rankings: {
+        Row: {
+          clicks: number
+          country: string | null
+          created_at: string
+          ctr: number
+          date: string
+          device: string | null
+          id: string
+          impressions: number
+          page: string | null
+          position: number
+          query: string
+        }
+        Insert: {
+          clicks?: number
+          country?: string | null
+          created_at?: string
+          ctr?: number
+          date: string
+          device?: string | null
+          id?: string
+          impressions?: number
+          page?: string | null
+          position?: number
+          query: string
+        }
+        Update: {
+          clicks?: number
+          country?: string | null
+          created_at?: string
+          ctr?: number
+          date?: string
+          device?: string | null
+          id?: string
+          impressions?: number
+          page?: string | null
+          position?: number
+          query?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
