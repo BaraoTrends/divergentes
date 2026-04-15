@@ -14,6 +14,7 @@ import SeoAuditSection from "@/components/admin/SeoAuditSection";
 import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
 import IndexingStatusSection from "@/components/admin/IndexingStatusSection";
 import IndexingAlertsSection from "@/components/admin/IndexingAlertsSection";
+import KeywordRankingsSection from "@/components/admin/KeywordRankingsSection";
 import {
   Save,
   Globe,
@@ -33,6 +34,7 @@ import {
   Link2,
   Zap,
   Bell,
+  Target,
 } from "lucide-react";
 
 const SeoTab = () => {
