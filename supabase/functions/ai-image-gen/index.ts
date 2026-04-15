@@ -32,14 +32,63 @@ serve(async (req) => {
       });
     }
 
-    // Build an enhanced prompt based on purpose
+    // Build an enhanced prompt based on purpose with diversity mechanisms
     let enhancedPrompt = prompt;
-    const styleHints = style || "professional, modern, clean";
+    const styleHints = style || "";
+
+    // Visual style variety pool — pick one randomly per request to avoid repetitive outputs
+    const visualStyles = [
+      "watercolor painting with soft blended edges and muted tones",
+      "modern flat vector illustration with bold geometric shapes",
+      "realistic digital photography style, shallow depth of field",
+      "paper cut-out / collage art style with layered textures",
+      "minimalist line art with a single accent color",
+      "impressionist oil painting with visible brushstrokes",
+      "isometric 3D illustration with pastel colors",
+      "retro risograph print style with halftone dots and limited palette",
+      "editorial magazine illustration, sophisticated and elegant",
+      "chalk pastel on textured paper, warm and organic feel",
+    ];
+
+    const compositions = [
+      "bird's-eye view composition",
+      "close-up detail shot",
+      "wide panoramic scene",
+      "centered symmetrical composition",
+      "off-center subject with negative space",
+      "split composition showing contrast",
+      "macro perspective focusing on hands or objects",
+      "environmental wide shot with context",
+    ];
+
+    const palettes = [
+      "warm earth tones (terracotta, olive, sand)",
+      "cool ocean palette (teal, navy, seafoam)",
+      "sunset gradient (coral, amber, plum)",
+      "forest palette (emerald, moss, cream)",
+      "monochromatic blue with white accents",
+      "muted pastels (lavender, blush, sage)",
+      "high contrast black and white with one pop color",
+      "golden hour warm light palette",
+    ];
+
+    const randomPick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
     if (purpose === "cover") {
-      enhancedPrompt = `Create a professional blog article cover image. Style: ${styleHints}. Subject: ${prompt}. The image should be visually striking, suitable for a health/neurodiversity blog. No text in the image. Wide landscape format.`;
+      const chosenStyle = styleHints || randomPick(visualStyles);
+      const chosenComposition = randomPick(compositions);
+      const chosenPalette = randomPick(palettes);
+      enhancedPrompt = `Create a unique, visually distinctive blog cover image. 
+Art style: ${chosenStyle}. 
+Composition: ${chosenComposition}. 
+Color palette: ${chosenPalette}. 
+Subject: ${prompt}. 
+Context: This is for a Brazilian health/neurodiversity blog. 
+IMPORTANT: Do NOT depict generic classroom scenes with teacher and student. Instead, use metaphorical or abstract representations of the subject. Be creative and original. 
+No text, no letters, no words in the image. Wide landscape format (16:9 aspect ratio).`;
     } else if (purpose === "inline") {
-      enhancedPrompt = `Create an illustration for a blog article. Style: ${styleHints}. Subject: ${prompt}. Clean, informative, no text overlay.`;
+      const chosenStyle = styleHints || randomPick(visualStyles);
+      enhancedPrompt = `Create an illustration for a blog article. Art style: ${chosenStyle}. Subject: ${prompt}. Use a unique visual approach — avoid cliché classroom scenes. Be creative with metaphors and abstract concepts. Clean, no text overlay.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
