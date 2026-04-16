@@ -70,6 +70,11 @@ const BlogPost = () => {
   const ogImageEndpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-image?slug=${encodeURIComponent(post.slug)}`;
   const ogImage = articleImage.startsWith("http") ? articleImage : articleImage ? `${SITE_URL}${articleImage}` : ogImageEndpoint;
 
+  const articleKeywords = [
+    ...(dbArticle?.focus_keyword ? [dbArticle.focus_keyword] : []),
+    ...(dbArticle?.tags || []),
+  ].filter(Boolean);
+
   const articleSchema = generateArticleSchema({
     title: post.title,
     description: post.excerpt,
@@ -78,6 +83,7 @@ const BlogPost = () => {
     datePublished: post.datePublished,
     dateModified: post.dateModified,
     author: post.author,
+    keywords: articleKeywords,
   });
 
   // Collect all schemas: breadcrumb + article + custom per-article
