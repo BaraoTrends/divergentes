@@ -8,7 +8,7 @@ interface Props extends SEOData {
   keywords?: string[];
 }
 
-const SEOHead = ({ title, description, path, image, type = "website", schemas = [], noindex = false }: Props) => {
+const SEOHead = ({ title, description, path, image, type = "website", schemas = [], noindex = false, keywords = [] }: Props) => {
   const seo = useGlobalSeo();
 
   const separator = seo?.titleSeparator || "|";
