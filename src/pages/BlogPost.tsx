@@ -13,6 +13,7 @@ import { blogPosts as staticPosts } from "@/lib/content";
 import { blogImages } from "@/lib/images";
 import { useArticleBySlug, useArticles } from "@/hooks/useArticles";
 import { generateBreadcrumbSchema, generateArticleSchema, SITE_URL } from "@/lib/seo";
+import { countWords } from "@/lib/seoAnalysis";
 import { Clock, Calendar } from "lucide-react";
 import type { BlogPost as BlogPostType } from "@/lib/content";
 
@@ -85,6 +86,7 @@ const BlogPost = () => {
     author: post.author,
     keywords: articleKeywords,
     articleSection: post.category,
+    wordCount: countWords(post.content),
   });
 
   // Collect all schemas: breadcrumb + article + custom per-article

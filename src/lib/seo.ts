@@ -68,6 +68,7 @@ export function generateArticleSchema(data: {
   author: string;
   keywords?: string[];
   articleSection?: string;
+  wordCount?: number;
 }) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -90,6 +91,9 @@ export function generateArticleSchema(data: {
   }
   if (data.articleSection) {
     schema.articleSection = data.articleSection;
+  }
+  if (data.wordCount && data.wordCount > 0) {
+    schema.wordCount = data.wordCount;
   }
   return schema;
 }
