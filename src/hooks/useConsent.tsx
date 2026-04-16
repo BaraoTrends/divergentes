@@ -19,6 +19,13 @@ const ConsentContext = createContext<ConsentContextType>({
 
 export const useConsent = () => useContext(ConsentContext);
 
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
+
 export const ConsentProvider = ({ children }: { children: ReactNode }) => {
   const [consent, setConsent] = useState<ConsentStatus>(() => {
     const stored = localStorage.getItem(COOKIE_KEY);
@@ -28,18 +35,21 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const [gtmId, setGtmId] = useState<string | null>(null);
+  const [ga4Id, setGa4Id] = useState<string | null>(null);
 
-  // Fetch GTM ID from site_settings
+  // Fetch GTM + GA4 IDs from site_settings
   useEffect(() => {
     supabase
       .from("site_settings")
-      .select("value")
-      .eq("key", "gtm_id")
-      .maybeSingle()
+      .select("key,value")
+      .in("key", ["gtm_id", "seo_ga_id"])
       .then(({ data }) => {
-        const id = data?.value?.trim();
-        if (id && id.length > 3 && id.startsWith("GTM-")) {
-          setGtmId(id);
+        if (!data) return;
+        for (const row of data) {
+          const v = row.value?.trim();
+          if (!v) continue;
+          if (row.key === "gtm_id" && v.startsWith("GTM-")) setGtmId(v);
+          if (row.key === "seo_ga_id" && v.startsWith("G-")) setGa4Id(v);
         }
       });
   }, []);
@@ -54,23 +64,19 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
     setConsent("declined");
   }, []);
 
-  // Inject GTM only after consent is accepted AND we have a valid GTM ID
+  // Inject GTM after consent
   useEffect(() => {
     if (consent !== "accepted" || !gtmId) return;
-
-    // Check if GTM is already loaded
     if (document.querySelector('script[src*="googletagmanager.com/gtm.js"]')) return;
 
-    // Load GTM dynamically
-    const w = window as any;
-    w.dataLayer = w.dataLayer || [];
-    w.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
     const script = document.createElement("script");
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtm.js?id=${gtmId}`;
+    script.onerror = () => console.warn("[analytics] GTM bloqueado (provavelmente por adblocker)");
     document.head.appendChild(script);
 
-    // Also inject noscript iframe in body
     const noscript = document.createElement("noscript");
     const iframe = document.createElement("iframe");
     iframe.src = `https://www.googletagmanager.com/ns.html?id=${gtmId}`;
@@ -81,6 +87,26 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
     noscript.appendChild(iframe);
     document.body.insertBefore(noscript, document.body.firstChild);
   }, [consent, gtmId]);
+
+  // Inject GA4 (gtag.js) directly — independente do GTM
+  useEffect(() => {
+    if (consent !== "accepted" || !ga4Id) return;
+    if (document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${ga4Id}"]`)) return;
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${ga4Id}`;
+    script.onerror = () => console.warn("[analytics] GA4 bloqueado (provavelmente por adblocker)");
+    document.head.appendChild(script);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer.push(arguments);
+    };
+    window.gtag("js", new Date());
+    window.gtag("config", ga4Id, { anonymize_ip: true });
+  }, [consent, ga4Id]);
 
   return (
     <ConsentContext.Provider value={{ consent, accept, decline }}>
