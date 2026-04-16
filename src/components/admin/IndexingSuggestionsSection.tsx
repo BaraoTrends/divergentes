@@ -354,6 +354,26 @@ const IndexingSuggestionsSection = () => {
   const tipCount = suggestions.filter((s) => s.severity === "tip").length;
   const totalAffected = new Set(suggestions.flatMap((s) => s.affectedSlugs)).size;
 
+  // Health score: weighted per-article checks
+  const healthScore = useMemo(() => {
+    if (published.length === 0) return 100;
+    const WEIGHTS: Record<string, number> = { critical: 3, warning: 2, tip: 1 };
+    const checkCount = 10;
+    const maxPoints = published.length * checkCount * 3;
+    let lostPoints = 0;
+    for (const sug of suggestions) {
+      lostPoints += sug.affectedSlugs.length * (WEIGHTS[sug.severity] || 1);
+    }
+    return Math.max(0, Math.round((1 - lostPoints / maxPoints) * 100));
+  }, [published, suggestions]);
+
+  const scoreColor = healthScore >= 80 ? "text-green-600" : healthScore >= 50 ? "text-yellow-600" : "text-red-600";
+  const scoreBorder = healthScore >= 80 ? "border-green-500/30" : healthScore >= 50 ? "border-yellow-500/30" : "border-red-500/30";
+  const scoreBg = healthScore >= 80 ? "bg-green-500/5" : healthScore >= 50 ? "bg-yellow-500/5" : "bg-red-500/5";
+  const scoreRing = healthScore >= 80 ? "stroke-green-500" : healthScore >= 50 ? "stroke-yellow-500" : "stroke-red-500";
+  const circumference = 2 * Math.PI * 40;
+  const strokeDashoffset = circumference - (healthScore / 100) * circumference;
+
   const FIXABLE_LABELS: Record<FixableId, string> = {
     "missing-excerpt": "Gerar meta descriptions com IA",
     "missing-keyword": "Gerar focus keywords com IA",
@@ -365,6 +385,35 @@ const IndexingSuggestionsSection = () => {
         Ações concretas para remover bloqueios e melhorar a indexação. Baseado na análise de{" "}
         <strong>{published.length}</strong> artigos publicados e <strong>{drafts.length}</strong> rascunhos.
       </p>
+
+      {/* Health Score Ring */}
+      <div className={`border rounded-xl p-4 ${scoreBorder} ${scoreBg} flex items-center gap-4`}>
+        <div className="relative shrink-0">
+          <svg width="88" height="88" viewBox="0 0 88 88" className="-rotate-90">
+            <circle cx="44" cy="44" r="40" fill="none" stroke="currentColor" strokeWidth="6" className="text-border opacity-30" />
+            <circle
+              cx="44" cy="44" r="40" fill="none" strokeWidth="6" strokeLinecap="round"
+              className={scoreRing}
+              style={{ strokeDasharray: circumference, strokeDashoffset, transition: "stroke-dashoffset 0.6s ease" }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className={`text-xl font-bold ${scoreColor}`}>{healthScore}%</span>
+          </div>
+        </div>
+        <div className="min-w-0">
+          <h4 className="text-sm font-semibold text-foreground">Saúde de Indexação</h4>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {healthScore >= 90
+              ? "Excelente! Seus artigos estão bem otimizados para indexação."
+              : healthScore >= 70
+              ? "Bom, mas há melhorias que podem aumentar suas páginas indexadas."
+              : healthScore >= 50
+              ? "Atenção: vários artigos precisam de ajustes para serem indexados."
+              : "Crítico: muitos bloqueios impedem a indexação. Resolva os itens críticos primeiro."}
+          </p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div className="border rounded-lg p-3 bg-card">
