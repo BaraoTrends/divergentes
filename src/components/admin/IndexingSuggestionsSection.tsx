@@ -395,6 +395,53 @@ const IndexingSuggestionsSection = () => {
     return Math.max(0, Math.round((1 - lostPoints / maxPoints) * 100));
   }, [published, suggestions]);
 
+  // Save today's score to history (upsert by date)
+  useEffect(() => {
+    if (published.length === 0) return;
+    const today = new Date().toISOString().slice(0, 10);
+    supabase
+      .from("indexing_health_history" as any)
+      .upsert(
+        {
+          score: healthScore,
+          total_articles: published.length,
+          critical_count: criticalCount,
+          warning_count: warningCount,
+          tip_count: tipCount,
+          recorded_at: today,
+        },
+        { onConflict: "recorded_at" }
+      )
+      .then(() => queryClient.invalidateQueries({ queryKey: ["health-history"] }));
+  }, [healthScore, published.length, criticalCount, warningCount, tipCount]);
+
+  const queryClient = useQueryClient();
+  const { data: history = [] } = useQuery({
+    queryKey: ["health-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("indexing_health_history" as any)
+        .select("score, recorded_at, total_articles, critical_count, warning_count, tip_count")
+        .order("recorded_at", { ascending: true })
+        .limit(90);
+      if (error) throw error;
+      return (data || []) as Array<{
+        score: number;
+        recorded_at: string;
+        total_articles: number;
+        critical_count: number;
+        warning_count: number;
+        tip_count: number;
+      }>;
+    },
+  });
+
+  const chartData = history.map((h) => ({
+    date: new Date(h.recorded_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+    score: h.score,
+    artigos: h.total_articles,
+  }));
+
   const scoreColor = healthScore >= 80 ? "text-green-600" : healthScore >= 50 ? "text-yellow-600" : "text-red-600";
   const scoreBorder = healthScore >= 80 ? "border-green-500/30" : healthScore >= 50 ? "border-yellow-500/30" : "border-red-500/30";
   const scoreBg = healthScore >= 80 ? "bg-green-500/5" : healthScore >= 50 ? "bg-yellow-500/5" : "bg-red-500/5";
