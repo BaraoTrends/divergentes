@@ -22,14 +22,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkAdmin = async (userId: string): Promise<boolean> => {
     try {
-      const { data } = await supabase.rpc("has_role", {
+      const { data, error } = await supabase.rpc("has_role", {
         _user_id: userId,
         _role: "admin",
       });
+      if (error) {
+        console.error("[useAuth] has_role RPC error:", error);
+        setIsAdmin(false);
+        return false;
+      }
       const result = !!data;
+      console.log("[useAuth] checkAdmin result for", userId, "=", result);
       setIsAdmin(result);
       return result;
-    } catch {
+    } catch (e) {
+      console.error("[useAuth] checkAdmin exception:", e);
       setIsAdmin(false);
       return false;
     }
