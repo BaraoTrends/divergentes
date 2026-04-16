@@ -5,9 +5,10 @@ import { useGlobalSeo } from "@/hooks/useGlobalSeo";
 interface Props extends SEOData {
   schemas?: object[];
   noindex?: boolean;
+  keywords?: string[];
 }
 
-const SEOHead = ({ title, description, path, image, type = "website", schemas = [], noindex = false }: Props) => {
+const SEOHead = ({ title, description, path, image, type = "website", schemas = [], noindex = false, keywords = [] }: Props) => {
   const seo = useGlobalSeo();
 
   const separator = seo?.titleSeparator || "|";
@@ -29,6 +30,7 @@ const SEOHead = ({ title, description, path, image, type = "website", schemas = 
       <meta name="description" content={descTrimmed} />
       <link rel="canonical" href={canonical} />
       <meta name="robots" content={robots} />
+      {keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
 
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={descTrimmed} />
