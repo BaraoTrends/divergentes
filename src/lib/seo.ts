@@ -67,6 +67,7 @@ export function generateArticleSchema(data: {
   dateModified: string;
   author: string;
   keywords?: string[];
+  articleSection?: string;
 }) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -86,6 +87,9 @@ export function generateArticleSchema(data: {
   };
   if (data.keywords && data.keywords.length > 0) {
     schema.keywords = data.keywords;
+  }
+  if (data.articleSection) {
+    schema.articleSection = data.articleSection;
   }
   return schema;
 }

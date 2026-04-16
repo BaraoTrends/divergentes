@@ -84,6 +84,7 @@ const BlogPost = () => {
     dateModified: post.dateModified,
     author: post.author,
     keywords: articleKeywords,
+    articleSection: post.category,
   });
 
   // Collect all schemas: breadcrumb + article + custom per-article
