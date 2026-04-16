@@ -24,7 +24,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-type FixableId = "missing-excerpt" | "missing-keyword";
+type FixableId = "missing-excerpt" | "missing-keyword" | "thin-content";
 
 interface Suggestion {
   id: string;
@@ -137,6 +137,7 @@ const IndexingSuggestionsSection = () => {
         description: "Conteúdo muito curto raramente é indexado. O Google prioriza artigos com profundidade e relevância.",
         affectedSlugs: thinContent.map((a) => a.slug),
         action: "Expanda o conteúdo para pelo menos 800 palavras com informações úteis.",
+        fixable: "thin-content",
       });
     }
 
@@ -264,6 +265,12 @@ const IndexingSuggestionsSection = () => {
             await updateArticle.mutateAsync({ id: article.id, focus_keyword: keyword });
             successCount++;
           }
+        } else if (sug.fixable === "thin-content") {
+          const expanded = await expandContent(article);
+          if (expanded) {
+            await updateArticle.mutateAsync({ id: article.id, content: expanded });
+            successCount++;
+          }
         }
       } catch (err) {
         console.error(`Auto-fix failed for ${article.slug}:`, err);
@@ -314,6 +321,24 @@ const IndexingSuggestionsSection = () => {
         action: "generate_focus_keyword",
         topic: article.title,
         content: article.content.slice(0, 3000),
+      }),
+    });
+    if (!resp.ok || !resp.body) return null;
+    return await collectStream(resp.body);
+  };
+
+  const expandContent = async (article: Article): Promise<string | null> => {
+    const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-writer`;
+    const resp = await fetch(AI_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({
+        action: "expand_text",
+        content: article.content,
+        focusKeyword: article.focus_keyword || undefined,
       }),
     });
     if (!resp.ok || !resp.body) return null;
@@ -377,6 +402,7 @@ const IndexingSuggestionsSection = () => {
   const FIXABLE_LABELS: Record<FixableId, string> = {
     "missing-excerpt": "Gerar meta descriptions com IA",
     "missing-keyword": "Gerar focus keywords com IA",
+    "thin-content": "Expandir conteúdo com IA",
   };
 
   return (
