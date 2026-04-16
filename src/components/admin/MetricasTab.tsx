@@ -11,6 +11,7 @@ import {
   useTopReferrers,
 } from "@/hooks/useDashboardMetrics";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { ErrorLogsSection } from "./ErrorLogsSection";
 import {
   ResponsiveContainer,
   LineChart,
