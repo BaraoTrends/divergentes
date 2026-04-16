@@ -17,9 +17,6 @@ export default defineConfig(({ mode }) => ({
       },
       mangle: {
         toplevel: true,
-        properties: {
-          regex: /^_/,
-        },
       },
       format: {
         comments: false,
