@@ -322,6 +322,12 @@ serve(async (req) => {
       const datePublished = article.created_at.split("T")[0];
       const dateModified = article.updated_at.split("T")[0];
       const author = "Equipe Neurodivergências";
+      const plainContent = (isHtml ? contentHtml : article.content).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      const wordCount = plainContent ? plainContent.split(/\s+/).filter(Boolean).length : 0;
+      const articleKeywords = [
+        ...(article.focus_keyword ? [article.focus_keyword] : []),
+        ...(article.tags || []),
+      ].filter(Boolean) as string[];
 
       return new Response(
         buildHtml({
@@ -331,6 +337,7 @@ serve(async (req) => {
           image,
           type: "article",
           article: { datePublished, dateModified, author },
+          keywords: articleKeywords,
           body: `
             <header><nav><a href="/">${SITE_NAME}</a> &rsaquo; <a href="/blog">Blog</a></nav></header>
             <main>
@@ -356,6 +363,9 @@ serve(async (req) => {
               datePublished,
               dateModified,
               author,
+              keywords: articleKeywords,
+              articleSection: article.category,
+              wordCount,
             }),
           ],
         }),
