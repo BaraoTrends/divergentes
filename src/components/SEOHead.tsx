@@ -5,6 +5,7 @@ import { useGlobalSeo } from "@/hooks/useGlobalSeo";
 interface Props extends SEOData {
   schemas?: object[];
   noindex?: boolean;
+  keywords?: string[];
 }
 
 const SEOHead = ({ title, description, path, image, type = "website", schemas = [], noindex = false }: Props) => {
