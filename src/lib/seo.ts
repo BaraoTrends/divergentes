@@ -68,6 +68,7 @@ export function generateArticleSchema(data: {
   author: string;
   keywords?: string[];
   articleSection?: string;
+  wordCount?: number;
 }) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
