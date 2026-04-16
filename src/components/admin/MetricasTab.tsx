@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import {
   useTopArticles,
   useViewsByCategory,
   useViewsTimeline,
+  useViewsByDevice,
+  useTopReferrers,
 } from "@/hooks/useDashboardMetrics";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import {
   ResponsiveContainer,
   LineChart,
@@ -19,8 +23,10 @@ import {
   Pie,
   Cell,
   Legend,
+  BarChart,
+  Bar,
 } from "recharts";
-import { Eye, Users, Clock, TrendingUp, ExternalLink } from "lucide-react";
+import { Eye, Users, Clock, TrendingUp, ExternalLink, Smartphone, Monitor, Tablet, Globe, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { categories } from "@/lib/content";
 
 const PERIODS = [
