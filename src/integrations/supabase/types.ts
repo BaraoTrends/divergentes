@@ -62,6 +62,50 @@ export type Database = {
           },
         ]
       }
+      article_views: {
+        Row: {
+          article_id: string
+          created_at: string
+          device: string | null
+          id: string
+          read_time_seconds: number | null
+          referrer: string | null
+          scroll_depth: number | null
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          device?: string | null
+          id?: string
+          read_time_seconds?: number | null
+          referrer?: string | null
+          scroll_depth?: number | null
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          device?: string | null
+          id?: string
+          read_time_seconds?: number | null
+          referrer?: string | null
+          scroll_depth?: number | null
+          session_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_views_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author_id: string
@@ -356,6 +400,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_top_articles: {
+        Args: { days_back?: number; result_limit?: number }
+        Returns: {
+          article_id: string
+          avg_read_time: number
+          avg_scroll_depth: number
+          category: string
+          slug: string
+          title: string
+          unique_sessions: number
+          views: number
+        }[]
+      }
+      get_views_by_category: {
+        Args: { days_back?: number }
+        Returns: {
+          category: string
+          views: number
+        }[]
+      }
+      get_views_timeline: {
+        Args: { days_back?: number }
+        Returns: {
+          day: string
+          unique_sessions: number
+          views: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
