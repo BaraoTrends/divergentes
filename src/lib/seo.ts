@@ -88,6 +88,9 @@ export function generateArticleSchema(data: {
   if (data.keywords && data.keywords.length > 0) {
     schema.keywords = data.keywords;
   }
+  if (data.articleSection) {
+    schema.articleSection = data.articleSection;
+  }
   return schema;
 }
 
