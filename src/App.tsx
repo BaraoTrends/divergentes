@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ConsentProvider } from "@/hooks/useConsent";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 
 const CategoryHub = lazy(() => import("./pages/CategoryHub"));
@@ -40,36 +41,38 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <ConsentProvider>
-          <AuthProvider>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                {categoryRoutes.map((slug) => (
-                  <Route key={slug} path={`/${slug}`} element={<CategoryHub />} />
-                ))}
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:slug" element={<BlogPost />} />
-                <Route path="/perguntas-frequentes" element={<FAQ />} />
-                <Route path="/glossario" element={<Glossario />} />
-                <Route path="/sobre" element={<Sobre />} />
-                <Route path="/contato" element={<Contato />} />
-                <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
-                <Route path="/termos-de-uso" element={<TermosDeUso />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </AuthProvider>
-          </ConsentProvider>
+          <ErrorBoundary>
+            <ConsentProvider>
+            <AuthProvider>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  {categoryRoutes.map((slug) => (
+                    <Route key={slug} path={`/${slug}`} element={<CategoryHub />} />
+                  ))}
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/perguntas-frequentes" element={<FAQ />} />
+                  <Route path="/glossario" element={<Glossario />} />
+                  <Route path="/sobre" element={<Sobre />} />
+                  <Route path="/contato" element={<Contato />} />
+                  <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+                  <Route path="/termos-de-uso" element={<TermosDeUso />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute requireAdmin>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </AuthProvider>
+            </ConsentProvider>
+          </ErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
