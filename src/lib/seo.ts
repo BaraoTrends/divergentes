@@ -78,6 +78,7 @@ export function generateArticleSchema(data: {
     image: data.image,
     datePublished: data.datePublished,
     dateModified: data.dateModified,
+    inLanguage: "pt-BR",
     author: { "@type": "Person", name: data.author },
     publisher: {
       "@type": "Organization",
