@@ -163,6 +163,45 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          component_stack: string | null
+          created_at: string
+          id: string
+          message: string
+          resolved: boolean
+          session_id: string | null
+          stack: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_stack?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          resolved?: boolean
+          session_id?: string | null
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_stack?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          resolved?: boolean
+          session_id?: string | null
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       indexing_alerts: {
         Row: {
           alert_type: string
