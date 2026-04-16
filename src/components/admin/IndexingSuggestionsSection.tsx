@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useArticles, useUpdateArticle, type Article } from "@/hooks/useArticles";
 import { useAiWriter } from "@/hooks/useAiWriter";
+import { supabase } from "@/integrations/supabase/client";
 import { countWords } from "@/lib/seoAnalysis";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import {
   CheckCircle2,
   AlertTriangle,
