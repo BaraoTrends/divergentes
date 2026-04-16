@@ -338,18 +338,37 @@ const DashboardTab = ({ onEditArticle, onNavigate }: { onEditArticle: (a: Articl
 const ArtigosTab = ({
   onNew,
   onEdit,
+  categoryFilter,
+  onClearFilter,
 }: {
   onNew: () => void;
   onEdit: (a: Article) => void;
+  categoryFilter: string | null;
+  onClearFilter: () => void;
 }) => {
   const { data: articles = [], isLoading } = useArticles();
   const deleteArticle = useDeleteArticle();
   const [deleteTarget, setDeleteTarget] = useState<Article | null>(null);
+  const filteredArticles = categoryFilter
+    ? articles.filter((a) => a.category === categoryFilter)
+    : articles;
+  const categoryName = categoryFilter
+    ? categories.find((c) => c.slug === categoryFilter)?.name || categoryFilter
+    : null;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-heading text-2xl font-bold text-foreground">Artigos</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="font-heading text-2xl font-bold text-foreground">
+            {categoryName ? `Artigos — ${categoryName}` : "Artigos"}
+          </h1>
+          {categoryFilter && (
+            <Button variant="ghost" size="sm" className="text-xs" onClick={onClearFilter}>
+              ✕ Limpar filtro
+            </Button>
+          )}
+        </div>
         <Button size="sm" className="gap-1" onClick={onNew}>
           <Plus className="h-4 w-4" /> Novo Artigo
         </Button>
