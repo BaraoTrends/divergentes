@@ -66,8 +66,9 @@ export function generateArticleSchema(data: {
   datePublished: string;
   dateModified: string;
   author: string;
+  keywords?: string[];
 }) {
-  return {
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: data.title,
@@ -83,6 +84,10 @@ export function generateArticleSchema(data: {
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}${data.url}` },
   };
+  if (data.keywords && data.keywords.length > 0) {
+    schema.keywords = data.keywords;
+  }
+  return schema;
 }
 
 export function generateFAQSchema(faqs: { question: string; answer: string }[]) {
