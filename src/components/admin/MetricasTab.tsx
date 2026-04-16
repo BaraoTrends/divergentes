@@ -282,9 +282,107 @@ const MetricasTab = () => {
         </Card>
       </div>
 
+      {/* Dispositivos + Referrers */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Smartphone className="h-4 w-4" /> Dispositivos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingDev ? (
+              <Skeleton className="h-48 w-full" />
+            ) : byDevice.length === 0 ? (
+              <EmptyState message="Sem dados de dispositivos ainda." />
+            ) : (
+              <div className="space-y-2">
+                {byDevice.map((d) => {
+                  const total = byDevice.reduce((s, x) => s + Number(x.views), 0) || 1;
+                  const pct = Math.round((Number(d.views) / total) * 100);
+                  const Icon = d.device === "mobile" ? Smartphone : d.device === "tablet" ? Tablet : Monitor;
+                  return (
+                    <div key={d.device} className="flex items-center gap-3">
+                      <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="font-medium capitalize text-foreground">{d.device}</span>
+                          <span className="text-muted-foreground">{Number(d.views).toLocaleString("pt-BR")} ({pct}%)</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Globe className="h-4 w-4" /> Origens de tráfego
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingRef ? (
+              <Skeleton className="h-48 w-full" />
+            ) : topReferrers.length === 0 ? (
+              <EmptyState message="Sem dados de origem ainda." />
+            ) : (
+              <div className="space-y-1.5">
+                {topReferrers.map((r) => (
+                  <div key={r.referrer} className="flex items-center justify-between gap-2 text-sm py-1 border-b border-border/40 last:border-0">
+                    <span className="truncate text-foreground" title={r.referrer}>{r.referrer}</span>
+                    <span className="text-xs font-medium text-muted-foreground shrink-0">{Number(r.views).toLocaleString("pt-BR")}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Status dos trackers externos */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Status dos rastreadores externos</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <TrackerStatusRow name="Google Tag Manager" id={gtmId} status={trackerStatus.gtm} />
+          <TrackerStatusRow name="Google Analytics 4" id={ga4Id} status={trackerStatus.ga4} />
+          <p className="text-xs text-muted-foreground pt-2 border-t mt-3">
+            "Bloqueado" geralmente significa adblocker ou consentimento de cookies recusado. Configure os IDs em <strong>SEO</strong> ou <strong>Configurações</strong>.
+          </p>
+        </CardContent>
+      </Card>
+
       <p className="text-xs text-muted-foreground text-center">
-        Dados de tracking interno. Atualizados em tempo real conforme as visitas. Privacidade: nenhum dado pessoal é coletado.
+        Dados de tracking interno (próprios servidores). Tempo de leitura conta apenas com a aba ativa. Privacidade: nenhum dado pessoal é coletado.
       </p>
+    </div>
+  );
+};
+
+const TrackerStatusRow = ({ name, id, status }: { name: string; id: string; status: "ok" | "blocked" | "off" }) => {
+  const cfg = {
+    ok: { Icon: CheckCircle2, color: "text-green-600", label: "Ativo", variant: "default" as const },
+    blocked: { Icon: XCircle, color: "text-destructive", label: "Bloqueado", variant: "destructive" as const },
+    off: { Icon: AlertCircle, color: "text-muted-foreground", label: "Não configurado", variant: "secondary" as const },
+  }[status];
+  return (
+    <div className="flex items-center justify-between gap-3 py-2">
+      <div className="flex items-center gap-2 min-w-0">
+        <cfg.Icon className={`h-4 w-4 shrink-0 ${cfg.color}`} />
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground">{name}</p>
+          {id && <p className="text-xs text-muted-foreground font-mono truncate">{id}</p>}
+        </div>
+      </div>
+      <Badge variant={cfg.variant} className="text-xs shrink-0">{cfg.label}</Badge>
     </div>
   );
 };
