@@ -31,6 +31,7 @@ import UsuariosTab from "@/components/admin/UsuariosTab";
 import ConfiguracoesTab from "@/components/admin/ConfiguracoesTab";
 import AnunciosTab from "@/components/admin/AnunciosTab";
 import SeoTab from "@/components/admin/SeoTab";
+import MetricasTab from "@/components/admin/MetricasTab";
 import {
   LayoutDashboard,
   FileText,
@@ -46,9 +47,10 @@ import {
   Megaphone,
   Wrench,
   SearchIcon,
+  TrendingUp,
 } from "lucide-react";
 
-type Tab = "dashboard" | "artigos" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "perfil";
+type Tab = "dashboard" | "artigos" | "metricas" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "perfil";
 type EditorMode = null | "create" | "edit";
 
 const AdminDashboard = () => {
@@ -77,6 +79,7 @@ const AdminDashboard = () => {
   const tabs = [
     { id: "dashboard" as Tab, label: "Dashboard", icon: LayoutDashboard },
     { id: "artigos" as Tab, label: "Artigos", icon: FileText },
+    { id: "metricas" as Tab, label: "Métricas", icon: TrendingUp },
     { id: "categorias" as Tab, label: "Categorias", icon: BarChart3 },
     { id: "usuarios" as Tab, label: "Usuários", icon: Users },
     { id: "configuracoes" as Tab, label: "Configurações", icon: Wrench },
@@ -139,6 +142,7 @@ const AdminDashboard = () => {
                 />
               )
             )}
+            {activeTab === "metricas" && <MetricasTab />}
             {activeTab === "categorias" && <CategoriasTab onSelectCategory={(slug) => { setCategoryFilter(slug); setActiveTab("artigos"); closeEditor(); }} />}
             {activeTab === "usuarios" && <UsuariosTab />}
             {activeTab === "configuracoes" && <ConfiguracoesTab />}
