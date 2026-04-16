@@ -1,5 +1,6 @@
 import { Component, ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   children: ReactNode;
@@ -10,6 +11,10 @@ interface State {
   error: Error | null;
 }
 
+const RATE_LIMIT_KEY = "nr_error_log_last";
+const RATE_LIMIT_MS = 10_000; // no máx. 1 log a cada 10s por sessão
+const SESSION_KEY = "nr_session_id";
+
 class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null };
 
@@ -17,8 +22,28 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  async componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("[ErrorBoundary] Erro capturado:", error, errorInfo);
+    try {
+      const last = Number(localStorage.getItem(RATE_LIMIT_KEY) || 0);
+      if (Date.now() - last < RATE_LIMIT_MS) return;
+      localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const sessionId = localStorage.getItem(SESSION_KEY);
+
+      await supabase.from("error_logs").insert({
+        message: error.message?.slice(0, 1000) || "Unknown error",
+        stack: error.stack?.slice(0, 4000) || null,
+        component_stack: errorInfo.componentStack?.slice(0, 4000) || null,
+        url: window.location.href.slice(0, 500),
+        user_agent: navigator.userAgent.slice(0, 500),
+        user_id: user?.id ?? null,
+        session_id: sessionId,
+      });
+    } catch {
+      /* não propagar erro do logger */
+    }
   }
 
   handleReload = () => {
