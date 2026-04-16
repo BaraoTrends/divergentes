@@ -447,7 +447,7 @@ const CategoriasTab = () => {
           return (
             <button
               key={cat.slug}
-              onClick={() => navigate(`/categoria/${cat.slug}`)}
+              onClick={() => navigate(`/${cat.slug}`)}
               className="bg-card border rounded-lg p-5 text-left transition-all hover:shadow-md hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98] group cursor-pointer"
             >
               <div className="flex items-center gap-3 mb-2">
