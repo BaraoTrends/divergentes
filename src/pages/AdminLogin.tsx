@@ -21,10 +21,17 @@ const AdminLogin = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!authLoading && user && isAdmin) {
+    if (authLoading) return;
+    if (user && isAdmin) {
       navigate("/admin", { replace: true });
+    } else if (user && !isAdmin) {
+      toast({
+        title: "Acesso negado",
+        description: "Sua conta não tem permissão de administrador.",
+        variant: "destructive",
+      });
     }
-  }, [user, isAdmin, authLoading, navigate]);
+  }, [user, isAdmin, authLoading, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +43,9 @@ const AdminLogin = () => {
         toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
         setLoading(false);
       } else {
-        // Navigation will happen via useEffect when auth state updates
-        // Add safety timeout
-        setTimeout(() => setLoading(false), 5000);
+        // Navigation happens via useEffect when auth state updates with isAdmin
+        toast({ title: "Login realizado!", description: "Verificando permissões..." });
+        setLoading(false);
       }
     } else {
       const { error } = await signUp(email, password, displayName);
