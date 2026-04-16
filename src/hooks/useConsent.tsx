@@ -77,15 +77,8 @@ export const ConsentProvider = ({ children }: { children: ReactNode }) => {
     script.onerror = () => console.warn("[analytics] GTM bloqueado (provavelmente por adblocker)");
     document.head.appendChild(script);
 
-    const noscript = document.createElement("noscript");
-    const iframe = document.createElement("iframe");
-    iframe.src = `https://www.googletagmanager.com/ns.html?id=${gtmId}`;
-    iframe.height = "0";
-    iframe.width = "0";
-    iframe.style.display = "none";
-    iframe.style.visibility = "hidden";
-    noscript.appendChild(iframe);
-    document.body.insertBefore(noscript, document.body.firstChild);
+    // Nota: o fallback <noscript><iframe> do GTM não é necessário em SPAs (JS sempre habilitado)
+    // e inserir nodes em document.body fora do controle do React causa erros de reconciliação (#61).
   }, [consent, gtmId]);
 
   // Inject GA4 (gtag.js) directly — independente do GTM
