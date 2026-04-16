@@ -413,10 +413,24 @@ export type Database = {
           views: number
         }[]
       }
+      get_top_referrers: {
+        Args: { days_back?: number; result_limit?: number }
+        Returns: {
+          referrer: string
+          views: number
+        }[]
+      }
       get_views_by_category: {
         Args: { days_back?: number }
         Returns: {
           category: string
+          views: number
+        }[]
+      }
+      get_views_by_device: {
+        Args: { days_back?: number }
+        Returns: {
+          device: string
           views: number
         }[]
       }
