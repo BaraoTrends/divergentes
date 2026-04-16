@@ -35,6 +35,7 @@ function buildHtml(opts: {
   body: string;
   noindex?: boolean;
   schemas?: object[];
+  keywords?: string[];
   article?: { datePublished: string; dateModified: string; author: string };
 }): string {
   const rawTitle = opts.path === "/" ? `${SITE_NAME} — ${opts.title}` : `${opts.title} | ${SITE_NAME}`;
@@ -63,7 +64,7 @@ function buildHtml(opts: {
   <meta name="description" content="${escapeHtml(desc)}" />
   <link rel="canonical" href="${canonical}" />
   <meta name="robots" content="${opts.noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}" />
-
+  ${keywordsMeta}
   <meta property="og:title" content="${escapeHtml(fullTitle)}" />
   <meta property="og:description" content="${escapeHtml(desc)}" />
   <meta property="og:url" content="${canonical}" />
@@ -105,8 +106,9 @@ function buildBreadcrumbSchema(items: { name: string; url: string }[]) {
 function buildArticleSchema(data: {
   title: string; description: string; url: string; image: string;
   datePublished: string; dateModified: string; author: string;
+  keywords?: string[]; articleSection?: string; wordCount?: number;
 }) {
-  return {
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: data.title,
@@ -114,6 +116,7 @@ function buildArticleSchema(data: {
     image: data.image,
     datePublished: data.datePublished,
     dateModified: data.dateModified,
+    inLanguage: "pt-BR",
     author: { "@type": "Person", name: data.author },
     publisher: {
       "@type": "Organization",
@@ -122,6 +125,10 @@ function buildArticleSchema(data: {
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}${data.url}` },
   };
+  if (data.keywords && data.keywords.length > 0) schema.keywords = data.keywords;
+  if (data.articleSection) schema.articleSection = data.articleSection;
+  if (data.wordCount && data.wordCount > 0) schema.wordCount = data.wordCount;
+  return schema;
 }
 
 function buildOrgSchema() {
@@ -315,6 +322,12 @@ serve(async (req) => {
       const datePublished = article.created_at.split("T")[0];
       const dateModified = article.updated_at.split("T")[0];
       const author = "Equipe Neurodivergências";
+      const plainContent = (isHtml ? contentHtml : article.content).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      const wordCount = plainContent ? plainContent.split(/\s+/).filter(Boolean).length : 0;
+      const articleKeywords = [
+        ...(article.focus_keyword ? [article.focus_keyword] : []),
+        ...(article.tags || []),
+      ].filter(Boolean) as string[];
 
       return new Response(
         buildHtml({
@@ -324,6 +337,7 @@ serve(async (req) => {
           image,
           type: "article",
           article: { datePublished, dateModified, author },
+          keywords: articleKeywords,
           body: `
             <header><nav><a href="/">${SITE_NAME}</a> &rsaquo; <a href="/blog">Blog</a></nav></header>
             <main>
@@ -349,6 +363,9 @@ serve(async (req) => {
               datePublished,
               dateModified,
               author,
+              keywords: articleKeywords,
+              articleSection: article.category,
+              wordCount,
             }),
           ],
         }),
