@@ -15,6 +15,7 @@ import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
 import IndexingStatusSection from "@/components/admin/IndexingStatusSection";
 import IndexingAlertsSection from "@/components/admin/IndexingAlertsSection";
 import KeywordRankingsSection from "@/components/admin/KeywordRankingsSection";
+import IndexingSuggestionsSection from "@/components/admin/IndexingSuggestionsSection";
 import {
   Save,
   Globe,
