@@ -376,17 +376,21 @@ const ArtigosTab = ({
 
       {isLoading ? (
         <div className="text-muted-foreground text-sm">Carregando...</div>
-      ) : articles.length === 0 ? (
+      ) : filteredArticles.length === 0 ? (
         <div className="bg-card border rounded-lg p-8 text-center">
-          <p className="text-muted-foreground mb-4">Nenhum artigo criado ainda.</p>
-          <Button onClick={onNew} className="gap-1">
-            <Plus className="h-4 w-4" /> Criar primeiro artigo
-          </Button>
+          <p className="text-muted-foreground mb-4">
+            {categoryFilter ? "Nenhum artigo nesta categoria." : "Nenhum artigo criado ainda."}
+          </p>
+          {!categoryFilter && (
+            <Button onClick={onNew} className="gap-1">
+              <Plus className="h-4 w-4" /> Criar primeiro artigo
+            </Button>
+          )}
         </div>
       ) : (
         <div className="bg-card border rounded-lg overflow-hidden">
           <div className="divide-y">
-            {articles.map((article) => (
+            {filteredArticles.map((article) => (
               <div key={article.id} className="flex items-center gap-4 p-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -456,9 +460,8 @@ const ArtigosTab = ({
   );
 };
 
-const CategoriasTab = () => {
+const CategoriasTab = ({ onSelectCategory }: { onSelectCategory: (slug: string) => void }) => {
   const { data: articles = [] } = useArticles();
-  const navigate = useNavigate();
 
   return (
     <div>
@@ -469,7 +472,7 @@ const CategoriasTab = () => {
           return (
             <button
               key={cat.slug}
-              onClick={() => navigate(`/${cat.slug}`)}
+              onClick={() => onSelectCategory(cat.slug)}
               className="bg-card border rounded-lg p-5 text-left transition-all hover:shadow-md hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98] group cursor-pointer"
             >
               <div className="flex items-center gap-3 mb-2">
