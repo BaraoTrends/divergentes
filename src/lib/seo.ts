@@ -67,6 +67,7 @@ export function generateArticleSchema(data: {
   dateModified: string;
   author: string;
   keywords?: string[];
+  articleSection?: string;
 }) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
