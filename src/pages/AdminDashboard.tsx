@@ -436,6 +436,7 @@ const ArtigosTab = ({
 
 const CategoriasTab = () => {
   const { data: articles = [] } = useArticles();
+  const navigate = useNavigate();
 
   return (
     <div>
@@ -444,17 +445,21 @@ const CategoriasTab = () => {
         {categories.map((cat) => {
           const count = articles.filter((a) => a.category === cat.slug).length;
           return (
-            <div key={cat.slug} className="bg-card border rounded-lg p-5">
+            <button
+              key={cat.slug}
+              onClick={() => navigate(`/categoria/${cat.slug}`)}
+              className="bg-card border rounded-lg p-5 text-left transition-all hover:shadow-md hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98] group cursor-pointer"
+            >
               <div className="flex items-center gap-3 mb-2">
                 <span className={`w-8 h-8 rounded-full ${cat.bgClass} flex items-center justify-center text-white text-sm`}>
                   {cat.icon}
                 </span>
                 <div>
-                  <p className="font-heading font-bold text-foreground">{cat.name}</p>
+                  <p className="font-heading font-bold text-foreground group-hover:text-primary transition-colors">{cat.name}</p>
                   <p className="text-xs text-muted-foreground">{count} artigo{count !== 1 ? "s" : ""}</p>
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
