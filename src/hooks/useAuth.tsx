@@ -21,6 +21,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authReady, setAuthReady] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const syncSessionState = useCallback((nextSession: Session | null) => {
+    const nextUser = nextSession?.user ?? null;
+
+    setSession(nextSession);
+    setUser(nextUser);
+    setAuthReady(true);
+    setLoading(!!nextUser);
+
+    if (!nextUser) {
+      setIsAdmin(false);
+    }
+  }, []);
+
   const checkAdmin = useCallback(async (userId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase.rpc("has_role", {
@@ -58,20 +71,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setAuthReady(true);
+        syncSessionState(newSession);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      setAuthReady(true);
+      syncSessionState(initialSession);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [syncSessionState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,7 +114,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [authReady, checkAdmin, user]);
 
   const signIn = async (email: string, password: string) => {
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+      setIsAdmin(false);
+    }
     return { error: error as Error | null };
   };
 
@@ -122,8 +136,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    setLoading(true);
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setLoading(false);
   };
 
   return (
