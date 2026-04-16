@@ -154,6 +154,39 @@ export type Database = {
           },
         ]
       }
+      indexing_health_history: {
+        Row: {
+          created_at: string
+          critical_count: number
+          id: string
+          recorded_at: string
+          score: number
+          tip_count: number
+          total_articles: number
+          warning_count: number
+        }
+        Insert: {
+          created_at?: string
+          critical_count?: number
+          id?: string
+          recorded_at?: string
+          score: number
+          tip_count?: number
+          total_articles?: number
+          warning_count?: number
+        }
+        Update: {
+          created_at?: string
+          critical_count?: number
+          id?: string
+          recorded_at?: string
+          score?: number
+          tip_count?: number
+          total_articles?: number
+          warning_count?: number
+        }
+        Relationships: []
+      }
       indexing_status: {
         Row: {
           article_id: string

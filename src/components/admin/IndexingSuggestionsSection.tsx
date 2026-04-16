@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useArticles, useUpdateArticle, type Article } from "@/hooks/useArticles";
 import { useAiWriter } from "@/hooks/useAiWriter";
+import { supabase } from "@/integrations/supabase/client";
 import { countWords } from "@/lib/seoAnalysis";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -392,6 +395,53 @@ const IndexingSuggestionsSection = () => {
     return Math.max(0, Math.round((1 - lostPoints / maxPoints) * 100));
   }, [published, suggestions]);
 
+  // Save today's score to history (upsert by date)
+  useEffect(() => {
+    if (published.length === 0) return;
+    const today = new Date().toISOString().slice(0, 10);
+    supabase
+      .from("indexing_health_history" as any)
+      .upsert(
+        {
+          score: healthScore,
+          total_articles: published.length,
+          critical_count: criticalCount,
+          warning_count: warningCount,
+          tip_count: tipCount,
+          recorded_at: today,
+        },
+        { onConflict: "recorded_at" }
+      )
+      .then(() => queryClient.invalidateQueries({ queryKey: ["health-history"] }));
+  }, [healthScore, published.length, criticalCount, warningCount, tipCount]);
+
+  const queryClient = useQueryClient();
+  const { data: history = [] } = useQuery({
+    queryKey: ["health-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("indexing_health_history" as any)
+        .select("score, recorded_at, total_articles, critical_count, warning_count, tip_count")
+        .order("recorded_at", { ascending: true })
+        .limit(90);
+      if (error) throw error;
+      return (data || []) as unknown as Array<{
+        score: number;
+        recorded_at: string;
+        total_articles: number;
+        critical_count: number;
+        warning_count: number;
+        tip_count: number;
+      }>;
+    },
+  });
+
+  const chartData = history.map((h) => ({
+    date: new Date(h.recorded_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+    score: h.score,
+    artigos: h.total_articles,
+  }));
+
   const scoreColor = healthScore >= 80 ? "text-green-600" : healthScore >= 50 ? "text-yellow-600" : "text-red-600";
   const scoreBorder = healthScore >= 80 ? "border-green-500/30" : healthScore >= 50 ? "border-yellow-500/30" : "border-red-500/30";
   const scoreBg = healthScore >= 80 ? "bg-green-500/5" : healthScore >= 50 ? "bg-yellow-500/5" : "bg-red-500/5";
@@ -440,6 +490,30 @@ const IndexingSuggestionsSection = () => {
           </p>
         </div>
       </div>
+
+      {/* History Chart */}
+      {chartData.length >= 2 && (
+        <div className="border rounded-xl p-4 bg-card">
+          <h4 className="text-sm font-semibold text-foreground mb-3">Evolução do Score</h4>
+          <ResponsiveContainer width="100%" height={140}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+              <defs>
+                <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
+                formatter={(value: number) => [`${value}%`, "Score"]}
+              />
+              <Area type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#scoreGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div className="border rounded-lg p-3 bg-card">
