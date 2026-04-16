@@ -65,6 +65,30 @@ const MetricasTab = () => {
   const { data: topArticles = [], isLoading: loadingTop } = useTopArticles(days, 10);
   const { data: byCategory = [], isLoading: loadingCat } = useViewsByCategory(days);
   const { data: timeline = [], isLoading: loadingTime } = useViewsTimeline(days);
+  const { data: byDevice = [], isLoading: loadingDev } = useViewsByDevice(days);
+  const { data: topReferrers = [], isLoading: loadingRef } = useTopReferrers(days, 8);
+  const { data: settings = [] } = useSiteSettings();
+  const gtmId = settings.find((s) => s.key === "gtm_id")?.value?.trim() || "";
+  const ga4Id = settings.find((s) => s.key === "seo_ga_id")?.value?.trim() || "";
+
+  const [trackerStatus, setTrackerStatus] = useState<{ gtm: "ok" | "blocked" | "off"; ga4: "ok" | "blocked" | "off" }>({
+    gtm: "off",
+    ga4: "off",
+  });
+
+  useEffect(() => {
+    const check = () => {
+      const w = window as any;
+      const gtmLoaded = !!document.querySelector('script[src*="googletagmanager.com/gtm.js"]') && !!w.google_tag_manager;
+      const ga4Loaded = !!document.querySelector('script[src*="googletagmanager.com/gtag/js"]') && typeof w.gtag === "function";
+      setTrackerStatus({
+        gtm: !gtmId ? "off" : gtmLoaded ? "ok" : "blocked",
+        ga4: !ga4Id ? "off" : ga4Loaded ? "ok" : "blocked",
+      });
+    };
+    const t = setTimeout(check, 2500);
+    return () => clearTimeout(t);
+  }, [gtmId, ga4Id, days]);
 
   const totalViews = timeline.reduce((sum, t) => sum + Number(t.views), 0);
   const totalSessions = timeline.reduce((sum, t) => sum + Number(t.unique_sessions), 0);
