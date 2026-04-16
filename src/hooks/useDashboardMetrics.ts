@@ -50,6 +50,43 @@ export function useViewsByCategory(daysBack = 30) {
   });
 }
 
+export interface DeviceViews {
+  device: string;
+  views: number;
+}
+
+export interface ReferrerViews {
+  referrer: string;
+  views: number;
+}
+
+export function useViewsByDevice(daysBack = 30) {
+  return useQuery({
+    queryKey: ["metrics", "by-device", daysBack],
+    queryFn: async (): Promise<DeviceViews[]> => {
+      const { data, error } = await supabase.rpc("get_views_by_device" as any, {
+        days_back: daysBack,
+      });
+      if (error) throw error;
+      return (data || []) as DeviceViews[];
+    },
+  });
+}
+
+export function useTopReferrers(daysBack = 30, limit = 10) {
+  return useQuery({
+    queryKey: ["metrics", "top-referrers", daysBack, limit],
+    queryFn: async (): Promise<ReferrerViews[]> => {
+      const { data, error } = await supabase.rpc("get_top_referrers" as any, {
+        days_back: daysBack,
+        result_limit: limit,
+      });
+      if (error) throw error;
+      return (data || []) as ReferrerViews[];
+    },
+  });
+}
+
 export function useViewsTimeline(daysBack = 30) {
   return useQuery({
     queryKey: ["metrics", "timeline", daysBack],
