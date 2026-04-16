@@ -92,6 +92,9 @@ export function generateArticleSchema(data: {
   if (data.articleSection) {
     schema.articleSection = data.articleSection;
   }
+  if (data.wordCount && data.wordCount > 0) {
+    schema.wordCount = data.wordCount;
+  }
   return schema;
 }
 
