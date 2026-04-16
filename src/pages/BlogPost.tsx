@@ -260,10 +260,7 @@ const BlogPost = () => {
         image={ogImage}
         type="article"
         schemas={allSchemas}
-        keywords={[
-          ...(dbArticle?.focus_keyword ? [dbArticle.focus_keyword] : []),
-          ...(dbArticle?.tags || []),
-        ].filter(Boolean)}
+        keywords={articleKeywords}
       />
       <article className="container py-8 md:py-12">
         <Breadcrumbs items={[{ label: "Blog", href: "/blog" }, { label: post.title }]} />
