@@ -425,7 +425,7 @@ const IndexingSuggestionsSection = () => {
         .order("recorded_at", { ascending: true })
         .limit(90);
       if (error) throw error;
-      return (data || []) as Array<{
+      return (data || []) as unknown as Array<{
         score: number;
         recorded_at: string;
         total_articles: number;
