@@ -515,6 +515,7 @@ const IndexingSuggestionsSection = () => {
         </div>
       )}
 
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div className="border rounded-lg p-3 bg-card">
           <p className="text-[11px] text-muted-foreground font-medium">Sugestões</p>
           <p className="text-xl font-bold text-foreground">{suggestions.length}</p>
