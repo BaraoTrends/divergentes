@@ -55,6 +55,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [editorMode, setEditorMode] = useState<EditorMode>(null);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -133,10 +134,12 @@ const AdminDashboard = () => {
                 <ArtigosTab
                   onNew={() => openEditor("create")}
                   onEdit={(a) => openEditor("edit", a)}
+                  categoryFilter={categoryFilter}
+                  onClearFilter={() => setCategoryFilter(null)}
                 />
               )
             )}
-            {activeTab === "categorias" && <CategoriasTab />}
+            {activeTab === "categorias" && <CategoriasTab onSelectCategory={(slug) => { setCategoryFilter(slug); setActiveTab("artigos"); closeEditor(); }} />}
             {activeTab === "usuarios" && <UsuariosTab />}
             {activeTab === "configuracoes" && <ConfiguracoesTab />}
             {activeTab === "seo" && <SeoTab />}
