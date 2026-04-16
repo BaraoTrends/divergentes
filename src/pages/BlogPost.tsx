@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { sanitizeHtml } from "@/lib/sanitize";
 import Layout from "@/components/Layout";
 import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -135,7 +136,7 @@ const BlogPost = () => {
         elements.push(
           <ul key={`ul-${elements.length}`} className="list-disc pl-6 space-y-1 text-muted-foreground">
             {listItems.map((item, i) => (
-              <li key={i} dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
+              <li key={i} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatInline(item)) }} />
             ))}
           </ul>
         );
@@ -149,7 +150,7 @@ const BlogPost = () => {
         elements.push(
           <ol key={`ol-${elements.length}`} className="list-decimal pl-6 space-y-1 text-muted-foreground">
             {orderedItems.map((item, i) => (
-              <li key={i} dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
+              <li key={i} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatInline(item)) }} />
             ))}
           </ol>
         );
@@ -163,7 +164,7 @@ const BlogPost = () => {
         elements.push(
           <blockquote key={`bq-${elements.length}`} className="border-l-4 border-primary/30 pl-4 py-2 text-muted-foreground italic bg-accent/30 rounded-r-md">
             {blockquoteLines.map((line, i) => (
-              <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
+              <p key={i} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatInline(line)) }} />
             ))}
           </blockquote>
         );
@@ -240,7 +241,7 @@ const BlogPost = () => {
       flushOrderedList();
       flushBlockquote();
       elements.push(
-        <p key={`p-${elements.length}`} className="text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: formatInline(trimmed) }} />
+        <p key={`p-${elements.length}`} className="text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatInline(trimmed)) }} />
       );
     }
 
@@ -309,7 +310,7 @@ const BlogPost = () => {
             {isHtmlContent(post.content) ? (
               <div
                 className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-heading prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:bg-accent/30 prose-blockquote:rounded-r-md prose-img:rounded-lg"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
               />
             ) : (
               renderContent(post.content)

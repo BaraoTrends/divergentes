@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -279,7 +280,7 @@ const AiAssistantPanel = ({
               </p>
               <div
                 className="prose prose-xs max-w-none text-sm text-foreground"
-                dangerouslySetInnerHTML={{ __html: streamPreview }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(streamPreview) }}
               />
             </div>
           )}
