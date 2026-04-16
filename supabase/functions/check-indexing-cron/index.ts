@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const SITE_URL = "https://neurorotina.com";
+const INSPECTION_CONCURRENCY = 4;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -104,6 +105,86 @@ async function inspectUrl(accessToken: string, inspectionUrl: string, siteUrl: s
   };
 }
 
+async function processArticle(
+  supabase: ReturnType<typeof createClient>,
+  accessToken: string,
+  siteUrl: string,
+  article: { id: string; slug: string; title: string }
+) {
+  const url = `${SITE_URL}/blog/${article.slug}`;
+
+  try {
+    const inspection = await inspectUrl(accessToken, url, siteUrl);
+
+    const { data: existingStatus } = await supabase
+      .from("indexing_status")
+      .select("verdict")
+      .eq("article_id", article.id)
+      .maybeSingle();
+
+    const previousVerdict = existingStatus?.verdict || "UNKNOWN";
+
+    await supabase.from("indexing_status").upsert(
+      {
+        article_id: article.id,
+        url,
+        verdict: inspection.verdict,
+        coverage_state: inspection.coverageState,
+        last_crawl_time: inspection.lastCrawlTime,
+        previous_verdict: previousVerdict,
+        changed_at: inspection.verdict !== previousVerdict ? new Date().toISOString() : undefined,
+      },
+      { onConflict: "article_id" }
+    );
+
+    let newAlerts = 0;
+
+    if (
+      previousVerdict === "PASS" &&
+      (inspection.verdict === "FAIL" || inspection.verdict === "NEUTRAL")
+    ) {
+      await supabase.from("indexing_alerts").insert({
+        article_id: article.id,
+        alert_type: "deindexed",
+        message: `O artigo "${article.title}" saiu do índice do Google. Status anterior: indexado. Status atual: ${inspection.coverageState || inspection.verdict}.`,
+      });
+      newAlerts++;
+      console.log(`[ALERT] Deindexed: ${article.title} (${url})`);
+    }
+
+    if (inspection.verdict === "FAIL" && previousVerdict !== "FAIL") {
+      if (previousVerdict !== "PASS") {
+        await supabase.from("indexing_alerts").insert({
+          article_id: article.id,
+          alert_type: "error",
+          message: `O artigo "${article.title}" não está indexado. Motivo: ${inspection.coverageState || "desconhecido"}.`,
+        });
+        newAlerts++;
+      }
+    }
+
+    if (inspection.verdict === "PASS" && previousVerdict !== "PASS") {
+      await supabase
+        .from("indexing_alerts")
+        .update({ resolved: true })
+        .eq("article_id", article.id)
+        .eq("resolved", false);
+      console.log(`[RESOLVED] Re-indexed: ${article.title}`);
+    }
+
+    return {
+      slug: article.slug,
+      verdict: inspection.verdict,
+      previous: previousVerdict,
+      changed: inspection.verdict !== previousVerdict,
+      newAlerts,
+    };
+  } catch (e) {
+    console.error(`Error inspecting ${article.slug}:`, e);
+    return { slug: article.slug, error: String(e), newAlerts: 0 };
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -143,85 +224,16 @@ serve(async (req) => {
     const results: any[] = [];
     let newAlerts = 0;
 
-    for (const article of articles) {
-      const url = `${SITE_URL}/blog/${article.slug}`;
+    for (let index = 0; index < articles.length; index += INSPECTION_CONCURRENCY) {
+      const batch = articles.slice(index, index + INSPECTION_CONCURRENCY);
+      const batchResults = await Promise.all(
+        batch.map((article) => processArticle(supabase, accessToken, siteUrl, article))
+      );
 
-      try {
-        const inspection = await inspectUrl(accessToken, url, siteUrl);
-
-        // Get current stored status
-        const { data: existingStatus } = await supabase
-          .from("indexing_status")
-          .select("verdict")
-          .eq("article_id", article.id)
-          .maybeSingle();
-
-        const previousVerdict = existingStatus?.verdict || "UNKNOWN";
-
-        // Upsert status
-        await supabase.from("indexing_status").upsert(
-          {
-            article_id: article.id,
-            url,
-            verdict: inspection.verdict,
-            coverage_state: inspection.coverageState,
-            last_crawl_time: inspection.lastCrawlTime,
-            previous_verdict: previousVerdict,
-            changed_at: inspection.verdict !== previousVerdict ? new Date().toISOString() : undefined,
-          },
-          { onConflict: "article_id" }
-        );
-
-        // Detect deindexing: was PASS, now FAIL or NEUTRAL
-        if (
-          previousVerdict === "PASS" &&
-          (inspection.verdict === "FAIL" || inspection.verdict === "NEUTRAL")
-        ) {
-          await supabase.from("indexing_alerts").insert({
-            article_id: article.id,
-            alert_type: "deindexed",
-            message: `O artigo "${article.title}" saiu do índice do Google. Status anterior: indexado. Status atual: ${inspection.coverageState || inspection.verdict}.`,
-          });
-          newAlerts++;
-          console.log(`[ALERT] Deindexed: ${article.title} (${url})`);
-        }
-
-        // Detect crawl errors
-        if (inspection.verdict === "FAIL" && previousVerdict !== "FAIL") {
-          if (previousVerdict !== "PASS") {
-            // Only alert if it wasn't already tracked as deindexed above
-            await supabase.from("indexing_alerts").insert({
-              article_id: article.id,
-              alert_type: "error",
-              message: `O artigo "${article.title}" não está indexado. Motivo: ${inspection.coverageState || "desconhecido"}.`,
-            });
-            newAlerts++;
-          }
-        }
-
-        // Auto-resolve if it became indexed again
-        if (inspection.verdict === "PASS" && previousVerdict !== "PASS") {
-          await supabase
-            .from("indexing_alerts")
-            .update({ resolved: true })
-            .eq("article_id", article.id)
-            .eq("resolved", false);
-          console.log(`[RESOLVED] Re-indexed: ${article.title}`);
-        }
-
-        results.push({
-          slug: article.slug,
-          verdict: inspection.verdict,
-          previous: previousVerdict,
-          changed: inspection.verdict !== previousVerdict,
-        });
-      } catch (e) {
-        console.error(`Error inspecting ${article.slug}:`, e);
-        results.push({ slug: article.slug, error: String(e) });
-      }
-
-      // Rate limit: 200ms between requests
-      await new Promise((r) => setTimeout(r, 250));
+      batchResults.forEach(({ newAlerts: batchAlertCount, ...result }) => {
+        newAlerts += batchAlertCount;
+        results.push(result);
+      });
     }
 
     console.log(
