@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,68 +18,91 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const checkAdmin = async (userId: string): Promise<boolean> => {
+  const checkAdmin = useCallback(async (userId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase.rpc("has_role", {
         _user_id: userId,
         _role: "admin",
       });
+
+      if (!error && data === true) {
+        return true;
+      }
+
       if (error) {
         console.error("[useAuth] has_role RPC error:", error);
-        setIsAdmin(false);
+      }
+
+      const { data: roleRow, error: roleError } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (roleError) {
+        console.error("[useAuth] user_roles fallback error:", roleError);
         return false;
       }
-      const result = !!data;
-      console.log("[useAuth] checkAdmin result for", userId, "=", result);
-      setIsAdmin(result);
-      return result;
+
+      return !!roleRow;
     } catch (e) {
       console.error("[useAuth] checkAdmin exception:", e);
-      setIsAdmin(false);
       return false;
     }
-  };
+  }, []);
 
   useEffect(() => {
-    // Set up listener FIRST (synchronous callback to avoid deadlocks)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-
-        if (newSession?.user) {
-          setLoading(true);
-          setIsAdmin(false);
-
-          // Defer Supabase call to avoid deadlock
-          setTimeout(() => {
-            checkAdmin(newSession.user.id).finally(() => setLoading(false));
-          }, 0);
-        } else {
-          setIsAdmin(false);
-          setLoading(false);
-        }
+        setAuthReady(true);
       }
     );
 
-    // Then get initial session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
-
-      if (initialSession?.user) {
-        setLoading(true);
-        checkAdmin(initialSession.user.id).finally(() => setLoading(false));
-      } else {
-        setIsAdmin(false);
-        setLoading(false);
-      }
+      setAuthReady(true);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!authReady) {
+      setLoading(true);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (!user) {
+      setIsAdmin(false);
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setLoading(true);
+
+    void checkAdmin(user.id).then((admin) => {
+      if (cancelled) return;
+      setIsAdmin(admin);
+      setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, checkAdmin, user]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
