@@ -36,6 +36,7 @@ import {
   Zap,
   Bell,
   Target,
+  Lightbulb,
 } from "lucide-react";
 
 const SeoTab = () => {
@@ -331,6 +332,18 @@ const SeoTab = () => {
             <div className="p-4 pt-0 border-t">
               <div className="pt-4">
                 <KeywordRankingsSection />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Indexing Suggestions */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="indexing-suggestions" icon={Lightbulb} title="Sugestões de Indexação" badge="Ações" />
+          {expandedSection === "indexing-suggestions" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <IndexingSuggestionsSection />
               </div>
             </div>
           )}
