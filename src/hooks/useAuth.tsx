@@ -48,7 +48,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
+
         if (newSession?.user) {
+          setLoading(true);
+          setIsAdmin(false);
+
           // Defer Supabase call to avoid deadlock
           setTimeout(() => {
             checkAdmin(newSession.user.id).finally(() => setLoading(false));
@@ -64,9 +68,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
+
       if (initialSession?.user) {
+        setLoading(true);
         checkAdmin(initialSession.user.id).finally(() => setLoading(false));
       } else {
+        setIsAdmin(false);
         setLoading(false);
       }
     });
