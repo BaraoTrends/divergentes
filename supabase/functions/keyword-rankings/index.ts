@@ -28,7 +28,6 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   const encoder = new TextEncoder();
   const signingInput = `${header}.${payload}`;
 
-  // Import private key
   const pemBody = serviceAccount.private_key
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
     .replace(/-----END PRIVATE KEY-----/g, "")
@@ -69,6 +68,41 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   return tokenData.access_token;
 }
 
+async function fetchSearchAnalytics(
+  accessToken: string,
+  siteUrl: string,
+  startDate: string,
+  endDate: string,
+  dimensions: string[],
+  rowLimit: number
+) {
+  const apiUrl = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(
+    siteUrl
+  )}/searchAnalytics/query`;
+
+  const apiRes = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      startDate,
+      endDate,
+      dimensions,
+      rowLimit,
+      dataState: "final",
+    }),
+  });
+
+  if (!apiRes.ok) {
+    const errText = await apiRes.text();
+    throw new Error(`Google API ${apiRes.status}: ${errText}`);
+  }
+
+  return apiRes.json();
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -89,80 +123,109 @@ Deno.serve(async (req) => {
       siteUrl = "https://neurorotina.com/",
       startDate,
       endDate,
-      rowLimit = 100,
-      dimensions = ["query", "page"],
+      rowLimit = 500,
+      mode = "daily", // "daily" (per-date rows) or "aggregate" (single snapshot)
     } = body;
 
-    // Default: last 28 days
-    const end = endDate || new Date().toISOString().slice(0, 10);
-    const start =
-      startDate ||
-      new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10);
+    const end = endDate || new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10); // GSC data has ~2 day lag
+    const start = startDate || new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
     const accessToken = await getAccessToken(serviceAccount);
-
-    // Fetch search analytics
-    const apiUrl = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(
-      siteUrl
-    )}/searchAnalytics/query`;
-
-    const apiRes = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        startDate: start,
-        endDate: end,
-        dimensions,
-        rowLimit,
-        dataState: "final",
-      }),
-    });
-
-    if (!apiRes.ok) {
-      const errText = await apiRes.text();
-      return new Response(
-        JSON.stringify({ error: `Google API ${apiRes.status}: ${errText}` }),
-        { status: apiRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const data = await apiRes.json();
-    const rows = (data.rows || []).map((r: any) => ({
-      query: r.keys[0],
-      page: dimensions.includes("page") ? r.keys[1] || null : null,
-      clicks: r.clicks,
-      impressions: r.impressions,
-      ctr: r.ctr,
-      position: r.position,
-    }));
-
-    // Save to DB
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const today = new Date().toISOString().slice(0, 10);
 
-    if (rows.length > 0) {
-      const records = rows.map((r: any) => ({
-        query: r.query,
-        page: r.page,
+    let totalInserted = 0;
+
+    if (mode === "daily") {
+      // Fetch with date dimension for historical tracking
+      const data = await fetchSearchAnalytics(
+        accessToken, siteUrl, start, end,
+        ["date", "query", "page"], rowLimit
+      );
+
+      const rows = (data.rows || []).map((r: any) => ({
+        date: r.keys[0],
+        query: r.keys[1],
+        page: r.keys[2] || null,
         clicks: r.clicks,
         impressions: r.impressions,
         ctr: parseFloat(r.ctr.toFixed(4)),
         position: parseFloat(r.position.toFixed(2)),
+        country: null,
+        device: null,
+      }));
+
+      if (rows.length > 0) {
+        // Batch insert in chunks of 200
+        for (let i = 0; i < rows.length; i += 200) {
+          const chunk = rows.slice(i, i + 200);
+          const { error } = await supabase
+            .from("keyword_rankings")
+            .upsert(chunk, { onConflict: "query,page,date,country,device", ignoreDuplicates: false });
+          if (error) console.error("Upsert error:", error);
+        }
+        totalInserted = rows.length;
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, startDate: start, endDate: end, totalRows: totalInserted, mode: "daily" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Aggregate mode (backward-compatible)
+    const data = await fetchSearchAnalytics(
+      accessToken, siteUrl, start, end,
+      ["query", "page"], rowLimit
+    );
+
+    const rows = (data.rows || []).map((r: any) => ({
+      query: r.keys[0],
+      page: r.keys[1] || null,
+      clicks: r.clicks,
+      impressions: r.impressions,
+      ctr: parseFloat(r.ctr.toFixed(4)),
+      position: parseFloat(r.position.toFixed(2)),
+    }));
+
+    const today = new Date().toISOString().slice(0, 10);
+    if (rows.length > 0) {
+      const records = rows.map((r: any) => ({
+        ...r,
         date: today,
         country: null,
         device: null,
       }));
 
-      const { error: upsertError } = await supabase
+      const { error } = await supabase
         .from("keyword_rankings")
         .upsert(records, { onConflict: "query,page,date,country,device" });
+      if (error) console.error("Upsert error:", error);
+      totalInserted = records.length;
+    }
 
-      if (upsertError) {
-        console.error("Upsert error:", upsertError);
-      }
+    // Also fetch device breakdown
+    const deviceData = await fetchSearchAnalytics(
+      accessToken, siteUrl, start, end,
+      ["query", "device"], Math.min(rowLimit, 200)
+    );
+
+    const deviceRows = (deviceData.rows || []).map((r: any) => ({
+      query: r.keys[0],
+      page: null,
+      clicks: r.clicks,
+      impressions: r.impressions,
+      ctr: parseFloat(r.ctr.toFixed(4)),
+      position: parseFloat(r.position.toFixed(2)),
+      date: today,
+      country: null,
+      device: r.keys[1] || null,
+    }));
+
+    if (deviceRows.length > 0) {
+      const { error } = await supabase
+        .from("keyword_rankings")
+        .upsert(deviceRows, { onConflict: "query,page,date,country,device" });
+      if (error) console.error("Device upsert error:", error);
     }
 
     return new Response(
@@ -170,7 +233,9 @@ Deno.serve(async (req) => {
         success: true,
         startDate: start,
         endDate: end,
-        totalRows: rows.length,
+        totalRows: totalInserted,
+        deviceRows: deviceRows.length,
+        mode: "aggregate",
         rows,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
