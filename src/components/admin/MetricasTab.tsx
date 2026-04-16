@@ -11,6 +11,7 @@ import {
   useTopReferrers,
 } from "@/hooks/useDashboardMetrics";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { ErrorLogsSection } from "./ErrorLogsSection";
 import {
   ResponsiveContainer,
   LineChart,
@@ -359,6 +360,9 @@ const MetricasTab = () => {
           </p>
         </CardContent>
       </Card>
+
+      {/* Logs de erros do frontend */}
+      <ErrorLogsSection />
 
       <p className="text-xs text-muted-foreground text-center">
         Dados de tracking interno (próprios servidores). Tempo de leitura conta apenas com a aba ativa. Privacidade: nenhum dado pessoal é coletado.
