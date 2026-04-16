@@ -7,6 +7,24 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   build: {
     sourcemap: false,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        passes: 2,
+      },
+      mangle: {
+        toplevel: true,
+        properties: {
+          regex: /^_/,
+        },
+      },
+      format: {
+        comments: false,
+      },
+    },
   },
   server: {
     host: "::",
