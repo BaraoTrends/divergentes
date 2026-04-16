@@ -1,8 +1,10 @@
-import { useMemo } from "react";
-import { useArticles } from "@/hooks/useArticles";
-import { analyzeSeo, calculateScore, countWords, stripHtml } from "@/lib/seoAnalysis";
-import { SITE_URL } from "@/lib/seo";
+import { useMemo, useState } from "react";
+import { useArticles, useUpdateArticle, type Article } from "@/hooks/useArticles";
+import { useAiWriter } from "@/hooks/useAiWriter";
+import { countWords } from "@/lib/seoAnalysis";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -18,7 +20,11 @@ import {
   ExternalLink,
   Lightbulb,
   ArrowRight,
+  Wand2,
+  Loader2,
 } from "lucide-react";
+
+type FixableId = "missing-excerpt" | "missing-keyword";
 
 interface Suggestion {
   id: string;
@@ -29,6 +35,7 @@ interface Suggestion {
   description: string;
   affectedSlugs: string[];
   action: string;
+  fixable?: FixableId;
 }
 
 const SEVERITY_STYLES = {
@@ -60,13 +67,17 @@ const SEVERITY_STYLES = {
 
 const IndexingSuggestionsSection = () => {
   const { data: articles = [] } = useArticles();
+  const updateArticle = useUpdateArticle();
+  const { toast } = useToast();
+  const [fixingId, setFixingId] = useState<string | null>(null);
+  const [fixProgress, setFixProgress] = useState<{ done: number; total: number } | null>(null);
+
   const published = articles.filter((a) => a.published);
   const drafts = articles.filter((a) => !a.published);
 
   const suggestions = useMemo(() => {
     const result: Suggestion[] = [];
 
-    // 1. Drafts that could be published
     if (drafts.length > 0) {
       const readyDrafts = drafts.filter((d) => {
         const wc = countWords(d.content);
@@ -86,7 +97,6 @@ const IndexingSuggestionsSection = () => {
       }
     }
 
-    // 2. Articles without meta description
     const noExcerpt = published.filter((a) => !a.excerpt || a.excerpt.trim().length < 30);
     if (noExcerpt.length > 0) {
       result.push({
@@ -98,10 +108,10 @@ const IndexingSuggestionsSection = () => {
         description: "Artigos sem meta description podem ter CTR baixo nos resultados do Google e dificultar a indexação.",
         affectedSlugs: noExcerpt.map((a) => a.slug),
         action: "Adicione um resumo de 70-155 caracteres em cada artigo.",
+        fixable: "missing-excerpt",
       });
     }
 
-    // 3. Articles without cover image
     const noImage = published.filter((a) => !a.image_url || a.image_url.trim() === "");
     if (noImage.length > 0) {
       result.push({
@@ -116,7 +126,6 @@ const IndexingSuggestionsSection = () => {
       });
     }
 
-    // 4. Articles with thin content
     const thinContent = published.filter((a) => countWords(a.content) < 300);
     if (thinContent.length > 0) {
       result.push({
@@ -131,7 +140,6 @@ const IndexingSuggestionsSection = () => {
       });
     }
 
-    // 5. Articles without focus keyword
     const noKeyword = published.filter((a) => !a.focus_keyword || a.focus_keyword.trim() === "");
     if (noKeyword.length > 0) {
       result.push({
@@ -143,10 +151,10 @@ const IndexingSuggestionsSection = () => {
         description: "Sem uma keyword foco, o Google pode não entender o tema principal do artigo.",
         affectedSlugs: noKeyword.map((a) => a.slug),
         action: "Defina uma keyword foco e inclua-a no título, resumo e primeiro parágrafo.",
+        fixable: "missing-keyword",
       });
     }
 
-    // 6. Articles without tags
     const noTags = published.filter((a) => !a.tags || a.tags.length === 0);
     if (noTags.length > 0) {
       result.push({
@@ -161,7 +169,6 @@ const IndexingSuggestionsSection = () => {
       });
     }
 
-    // 7. Articles without internal links in content
     const noLinks = published.filter((a) => {
       const hasLink = /<a\s/i.test(a.content);
       return !hasLink && countWords(a.content) > 300;
@@ -179,7 +186,6 @@ const IndexingSuggestionsSection = () => {
       });
     }
 
-    // 8. Articles without headings (H2/H3)
     const noHeadings = published.filter((a) => {
       const hasH2 = /<h[23][^>]*>/i.test(a.content);
       return !hasH2 && countWords(a.content) > 200;
@@ -197,7 +203,6 @@ const IndexingSuggestionsSection = () => {
       });
     }
 
-    // 9. Long slugs
     const longSlugs = published.filter((a) => a.slug.length > 75);
     if (longSlugs.length > 0) {
       result.push({
@@ -212,7 +217,6 @@ const IndexingSuggestionsSection = () => {
       });
     }
 
-    // 10. Titles too short or too long
     const badTitles = published.filter((a) => a.title.length < 30 || a.title.length > 60);
     if (badTitles.length > 0) {
       result.push({
@@ -227,17 +231,133 @@ const IndexingSuggestionsSection = () => {
       });
     }
 
-    // Sort: critical first, then warning, then tip
     const order = { critical: 0, warning: 1, tip: 2 };
     result.sort((a, b) => order[a.severity] - order[b.severity]);
-
     return result;
   }, [published, drafts]);
+
+  const handleAutoFix = async (sug: Suggestion) => {
+    if (!sug.fixable) return;
+    const affected = sug.affectedSlugs
+      .map((slug) => articles.find((a) => a.slug === slug))
+      .filter(Boolean) as Article[];
+
+    if (affected.length === 0) return;
+
+    setFixingId(sug.id);
+    setFixProgress({ done: 0, total: affected.length });
+
+    let successCount = 0;
+
+    for (let i = 0; i < affected.length; i++) {
+      const article = affected[i];
+      try {
+        if (sug.fixable === "missing-excerpt") {
+          const excerpt = await generateExcerpt(article);
+          if (excerpt) {
+            await updateArticle.mutateAsync({ id: article.id, excerpt });
+            successCount++;
+          }
+        } else if (sug.fixable === "missing-keyword") {
+          const keyword = await generateFocusKeyword(article);
+          if (keyword) {
+            await updateArticle.mutateAsync({ id: article.id, focus_keyword: keyword });
+            successCount++;
+          }
+        }
+      } catch (err) {
+        console.error(`Auto-fix failed for ${article.slug}:`, err);
+      }
+      setFixProgress({ done: i + 1, total: affected.length });
+      // Small delay to avoid rate limits
+      if (i < affected.length - 1) {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
+
+    setFixingId(null);
+    setFixProgress(null);
+
+    toast({
+      title: "Correção automática concluída",
+      description: `${successCount} de ${affected.length} artigo(s) corrigido(s) com sucesso.`,
+    });
+  };
+
+  const generateExcerpt = async (article: Article): Promise<string | null> => {
+    const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-writer`;
+    const resp = await fetch(AI_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({
+        action: "generate_excerpt",
+        content: article.content.slice(0, 5000),
+        focusKeyword: article.focus_keyword || undefined,
+      }),
+    });
+    if (!resp.ok || !resp.body) return null;
+    return await collectStream(resp.body);
+  };
+
+  const generateFocusKeyword = async (article: Article): Promise<string | null> => {
+    const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-writer`;
+    const resp = await fetch(AI_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({
+        action: "generate_focus_keyword",
+        topic: article.title,
+        content: article.content.slice(0, 3000),
+      }),
+    });
+    if (!resp.ok || !resp.body) return null;
+    return await collectStream(resp.body);
+  };
+
+  const collectStream = async (body: ReadableStream<Uint8Array>): Promise<string> => {
+    const reader = body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let result = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      let idx: number;
+      while ((idx = buffer.indexOf("\n")) !== -1) {
+        let line = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + 1);
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+        if (!line.startsWith("data: ")) continue;
+        const json = line.slice(6).trim();
+        if (json === "[DONE]") break;
+        try {
+          const parsed = JSON.parse(json);
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (content) result += content;
+        } catch {}
+      }
+    }
+    return result.trim();
+  };
 
   const criticalCount = suggestions.filter((s) => s.severity === "critical").length;
   const warningCount = suggestions.filter((s) => s.severity === "warning").length;
   const tipCount = suggestions.filter((s) => s.severity === "tip").length;
   const totalAffected = new Set(suggestions.flatMap((s) => s.affectedSlugs)).size;
+
+  const FIXABLE_LABELS: Record<FixableId, string> = {
+    "missing-excerpt": "Gerar meta descriptions com IA",
+    "missing-keyword": "Gerar focus keywords com IA",
+  };
 
   return (
     <div className="space-y-4">
@@ -246,7 +366,6 @@ const IndexingSuggestionsSection = () => {
         <strong>{published.length}</strong> artigos publicados e <strong>{drafts.length}</strong> rascunhos.
       </p>
 
-      {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div className="border rounded-lg p-3 bg-card">
           <p className="text-[11px] text-muted-foreground font-medium">Sugestões</p>
@@ -272,7 +391,6 @@ const IndexingSuggestionsSection = () => {
         </p>
       )}
 
-      {/* Suggestion Cards */}
       {suggestions.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground border rounded-xl bg-card">
           <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-600 opacity-60" />
@@ -285,6 +403,7 @@ const IndexingSuggestionsSection = () => {
             const style = SEVERITY_STYLES[sug.severity];
             const SevIcon = style.icon;
             const SugIcon = sug.icon;
+            const isFixing = fixingId === sug.id;
 
             return (
               <div key={sug.id} className={`border rounded-xl ${style.border} ${style.bg} overflow-hidden`}>
@@ -307,10 +426,36 @@ const IndexingSuggestionsSection = () => {
                         <ArrowRight className="h-3 w-3" />
                         {sug.action}
                       </div>
+
+                      {/* Auto-fix button */}
+                      {sug.fixable && (
+                        <div className="mt-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={!!fixingId}
+                            onClick={() => handleAutoFix(sug)}
+                            className="gap-2 text-xs h-8"
+                          >
+                            {isFixing ? (
+                              <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                {fixProgress
+                                  ? `Corrigindo ${fixProgress.done}/${fixProgress.total}…`
+                                  : "Iniciando…"}
+                              </>
+                            ) : (
+                              <>
+                                <Wand2 className="h-3.5 w-3.5" />
+                                {FIXABLE_LABELS[sug.fixable]} ({sug.affectedSlugs.length})
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Affected articles */}
                   {sug.affectedSlugs.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-border/50">
                       <p className="text-[11px] text-muted-foreground font-medium mb-1.5">
