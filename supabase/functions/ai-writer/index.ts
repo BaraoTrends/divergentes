@@ -56,6 +56,7 @@ serve(async (req) => {
       searchIntent,
       slugHint,
       availableSlugs,
+      category,
     } = await req.json();
 
     const secondaryKwList: string[] = Array.isArray(secondaryKeywords)
