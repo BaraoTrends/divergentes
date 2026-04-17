@@ -33,23 +33,46 @@ interface IncomingPayload {
   cover_image_url: string | null;
   created_at: string;
   tags?: string[] | null;
+  category?: string | null;
 }
 
-/** Converte ["foo bar", "Baz"] em "#foobar #baz" */
-function formatTagsAsHashtags(tags: string[] | null | undefined): string {
-  if (!tags || tags.length === 0) return "";
-  return tags
-    .map((t) =>
-      "#" +
-      t
-        .toString()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-zA-Z0-9]/g, "")
-        .toLowerCase()
-    )
-    .filter((t) => t.length > 1)
-    .join(" ");
+/** Sanitiza um termo em hashtag (#foo) — remove acentos, espaços e símbolos */
+function toHashtag(term: string): string {
+  return (
+    "#" +
+    term
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toLowerCase()
+  );
+}
+
+/** Monta string "#categoria #tag1 #tag2" — categoria sempre primeiro, sem duplicar */
+function buildHashtagString(category: string | null | undefined, tags: string[] | null | undefined): string {
+  const parts: string[] = [];
+  const seen = new Set<string>();
+
+  if (category && category.trim().length > 0) {
+    const h = toHashtag(category);
+    if (h.length > 1 && !seen.has(h)) {
+      parts.push(h);
+      seen.add(h);
+    }
+  }
+
+  if (tags && tags.length > 0) {
+    for (const t of tags) {
+      const h = toHashtag(t);
+      if (h.length > 1 && !seen.has(h)) {
+        parts.push(h);
+        seen.add(h);
+      }
+    }
+  }
+
+  return parts.join(" ");
 }
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -124,7 +147,7 @@ Deno.serve(async (req) => {
       excerpt: body.excerpt ?? "",
       image: body.cover_image_url ?? "",
       created_at: body.created_at,
-      tags: formatTagsAsHashtags(body.tags),
+      tags: buildHashtagString(body.category, body.tags),
     };
 
     console.log("[social-publish] Enviando para Make.com:", payload);
