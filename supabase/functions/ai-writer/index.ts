@@ -276,6 +276,33 @@ Regras:
 Retorne APENAS o JSON.`;
         break;
 
+      case "suggest_internal_links":
+        if (!content || !Array.isArray(availableSlugs) || availableSlugs.length === 0) {
+          return new Response(JSON.stringify({ error: "content and availableSlugs[] are required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        systemPrompt = `Você é um especialista em SEO e arquitetura de informação. Sua missão é sugerir links internos REAIS e relevantes para um artigo, escolhendo entre slugs existentes no site. Retorne APENAS JSON válido, sem markdown, sem explicações.`;
+        userPrompt = `Analise o ARTIGO abaixo e escolha 3-5 links internos relevantes entre os SLUGS DISPONÍVEIS.
+
+ARTIGO (HTML):
+${content.slice(0, 5000)}
+
+SLUGS DISPONÍVEIS no site (cada item: slug | título):
+${availableSlugs.slice(0, 60).map((s: any) => `- ${s.slug} | ${s.title}`).join("\n")}
+
+Regras:
+- Escolha APENAS slugs da lista acima (NUNCA invente).
+- Para cada link, identifique uma frase do artigo onde ele encaixa naturalmente como âncora.
+- A âncora deve ter 3-7 palavras, descritiva, NUNCA "clique aqui".
+- Não sugira o mesmo artigo se o slug bater com o tema central.
+- Priorize relevância semântica (mesmo nicho/categoria).
+
+Retorne EXATAMENTE este JSON (sem code fences):
+{"links":[{"slug":"slug-existente","anchor":"texto âncora natural","reason":"por que faz sentido"}]}`;
+        break;
+
       default:
         return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
           status: 400,
