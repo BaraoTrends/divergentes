@@ -3,14 +3,23 @@ import { useToast } from "@/hooks/use-toast";
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-writer`;
 
-type AiAction = "generate_article" | "generate_excerpt" | "improve_text" | "expand_text" | "generate_title" | "suggest_keywords" | "generate_focus_keyword" | "suggest_internal_links";
+type AiAction = "generate_article" | "generate_full_article" | "generate_excerpt" | "improve_text" | "expand_text" | "generate_title" | "suggest_keywords" | "generate_focus_keyword" | "suggest_internal_links";
+
+export interface FullArticleMeta {
+  title: string;
+  slug: string;
+  excerpt: string;
+  focus_keyword: string;
+}
 
 interface UseAiWriterOptions {
   onStream?: (text: string) => void;
   onComplete?: (text: string) => void;
+  /** Fired once when generate_full_article emits its metadata JSON header */
+  onMeta?: (meta: FullArticleMeta) => void;
 }
 
-export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
+export function useAiWriter({ onStream, onComplete, onMeta }: UseAiWriterOptions = {}) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
@@ -25,11 +34,58 @@ export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
         secondaryKeywords?: string[];
         searchIntent?: string;
         slugHint?: string;
+        category?: string;
         availableSlugs?: { slug: string; title: string }[];
       },
     ) => {
       setIsGenerating(true);
       let fullText = "";
+      // For generate_full_article: split metadata header vs streamed content
+      const isFullArticle = action === "generate_full_article";
+      let metaParsed = false;
+      let contentStarted = false;
+      let contentBuffer = ""; // only the HTML portion (post-delimiter)
+      const DELIMITER = "===CONTENT===";
+
+      const handleChunk = (delta: string) => {
+        fullText += delta;
+
+        if (!isFullArticle) {
+          onStream?.(fullText);
+          return;
+        }
+
+        // Try to detect the delimiter and split metadata
+        if (!contentStarted) {
+          const idx = fullText.indexOf(DELIMITER);
+          if (idx !== -1) {
+            // Parse metadata (everything before delimiter, first line should be JSON)
+            const header = fullText.slice(0, idx).trim();
+            if (!metaParsed) {
+              try {
+                // Header may contain leading code fences/whitespace; extract first {...}
+                const jsonMatch = header.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                  const meta = JSON.parse(jsonMatch[0]) as FullArticleMeta;
+                  metaParsed = true;
+                  onMeta?.(meta);
+                }
+              } catch (e) {
+                console.warn("[useAiWriter] failed to parse meta header", e);
+              }
+            }
+            contentStarted = true;
+            contentBuffer = fullText.slice(idx + DELIMITER.length).replace(/^\s*\n?/, "");
+            onStream?.(contentBuffer);
+          }
+          // else: still buffering header, do not stream yet
+          return;
+        }
+
+        // Already past delimiter — append delta to content buffer
+        contentBuffer += delta;
+        onStream?.(contentBuffer);
+      };
 
       try {
         const { model, ...restParams } = params;
@@ -84,10 +140,7 @@ export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
             try {
               const parsed = JSON.parse(jsonStr);
               const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                fullText += content;
-                onStream?.(fullText);
-              }
+              if (content) handleChunk(content);
             } catch {
               buffer = line + "\n" + buffer;
               break;
@@ -106,16 +159,29 @@ export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
             try {
               const parsed = JSON.parse(jsonStr);
               const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                fullText += content;
-                onStream?.(fullText);
-              }
+              if (content) handleChunk(content);
             } catch {}
           }
         }
 
-        onComplete?.(fullText);
-        return fullText;
+        // For full-article, if delimiter never appeared try a last-ditch parse
+        if (isFullArticle && !contentStarted) {
+          const jsonMatch = fullText.match(/\{[\s\S]*?\}/);
+          if (jsonMatch && !metaParsed) {
+            try {
+              const meta = JSON.parse(jsonMatch[0]) as FullArticleMeta;
+              onMeta?.(meta);
+              contentBuffer = fullText.slice(jsonMatch.index! + jsonMatch[0].length).trim();
+            } catch {}
+          } else {
+            contentBuffer = fullText;
+          }
+          onStream?.(contentBuffer);
+        }
+
+        const finalText = isFullArticle ? contentBuffer : fullText;
+        onComplete?.(finalText);
+        return finalText;
       } catch (error: any) {
         toast({
           title: "Erro na IA",
@@ -127,7 +193,7 @@ export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
         setIsGenerating(false);
       }
     },
-    [onStream, onComplete, toast]
+    [onStream, onComplete, onMeta, toast]
   );
 
   return { generate, isGenerating };

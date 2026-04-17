@@ -181,6 +181,50 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     },
   });
 
+  // ===== Geração unificada (título + slug + meta + focus_keyword + conteúdo) =====
+  const { generate: generateFullArticle, isGenerating: isGeneratingFull } = useAiWriter({
+    onMeta: (meta) => {
+      if (meta.title) setTitle(meta.title.slice(0, 65));
+      if (meta.slug) setSlug(generateSlug(meta.slug));
+      if (meta.excerpt) setExcerpt(meta.excerpt.trim());
+      if (meta.focus_keyword) {
+        const kw = meta.focus_keyword.toLowerCase().trim();
+        setFocusKeyword(kw);
+        setBriefing((prev) => prev.focusKeyword.trim() ? prev : { ...prev, focusKeyword: kw });
+      }
+      toast({ title: "Metadados gerados", description: "Título, slug e meta description preenchidos. Conteúdo em geração..." });
+    },
+    onStream: (html) => setContent(html),
+    onComplete: (html) => {
+      setContent(html);
+      toast({ title: "Artigo completo gerado!", description: "Título, slug, meta e conteúdo prontos." });
+      // Auto-cover image
+      const topic = briefing.focusKeyword.trim() || title || "neurodivergência";
+      const styleObj = COVER_STYLES.find(s => s.value === coverStyleRef.current) || COVER_STYLES[0];
+      generateImage(`${styleObj.prompt} para artigo sobre: ${topic}. Sem texto na imagem.`, "cover");
+    },
+  });
+
+  const handleGenerateFullArticle = () => {
+    const topic = title.trim() || briefing.focusKeyword.trim();
+    if (!topic) {
+      toast({
+        title: "Defina o tema",
+        description: "Preencha o título OU a palavra-chave foco no Briefing SEO antes de gerar.",
+        variant: "destructive",
+      });
+      return;
+    }
+    generateFullArticle("generate_full_article", {
+      topic,
+      focusKeyword: briefing.focusKeyword.trim() || focusKeyword.trim() || undefined,
+      secondaryKeywords: briefing.secondaryKeywords,
+      searchIntent: briefing.searchIntent,
+      slugHint: briefing.slugHint.trim() || undefined,
+      category,
+    });
+  };
+
   const handleSuggestTopics = async () => {
     const cat = categories.find(c => c.slug === category);
     const catName = cat?.name || category;
@@ -511,6 +555,36 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           {/* SEO Briefing — define keyword principal, secundárias e intenção ANTES de gerar */}
           <SeoBriefingPanel value={briefing} onChange={setBriefing} defaultExpanded={!article} />
 
+          {/* Geração unificada: 1 botão → título + slug + meta + focus_keyword + conteúdo */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5">
+            <div className="text-sm">
+              <p className="font-medium text-foreground flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-primary" /> Geração unificada
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                A IA devolve título H1, slug, meta description e o conteúdo HTML em uma única chamada — usando o briefing acima.
+              </p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              disabled={isGeneratingFull}
+              onClick={handleGenerateFullArticle}
+              className="gap-1.5 shrink-0"
+            >
+              {isGeneratingFull ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Gerando...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="h-4 w-4" />
+                  Gerar artigo completo
+                </>
+              )}
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
