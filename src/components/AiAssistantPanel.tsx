@@ -22,6 +22,8 @@ interface AiAssistantPanelProps {
   title?: string;
   content: string;
   focusKeyword?: string;
+  secondaryKeywords?: string[];
+  searchIntent?: string;
   onContentGenerated: (html: string) => void;
   onTitleGenerated?: (title: string) => void;
   onExcerptGenerated?: (excerpt: string) => void;
