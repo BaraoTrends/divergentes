@@ -453,7 +453,33 @@ const BrokenLinksReportSection = () => {
         </div>
       </div>
 
-      {batchProgress && (
+      {totalBroken > 0 && (
+        <div className="border rounded-lg p-3 bg-card flex items-center gap-4 flex-wrap">
+          <Label htmlFor="ai-confidence-threshold" className="text-[11px] font-medium text-foreground shrink-0">
+            Limiar de confiança para auto-aplicar
+          </Label>
+          <div className="flex items-center gap-3 flex-1 min-w-[200px]">
+            <Slider
+              id="ai-confidence-threshold"
+              min={50}
+              max={95}
+              step={5}
+              value={[Math.round(confidenceThreshold * 100)]}
+              onValueChange={(v) => setConfidenceThreshold((v[0] ?? 75) / 100)}
+              disabled={batchRunning}
+              className="flex-1"
+            />
+            <Badge variant="secondary" className="text-[11px] font-mono shrink-0 min-w-[44px] justify-center">
+              {Math.round(confidenceThreshold * 100)}%
+            </Badge>
+          </div>
+          <p className="text-[10px] text-muted-foreground basis-full">
+            Sugestões da IA com confiança ≥ este valor são aplicadas automaticamente; abaixo disso ficam como cartão de revisão manual.
+          </p>
+        </div>
+      )}
+
+
         <div className="border rounded-lg p-3 bg-primary/5 space-y-2">
           <div className="flex items-center justify-between text-[11px]">
             <span className="font-medium text-foreground inline-flex items-center gap-1.5">
