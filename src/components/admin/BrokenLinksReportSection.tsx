@@ -18,6 +18,7 @@ import {
   Scissors,
   Sparkles,
   Wand2,
+  Zap,
 } from "lucide-react";
 
 const FIX_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fix-broken-link`;
