@@ -155,13 +155,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    const hashtagLimit = await getHashtagLimit();
     const payload = {
       title: body.title,
       url: `${SITE_BASE_URL.replace(/\/$/, "")}/blog/${body.slug}`,
       excerpt: body.excerpt ?? "",
       image: body.cover_image_url ?? "",
       created_at: body.created_at,
-      tags: buildHashtagString(body.category, body.tags),
+      tags: buildHashtagString(body.category, body.tags, hashtagLimit),
     };
 
     console.log("[social-publish] Enviando para Make.com:", payload);
