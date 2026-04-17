@@ -442,22 +442,6 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     toast({ title: "Link inserido", description: anchor });
   };
 
-  const handleSaveAsDraft = () => {
-    onSave({
-      title: title.trim(),
-      slug: slug.trim(),
-      excerpt: excerpt.trim(),
-      content,
-      category,
-      image_url: imageUrl.trim(),
-      published: false,
-      featured,
-      read_time: calculatedReadTime,
-      tags,
-      author_id: article?.author_id || userId,
-      focus_keyword: focusKeyword.trim(),
-    });
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
