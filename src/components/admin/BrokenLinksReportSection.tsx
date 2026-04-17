@@ -409,6 +409,9 @@ const BrokenLinksReportSection = () => {
                           const inputKey = `${article.id}::${link.href}`;
                           const removeKey = `${article.id}::${link.href}::remove`;
                           const replaceKey = `${article.id}::${link.href}::replace`;
+                          const aiKey = `${article.id}::${link.href}::ai`;
+                          const applyKey = `${article.id}::${link.href}::apply`;
+                          const suggestion = aiSuggestions[inputKey];
                           return (
                             <li key={`${link.href}-${idx}`} className="px-3 py-2.5 space-y-2">
                               <div className="flex items-start gap-2">
@@ -422,7 +425,58 @@ const BrokenLinksReportSection = () => {
                                   </p>
                                 </div>
                               </div>
+
+                              {suggestion && (
+                                <div className="ml-5 p-2 rounded-md border border-primary/30 bg-primary/5 space-y-1.5">
+                                  <div className="flex items-start gap-1.5">
+                                    <Sparkles className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                                    <div className="flex-1 text-[11px]">
+                                      <p className="text-foreground">
+                                        <span className="font-semibold">IA sugere:</span>{" "}
+                                        {suggestion.action === "replace" ? (
+                                          <>trocar por <span className="font-mono text-primary">/{suggestion.slug}</span></>
+                                        ) : (
+                                          <>remover o link</>
+                                        )}{" "}
+                                        <span className="text-muted-foreground">({Math.round(suggestion.confidence * 100)}%)</span>
+                                      </p>
+                                      <p className="text-muted-foreground italic">{suggestion.reason}</p>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="default"
+                                      disabled={busyKey === applyKey}
+                                      onClick={() => applySuggestion(article, link)}
+                                      className="h-6 text-[10px] px-2 gap-1 shrink-0"
+                                    >
+                                      {busyKey === applyKey ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <CheckCircle2 className="h-3 w-3" />
+                                      )}
+                                      Aplicar
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+
                               <div className="flex flex-wrap items-center gap-2 pl-5">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="default"
+                                  disabled={busyKey === aiKey}
+                                  onClick={() => handleAiFix(article, link)}
+                                  className="h-7 text-[11px] gap-1"
+                                >
+                                  {busyKey === aiKey ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Wand2 className="h-3 w-3" />
+                                  )}
+                                  Corrigir com IA
+                                </Button>
                                 <Button
                                   type="button"
                                   size="sm"
@@ -436,7 +490,7 @@ const BrokenLinksReportSection = () => {
                                   ) : (
                                     <Scissors className="h-3 w-3" />
                                   )}
-                                  Remover link
+                                  Remover
                                 </Button>
                                 <div className="flex items-center gap-1 flex-1 min-w-[200px]">
                                   <Input
