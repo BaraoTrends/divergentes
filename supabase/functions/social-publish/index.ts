@@ -32,6 +32,24 @@ interface IncomingPayload {
   excerpt: string | null;
   cover_image_url: string | null;
   created_at: string;
+  tags?: string[] | null;
+}
+
+/** Converte ["foo bar", "Baz"] em "#foobar #baz" */
+function formatTagsAsHashtags(tags: string[] | null | undefined): string {
+  if (!tags || tags.length === 0) return "";
+  return tags
+    .map((t) =>
+      "#" +
+      t
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .toLowerCase()
+    )
+    .filter((t) => t.length > 1)
+    .join(" ");
 }
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -106,6 +124,7 @@ Deno.serve(async (req) => {
       excerpt: body.excerpt ?? "",
       image: body.cover_image_url ?? "",
       created_at: body.created_at,
+      tags: formatTagsAsHashtags(body.tags),
     };
 
     console.log("[social-publish] Enviando para Make.com:", payload);
