@@ -94,6 +94,20 @@ const BrokenLinksReportSection = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [replaceInputs, setReplaceInputs] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
+
+  const publishedSlugCandidates = useMemo(
+    () =>
+      articles
+        .filter((a) => a.published)
+        .map((a) => ({
+          slug: `blog/${a.slug}`,
+          title: a.title,
+          category: a.category,
+          excerpt: a.excerpt || undefined,
+        })),
+    [articles]
+  );
 
   const validPaths = useMemo(() => {
     const set = new Set<string>(STATIC_PATHS);
