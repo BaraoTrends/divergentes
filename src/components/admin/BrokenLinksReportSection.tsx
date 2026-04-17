@@ -3,6 +3,8 @@ import { useArticles, useUpdateArticle, type Article } from "@/hooks/useArticles
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertTriangle,
