@@ -28,7 +28,7 @@ function extractTag(html: string, pattern: RegExp): string {
   return m ? m[1].trim() : "";
 }
 
-function auditHtml(html: string, path: string): AuditCheck[] {
+function auditHtml(html: string, path: string, validPaths: Set<string>): AuditCheck[] {
   const checks: AuditCheck[] = [];
 
   // Title
@@ -136,6 +136,76 @@ function auditHtml(html: string, path: string): AuditCheck[] {
     });
   }
 
+  // Imagens com alt
+  const imgTags = html.match(/<img\b[^>]*>/gi) || [];
+  const imgsSemAlt = imgTags.filter((tag) => {
+    const altMatch = tag.match(/\salt\s*=\s*"([^"]*)"/i);
+    return !altMatch || altMatch[1].trim() === "";
+  });
+  if (imgTags.length === 0) {
+    checks.push({ id: "img_alt", label: "Imagens (alt)", status: "pass", value: "0 imagens" });
+  } else if (imgsSemAlt.length === 0) {
+    checks.push({ id: "img_alt", label: "Imagens (alt)", status: "pass", value: `${imgTags.length}/${imgTags.length} com alt` });
+  } else {
+    const exemplos = imgsSemAlt
+      .slice(0, 3)
+      .map((t) => t.match(/src\s*=\s*"([^"]*)"/i)?.[1] ?? "?")
+      .join(", ");
+    checks.push({
+      id: "img_alt",
+      label: "Imagens (alt)",
+      status: "fail",
+      value: `${imgsSemAlt.length}/${imgTags.length} sem alt`,
+      detail: `Sem alt: ${exemplos}${imgsSemAlt.length > 3 ? "…" : ""}`,
+    });
+  }
+
+  // Links internos quebrados (rotas inexistentes no projeto)
+  const linkMatches = [...html.matchAll(/<a\b[^>]*\shref\s*=\s*"([^"]+)"/gi)];
+  const internalLinks = linkMatches
+    .map((m) => m[1])
+    .filter((href) => {
+      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
+      if (href.startsWith("http")) return href.startsWith(SITE_URL);
+      return href.startsWith("/");
+    })
+    .map((href) => {
+      const url = href.startsWith("http") ? href.slice(SITE_URL.length) : href;
+      return url.split(/[?#]/)[0].replace(/\/$/, "") || "/";
+    });
+
+  const uniqueInternal = [...new Set(internalLinks)];
+  const broken = uniqueInternal.filter((p) => {
+    if (validPaths.has(p)) return false;
+    // Aceita prefixos válidos (ex: /blog/qualquer-slug já checado por validPaths exato)
+    return true;
+  });
+
+  if (uniqueInternal.length === 0) {
+    checks.push({ id: "links", label: "Links internos", status: "warn", value: "0 links", detail: "Página sem links internos." });
+  } else if (broken.length === 0) {
+    checks.push({ id: "links", label: "Links internos", status: "pass", value: `${uniqueInternal.length} ok` });
+  } else {
+    checks.push({
+      id: "links",
+      label: "Links internos quebrados",
+      status: "fail",
+      value: `${broken.length}/${uniqueInternal.length} quebrados`,
+      detail: broken.slice(0, 5).join(", ") + (broken.length > 5 ? "…" : ""),
+    });
+  }
+
+  // Tamanho da página (HTML em KB)
+  const sizeKb = new TextEncoder().encode(html).length / 1024;
+  const sizeFmt = `${sizeKb.toFixed(1)} KB`;
+  if (sizeKb > 500) {
+    checks.push({ id: "size", label: "Tamanho da página", status: "fail", value: sizeFmt, detail: "HTML acima de 500 KB — impacta LCP e crawl budget." });
+  } else if (sizeKb > 150) {
+    checks.push({ id: "size", label: "Tamanho da página", status: "warn", value: sizeFmt, detail: "Acima de 150 KB. Recomendado: manter HTML enxuto." });
+  } else {
+    checks.push({ id: "size", label: "Tamanho da página", status: "pass", value: sizeFmt });
+  }
+
   return checks;
 }
 
@@ -178,6 +248,11 @@ serve(async (req) => {
 
     const allRoutes = [...staticRoutes, ...articleRoutes];
 
+    // Conjunto de paths válidos (para checagem de links internos quebrados)
+    const validPaths = new Set<string>(allRoutes.map((r) => r.path.replace(/\/$/, "") || "/"));
+    // Paths estáticos extras conhecidos do site (rodapé, legal etc.)
+    ["/politica-de-privacidade", "/termos-de-uso", "/admin", "/admin/login"].forEach((p) => validPaths.add(p));
+
     // Fetch prerendered HTML for each route
     const prerenderUrl = `${supabaseUrl}/functions/v1/prerender`;
     const results: RouteAudit[] = [];
@@ -199,7 +274,7 @@ serve(async (req) => {
         }
 
         const html = await res.text();
-        const checks = auditHtml(html, route.path);
+        const checks = auditHtml(html, route.path, validPaths);
         const fails = checks.filter((c) => c.status === "fail").length;
         const warns = checks.filter((c) => c.status === "warn").length;
 
