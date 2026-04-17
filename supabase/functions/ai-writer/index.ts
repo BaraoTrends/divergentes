@@ -45,7 +45,23 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const { action, topic, content, language, model: modelKey, focusKeyword } = await req.json();
+    const {
+      action,
+      topic,
+      content,
+      language,
+      model: modelKey,
+      focusKeyword,
+      secondaryKeywords,
+      searchIntent,
+      slugHint,
+      availableSlugs,
+    } = await req.json();
+
+    const secondaryKwList: string[] = Array.isArray(secondaryKeywords)
+      ? secondaryKeywords.filter((k: any) => typeof k === "string" && k.trim()).slice(0, 12)
+      : [];
+    const intent = typeof searchIntent === "string" ? searchIntent.trim() : "";
 
     const MODEL_MAP: Record<string, string> = {
       fast: "google/gemini-3-flash-preview",
