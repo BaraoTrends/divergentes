@@ -216,6 +216,81 @@ const BrokenLinksReportSection = () => {
     );
   };
 
+  const handleAiFix = async (article: Article, link: BrokenLink, autoApply = false) => {
+    const key = `${article.id}::${link.href}::ai`;
+    const sugKey = `${article.id}::${link.href}`;
+    setBusyKey(key);
+    try {
+      const resp = await fetch(FIX_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          brokenPath: link.normalizedPath,
+          anchorText: link.anchorText,
+          sourceTitle: article.title,
+          candidates: publishedSlugCandidates,
+        }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        toast({
+          title: resp.status === 402 ? "Créditos esgotados" : resp.status === 429 ? "Limite excedido" : "Erro na IA",
+          description: err.error || `HTTP ${resp.status}`,
+          variant: "destructive",
+        });
+        return;
+      }
+      const suggestion: AiSuggestion = await resp.json();
+      setAiSuggestions((p) => ({ ...p, [sugKey]: suggestion }));
+
+      if (autoApply || suggestion.confidence >= 0.75) {
+        if (suggestion.action === "replace" && suggestion.slug) {
+          const newPath = `/${suggestion.slug.replace(/^\/+/, "")}`;
+          const newAnchor = link.fullAnchor.replace(
+            /(href\s*=\s*")([^"]+)(")/i,
+            (_, p1, _old, p3) => `${p1}${newPath}${p3}`
+          );
+          const newContent = article.content.split(link.fullAnchor).join(newAnchor);
+          await updateContent(article, newContent, `IA: link substituído por ${newPath}`, key);
+        } else {
+          const newContent = article.content.split(link.fullAnchor).join(link.anchorText);
+          await updateContent(article, newContent, "IA: link removido (texto preservado)", key);
+        }
+      } else {
+        toast({
+          title: "Sugestão pronta — confiança baixa",
+          description: `${suggestion.action === "replace" ? `Trocar por /${suggestion.slug}` : "Remover link"} (${Math.round(suggestion.confidence * 100)}%) — revise antes de aplicar.`,
+        });
+      }
+    } catch (e: any) {
+      toast({ title: "Erro ao consultar IA", description: e?.message, variant: "destructive" });
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const applySuggestion = (article: Article, link: BrokenLink) => {
+    const sugKey = `${article.id}::${link.href}`;
+    const s = aiSuggestions[sugKey];
+    if (!s) return;
+    const key = `${article.id}::${link.href}::apply`;
+    if (s.action === "replace" && s.slug) {
+      const newPath = `/${s.slug.replace(/^\/+/, "")}`;
+      const newAnchor = link.fullAnchor.replace(
+        /(href\s*=\s*")([^"]+)(")/i,
+        (_, p1, _old, p3) => `${p1}${newPath}${p3}`
+      );
+      const newContent = article.content.split(link.fullAnchor).join(newAnchor);
+      updateContent(article, newContent, `IA: link substituído por ${newPath}`, key);
+    } else {
+      const newContent = article.content.split(link.fullAnchor).join(link.anchorText);
+      updateContent(article, newContent, "IA: link removido", key);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
