@@ -21,6 +21,9 @@ import { useToast } from "@/hooks/use-toast";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
 import TopicSlider from "@/components/TopicSlider";
 import SeoChecker from "@/components/SeoChecker";
+import SeoBriefingPanel, { type SeoBriefing } from "@/components/SeoBriefingPanel";
+import AiInternalLinksSuggester from "@/components/editor/AiInternalLinksSuggester";
+import { analyzeSeo, calculateScore } from "@/lib/seoAnalysis";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
 import { useAiWriter } from "@/hooks/useAiWriter";
 import type { Article } from "@/hooks/useArticles";
@@ -74,6 +77,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [tags, setTags] = useState<string[]>(article?.tags || []);
   const [tagInput, setTagInput] = useState("");
   const [focusKeyword, setFocusKeyword] = useState(article?.focus_keyword || "");
+  const [briefing, setBriefing] = useState<SeoBriefing>({
+    focusKeyword: article?.focus_keyword || "",
+    secondaryKeywords: article?.tags?.filter((t) => t.includes(" ")).slice(0, 8) || [],
+    searchIntent: "informacional",
+    slugHint: "",
+  });
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverPrompt, setCoverPrompt] = useState("");
@@ -231,9 +240,25 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
   useEffect(() => {
     if (!article) {
-      setSlug(generateSlug(title));
+      // If user provided a slugHint in briefing, prefer it; otherwise auto from title
+      const next = briefing.slugHint.trim() ? generateSlug(briefing.slugHint) : generateSlug(title);
+      setSlug(next);
     }
-  }, [title, article]);
+  }, [title, article, briefing.slugHint]);
+
+  // Keep briefing.focusKeyword and main focusKeyword in sync (briefing is source of truth when filled)
+  useEffect(() => {
+    if (briefing.focusKeyword.trim() && briefing.focusKeyword !== focusKeyword) {
+      setFocusKeyword(briefing.focusKeyword);
+    }
+  }, [briefing.focusKeyword]);
+
+  // Auto-add briefing secondary keywords as tags
+  useEffect(() => {
+    if (briefing.secondaryKeywords.length > 0) {
+      setTags((prev) => [...new Set([...prev, ...briefing.secondaryKeywords])]);
+    }
+  }, [briefing.secondaryKeywords]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -306,6 +331,23 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const meetsMinimum = wordCount >= 400 || charCount >= 3000;
   const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
 
+  // SEO score (live)
+  const seoChecks = analyzeSeo({ title, excerpt, content, slug, imageUrl, focusKeyword });
+  const seoScore = calculateScore(seoChecks);
+  const criticalErrors = seoChecks.filter((c) => c.status === "error").length;
+
+  const seoBlockedReason = (): string | null => {
+    if (criticalErrors > 0) {
+      const labels = seoChecks
+        .filter((c) => c.status === "error")
+        .map((c) => `• ${c.label}: ${c.message}`)
+        .join("\n");
+      return `Falhas críticas de SEO:\n${labels}`;
+    }
+    if (seoScore < 60) return `Score SEO baixo (${seoScore}%). Mínimo recomendado: 60%.`;
+    return null;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!meetsMinimum) {
@@ -341,6 +383,20 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       });
       return;
     }
+    const blocked = seoBlockedReason();
+    if (blocked) {
+      const proceed = window.confirm(
+        `⚠️ Validação SEO falhou\n\n${blocked}\n\nScore atual: ${seoScore}%.\n\nDeseja publicar mesmo assim?`,
+      );
+      if (!proceed) {
+        toast({
+          title: "Publicação bloqueada pelo validador SEO",
+          description: "Corrija as falhas e tente novamente.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     onSave({
       title: title.trim(),
       slug: slug.trim(),
@@ -374,6 +430,19 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     });
   };
 
+  const insertInternalLink = (anchor: string, href: string) => {
+    const editor = editorInstanceRef.current;
+    const safeAnchor = anchor.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const linkHtml = `<a href="${href}">${safeAnchor}</a>`;
+    if (editor) {
+      editor.chain().focus().insertContent(` ${linkHtml} `).run();
+    } else {
+      setContent((prev) => prev + ` <p>${linkHtml}</p>`);
+    }
+    toast({ title: "Link inserido", description: anchor });
+  };
+
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between">
@@ -400,6 +469,20 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           >
             <FileText className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar Rascunho"}
           </Button>
+          {content.trim() && (
+            <span
+              className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
+                seoScore >= 80
+                  ? "bg-green-500/15 text-green-700 border border-green-500/30"
+                  : seoScore >= 60
+                  ? "bg-yellow-500/15 text-yellow-700 border border-yellow-500/30"
+                  : "bg-red-500/15 text-red-700 border border-red-500/30"
+              }`}
+              title={`Score SEO: ${seoScore}%${criticalErrors > 0 ? ` • ${criticalErrors} falha(s) crítica(s)` : ""}`}
+            >
+              SEO {seoScore}%
+            </span>
+          )}
           <Button
             type="button"
             size="sm"
@@ -425,6 +508,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
         </div>
       ) : (
         <div className="space-y-4">
+          {/* SEO Briefing — define keyword principal, secundárias e intenção ANTES de gerar */}
+          <SeoBriefingPanel value={briefing} onChange={setBriefing} defaultExpanded={!article} />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -894,6 +980,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               title={title}
               content={content}
               focusKeyword={focusKeyword}
+              secondaryKeywords={briefing.secondaryKeywords}
+              searchIntent={briefing.searchIntent}
               onContentGenerated={(html) => {
                 setContent(html);
                 // Auto-generate keywords/focus keyword after AI content generation
@@ -926,6 +1014,14 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               onChange={setContent}
               placeholder="Comece a escrever o conteúdo do artigo..."
               editorRef={editorInstanceRef}
+            />
+
+            {/* AI Internal Links Suggester */}
+            <AiInternalLinksSuggester
+              content={content}
+              currentSlug={slug}
+              category={category}
+              onInsertLink={insertInternalLink}
             />
           </div>
 

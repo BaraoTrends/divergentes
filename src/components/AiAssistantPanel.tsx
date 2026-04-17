@@ -22,6 +22,8 @@ interface AiAssistantPanelProps {
   title?: string;
   content: string;
   focusKeyword?: string;
+  secondaryKeywords?: string[];
+  searchIntent?: string;
   onContentGenerated: (html: string) => void;
   onTitleGenerated?: (title: string) => void;
   onExcerptGenerated?: (excerpt: string) => void;
@@ -31,6 +33,8 @@ interface AiAssistantPanelProps {
 const AiAssistantPanel = ({
   title,
   focusKeyword,
+  secondaryKeywords,
+  searchIntent,
   content,
   onContentGenerated,
   onTitleGenerated,
@@ -77,7 +81,13 @@ const AiAssistantPanel = ({
     if (!effectiveTopic) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("generate_article", { topic: effectiveTopic, model: selectedModel, focusKeyword: focusKeyword || undefined });
+    const result = await generate("generate_article", {
+      topic: effectiveTopic,
+      model: selectedModel,
+      focusKeyword: focusKeyword || undefined,
+      secondaryKeywords: secondaryKeywords?.length ? secondaryKeywords : undefined,
+      searchIntent: searchIntent || undefined,
+    });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
@@ -89,7 +99,12 @@ const AiAssistantPanel = ({
     if (!content.trim()) return;
     setShowPreview(true);
     setStreamPreview("");
-    const result = await generate("improve_text", { content, model: selectedModel, focusKeyword: focusKeyword || undefined });
+    const result = await generate("improve_text", {
+      content,
+      model: selectedModel,
+      focusKeyword: focusKeyword || undefined,
+      secondaryKeywords: secondaryKeywords?.length ? secondaryKeywords : undefined,
+    });
     if (result) {
       onContentGenerated(result);
       setShowPreview(false);
