@@ -181,6 +181,93 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     },
   });
 
+  // ===== Auto-suggest + auto-insert internal links after a fresh full-article generation =====
+  const autoLinksRef = useRef(false);
+  const autoInsertInternalLinks = useCallback(async (html: string) => {
+    try {
+      const { data: dbArticles } = await supabase
+        .from("articles")
+        .select("slug, title, category")
+        .eq("published", true)
+        .neq("slug", slug || "__none__")
+        .order("created_at", { ascending: false })
+        .limit(80);
+      if (!dbArticles || dbArticles.length === 0) return;
+
+      // Same-category first
+      const sorted = [...dbArticles].sort((a, b) => {
+        if (a.category === category && b.category !== category) return -1;
+        if (b.category === category && a.category !== category) return 1;
+        return 0;
+      });
+
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-writer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          action: "suggest_internal_links",
+          content: html,
+          availableSlugs: sorted.map((a) => ({ slug: a.slug, title: a.title })),
+        }),
+      });
+      if (!resp.ok) return;
+
+      const reader = resp.body?.getReader();
+      if (!reader) return;
+      const decoder = new TextDecoder();
+      let full = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split("\n")) {
+          if (!line.startsWith("data: ")) continue;
+          const json = line.slice(6).trim();
+          if (json === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(json);
+            const c = parsed.choices?.[0]?.delta?.content;
+            if (c) full += c;
+          } catch {}
+        }
+      }
+
+      const match = full.match(/\{[\s\S]*\}/);
+      if (!match) return;
+      const data = JSON.parse(match[0]);
+      const validSlugs = new Set(dbArticles.map((a) => a.slug));
+      const picks = (data.links || [])
+        .filter((l: any) => l?.slug && l?.anchor && validSlugs.has(l.slug))
+        .slice(0, 3);
+      if (picks.length === 0) return;
+
+      // Build "Leia também" block and append to content
+      const escape = (s: string) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const items = picks
+        .map(
+          (p: any) =>
+            `<li><a href="/blog/${escape(p.slug)}">${escape(p.anchor)}</a></li>`,
+        )
+        .join("");
+      const block = `\n<h3>Leia também</h3>\n<ul>${items}</ul>\n`;
+
+      setContent((prev) => {
+        // Avoid duplicating if user re-runs
+        if (prev.includes("<h3>Leia também</h3>")) return prev;
+        return prev + block;
+      });
+      toast({
+        title: "Links internos inseridos",
+        description: `${picks.length} sugestões adicionadas ao final do artigo.`,
+      });
+    } catch (e) {
+      console.warn("[autoInsertInternalLinks] falhou:", e);
+    }
+  }, [category, slug, toast]);
+
   // ===== Geração unificada (título + slug + meta + focus_keyword + conteúdo) =====
   const { generate: generateFullArticle, isGenerating: isGeneratingFull } = useAiWriter({
     onMeta: (meta) => {
@@ -202,6 +289,13 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       const topic = briefing.focusKeyword.trim() || title || "neurodivergência";
       const styleObj = COVER_STYLES.find(s => s.value === coverStyleRef.current) || COVER_STYLES[0];
       generateImage(`${styleObj.prompt} para artigo sobre: ${topic}. Sem texto na imagem.`, "cover");
+      // Auto-insert internal links (only once per generation)
+      if (autoLinksRef.current) return;
+      autoLinksRef.current = true;
+      autoInsertInternalLinks(html).finally(() => {
+        // Allow next manual generation to trigger again
+        setTimeout(() => { autoLinksRef.current = false; }, 2000);
+      });
     },
   });
 
@@ -215,6 +309,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       });
       return;
     }
+    autoLinksRef.current = false;
     generateFullArticle("generate_full_article", {
       topic,
       focusKeyword: briefing.focusKeyword.trim() || focusKeyword.trim() || undefined,
