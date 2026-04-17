@@ -416,6 +416,39 @@ export type Database = {
         }
         Relationships: []
       }
+      social_publish_logs: {
+        Row: {
+          article_id: string | null
+          article_title: string
+          created_at: string
+          error_message: string | null
+          id: string
+          make_status: number | null
+          status: string
+          triggered_at: string
+        }
+        Insert: {
+          article_id?: string | null
+          article_title: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          make_status?: number | null
+          status: string
+          triggered_at?: string
+        }
+        Update: {
+          article_id?: string | null
+          article_title?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          make_status?: number | null
+          status?: string
+          triggered_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
