@@ -470,7 +470,8 @@ const BrokenLinksReportSection = () => {
                                     </Button>
                                   </div>
                                 </div>
-                              )}
+                                );
+                              })()}
 
                               <div className="flex flex-wrap items-center gap-2 pl-5">
                                 <Button
