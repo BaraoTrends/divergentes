@@ -331,6 +331,23 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const meetsMinimum = wordCount >= 400 || charCount >= 3000;
   const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
 
+  // SEO score (live)
+  const seoChecks = analyzeSeo({ title, excerpt, content, slug, imageUrl, focusKeyword });
+  const seoScore = calculateScore(seoChecks);
+  const criticalErrors = seoChecks.filter((c) => c.status === "error").length;
+
+  const seoBlockedReason = (): string | null => {
+    if (criticalErrors > 0) {
+      const labels = seoChecks
+        .filter((c) => c.status === "error")
+        .map((c) => `• ${c.label}: ${c.message}`)
+        .join("\n");
+      return `Falhas críticas de SEO:\n${labels}`;
+    }
+    if (seoScore < 60) return `Score SEO baixo (${seoScore}%). Mínimo recomendado: 60%.`;
+    return null;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!meetsMinimum) {
@@ -366,6 +383,20 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       });
       return;
     }
+    const blocked = seoBlockedReason();
+    if (blocked) {
+      const proceed = window.confirm(
+        `⚠️ Validação SEO falhou\n\n${blocked}\n\nScore atual: ${seoScore}%.\n\nDeseja publicar mesmo assim?`,
+      );
+      if (!proceed) {
+        toast({
+          title: "Publicação bloqueada pelo validador SEO",
+          description: "Corrija as falhas e tente novamente.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     onSave({
       title: title.trim(),
       slug: slug.trim(),
@@ -380,6 +411,35 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       author_id: article?.author_id || userId,
       focus_keyword: focusKeyword.trim(),
     });
+  };
+
+  const handleSaveAsDraft = () => {
+    onSave({
+      title: title.trim(),
+      slug: slug.trim(),
+      excerpt: excerpt.trim(),
+      content,
+      category,
+      image_url: imageUrl.trim(),
+      published: false,
+      featured,
+      read_time: calculatedReadTime,
+      tags,
+      author_id: article?.author_id || userId,
+      focus_keyword: focusKeyword.trim(),
+    });
+  };
+
+  const insertInternalLink = (anchor: string, href: string) => {
+    const editor = editorInstanceRef.current;
+    const safeAnchor = anchor.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const linkHtml = `<a href="${href}">${safeAnchor}</a>`;
+    if (editor) {
+      editor.chain().focus().insertContent(` ${linkHtml} `).run();
+    } else {
+      setContent((prev) => prev + ` <p>${linkHtml}</p>`);
+    }
+    toast({ title: "Link inserido", description: anchor });
   };
 
   const handleSaveAsDraft = () => {
