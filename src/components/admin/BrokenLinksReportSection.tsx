@@ -479,7 +479,7 @@ const BrokenLinksReportSection = () => {
         </div>
       )}
 
-
+      {batchProgress && (
         <div className="border rounded-lg p-3 bg-primary/5 space-y-2">
           <div className="flex items-center justify-between text-[11px]">
             <span className="font-medium text-foreground inline-flex items-center gap-1.5">
