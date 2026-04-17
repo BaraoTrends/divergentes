@@ -469,6 +469,20 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           >
             <FileText className="h-4 w-4" /> {saving ? "Salvando..." : "Salvar Rascunho"}
           </Button>
+          {content.trim() && (
+            <span
+              className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
+                seoScore >= 80
+                  ? "bg-green-500/15 text-green-700 border border-green-500/30"
+                  : seoScore >= 60
+                  ? "bg-yellow-500/15 text-yellow-700 border border-yellow-500/30"
+                  : "bg-red-500/15 text-red-700 border border-red-500/30"
+              }`}
+              title={`Score SEO: ${seoScore}%${criticalErrors > 0 ? ` • ${criticalErrors} falha(s) crítica(s)` : ""}`}
+            >
+              SEO {seoScore}%
+            </span>
+          )}
           <Button
             type="button"
             size="sm"
