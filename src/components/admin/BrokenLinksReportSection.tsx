@@ -366,7 +366,7 @@ const BrokenLinksReportSection = () => {
           const sugKey = `${article.id}::${link.href}`;
           setAiSuggestions((p) => ({ ...p, [sugKey]: suggestion }));
 
-          if (suggestion.confidence >= 0.75) {
+          if (suggestion.confidence >= confidenceThreshold) {
             if (suggestion.action === "replace" && suggestion.slug) {
               const newPath = `/${suggestion.slug.replace(/^\/+/, "")}`;
               const newAnchor = link.fullAnchor.replace(
