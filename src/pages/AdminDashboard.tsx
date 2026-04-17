@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
@@ -77,6 +77,22 @@ const AdminDashboard = () => {
     setEditorMode(null);
     setEditingArticle(null);
   };
+
+  const { data: allArticlesForJump = [] } = useArticles();
+
+  // Listen for global "open article in editor" requests (e.g. from SEO broken-links report)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ articleId: string }>).detail;
+      const found = allArticlesForJump.find((a) => a.id === detail?.articleId);
+      if (found) {
+        setActiveTab("artigos");
+        openEditor("edit", found);
+      }
+    };
+    window.addEventListener("admin:open-article-editor", handler);
+    return () => window.removeEventListener("admin:open-article-editor", handler);
+  }, [allArticlesForJump]);
 
   const tabs = [
     { id: "dashboard" as Tab, label: "Dashboard", icon: LayoutDashboard },

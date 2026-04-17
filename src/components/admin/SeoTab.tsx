@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import InternalLinksSection from "@/components/admin/InternalLinksSection";
 import SeoAuditSection from "@/components/admin/SeoAuditSection";
+import BrokenLinksReportSection from "@/components/admin/BrokenLinksReportSection";
 import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
 import IndexingStatusSection from "@/components/admin/IndexingStatusSection";
 import IndexingAlertsSection from "@/components/admin/IndexingAlertsSection";
@@ -387,6 +388,18 @@ const SeoTab = () => {
             <div className="p-4 pt-0 border-t">
               <div className="pt-4">
                 <SeoAuditSection />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Links Internos Quebrados */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="broken-links" icon={AlertTriangle} title="Links Internos Quebrados" badge="Diagnóstico" />
+          {expandedSection === "broken-links" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <BrokenLinksReportSection />
               </div>
             </div>
           )}
