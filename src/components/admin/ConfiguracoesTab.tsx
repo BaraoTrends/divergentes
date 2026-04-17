@@ -101,6 +101,7 @@ const ConfiguracoesTab = () => {
           {renderField("gtm_id", "Google Tag Manager", "ID do Tag Manager", "GTM-XXXXXXX", { charCount: true })}
           {renderField("google_verification", "Google Verificação", "Código de verificação do Google", "Código de verificação...", { charCount: true })}
           {renderField("exoclick_verification", "ExoClick Verificação", "Código de verificação do ExoClick", "Code", { charCount: true })}
+          {renderField("social_hashtag_limit", "Limite de hashtags (autopublicação)", "Quantas hashtags enviar no webhook do Make.com (categoria + tags). Ex: 5 evita payloads longos no X/Twitter. Use 0 para sem limite.", "5")}
         </div>
       </div>
 
