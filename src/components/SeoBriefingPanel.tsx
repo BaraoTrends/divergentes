@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Target, ChevronDown, ChevronUp, X, Plus } from "lucide-react";
 
 export interface SeoBriefing {
@@ -11,6 +12,7 @@ export interface SeoBriefing {
   secondaryKeywords: string[];
   searchIntent: string;
   slugHint: string;
+  autoInsertLinks: boolean;
 }
 
 interface SeoBriefingPanelProps {
@@ -195,6 +197,24 @@ const SeoBriefingPanel = ({ value, onChange, defaultExpanded = false }: SeoBrief
             <p className="text-[10px] text-muted-foreground">
               Se preenchido, será usado no lugar do slug automático.
             </p>
+          </div>
+
+          {/* Auto-insert internal links toggle */}
+          <div className="flex items-start justify-between gap-3 pt-1 border-t">
+            <div className="space-y-0.5 min-w-0">
+              <Label htmlFor="brief-autolinks" className="text-xs cursor-pointer">
+                Auto-inserir links internos
+              </Label>
+              <p className="text-[10px] text-muted-foreground leading-snug">
+                Após gerar o artigo, a IA insere automaticamente 1-2 links contextuais inline
+                + um bloco "Leia também" com artigos reais do blog.
+              </p>
+            </div>
+            <Switch
+              id="brief-autolinks"
+              checked={value.autoInsertLinks}
+              onCheckedChange={(v) => update("autoInsertLinks", v)}
+            />
           </div>
         </div>
       )}

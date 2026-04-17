@@ -82,6 +82,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     secondaryKeywords: article?.tags?.filter((t) => t.includes(" ")).slice(0, 8) || [],
     searchIntent: "informacional",
     slugHint: "",
+    autoInsertLinks: true,
   });
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -360,7 +361,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       const topic = briefing.focusKeyword.trim() || title || "neurodivergência";
       const styleObj = COVER_STYLES.find(s => s.value === coverStyleRef.current) || COVER_STYLES[0];
       generateImage(`${styleObj.prompt} para artigo sobre: ${topic}. Sem texto na imagem.`, "cover");
-      // Auto-insert internal links (only once per generation)
+      // Auto-insert internal links (only once per generation, only if toggle is on)
+      if (!briefing.autoInsertLinks) return;
       if (autoLinksRef.current) return;
       autoLinksRef.current = true;
       autoInsertInternalLinks(html).finally(() => {
