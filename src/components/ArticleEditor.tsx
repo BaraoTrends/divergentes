@@ -181,7 +181,49 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     },
   });
 
-  const handleSuggestTopics = async () => {
+  // ===== Geração unificada (título + slug + meta + focus_keyword + conteúdo) =====
+  const { generate: generateFullArticle, isGenerating: isGeneratingFull } = useAiWriter({
+    onMeta: (meta) => {
+      if (meta.title) setTitle(meta.title.slice(0, 65));
+      if (meta.slug) setSlug(generateSlug(meta.slug));
+      if (meta.excerpt) setExcerpt(meta.excerpt.trim());
+      if (meta.focus_keyword) {
+        const kw = meta.focus_keyword.toLowerCase().trim();
+        setFocusKeyword(kw);
+        setBriefing((prev) => prev.focusKeyword.trim() ? prev : { ...prev, focusKeyword: kw });
+      }
+      toast({ title: "Metadados gerados", description: "Título, slug e meta description preenchidos. Conteúdo em geração..." });
+    },
+    onStream: (html) => setContent(html),
+    onComplete: (html) => {
+      setContent(html);
+      toast({ title: "Artigo completo gerado!", description: "Título, slug, meta e conteúdo prontos." });
+      // Auto-cover image
+      const topic = briefing.focusKeyword.trim() || title || "neurodivergência";
+      const styleObj = COVER_STYLES.find(s => s.value === coverStyleRef.current) || COVER_STYLES[0];
+      generateImage(`${styleObj.prompt} para artigo sobre: ${topic}. Sem texto na imagem.`, "cover");
+    },
+  });
+
+  const handleGenerateFullArticle = () => {
+    const topic = title.trim() || briefing.focusKeyword.trim();
+    if (!topic) {
+      toast({
+        title: "Defina o tema",
+        description: "Preencha o título OU a palavra-chave foco no Briefing SEO antes de gerar.",
+        variant: "destructive",
+      });
+      return;
+    }
+    generateFullArticle("generate_full_article", {
+      topic,
+      focusKeyword: briefing.focusKeyword.trim() || focusKeyword.trim() || undefined,
+      secondaryKeywords: briefing.secondaryKeywords,
+      searchIntent: briefing.searchIntent,
+      slugHint: briefing.slugHint.trim() || undefined,
+      category,
+    });
+  };
     const cat = categories.find(c => c.slug === category);
     const catName = cat?.name || category;
 
