@@ -304,6 +304,73 @@ Retorne EXATAMENTE este JSON (sem code fences):
 {"links":[{"slug":"slug-existente","anchor":"texto âncora natural","reason":"por que faz sentido"}]}`;
         break;
 
+      case "generate_full_article": {
+        if (!topic) {
+          return new Response(JSON.stringify({ error: "topic is required for generate_full_article" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const kwLine = focusKeyword
+          ? `\nPALAVRA-CHAVE FOCO (OBRIGATÓRIA): "${focusKeyword}"`
+          : `\nIdentifique você mesmo a melhor palavra-chave foco (2-5 palavras, em pt-BR, com volume real de busca) e use-a no campo focus_keyword e ao longo do texto.`;
+        const secLine = secondaryKwList.length
+          ? `\nPALAVRAS-CHAVE SECUNDÁRIAS: ${secondaryKwList.join(", ")}`
+          : "";
+        const intentLine = intent ? `\nINTENÇÃO DE BUSCA: ${intent}` : "";
+        const slugLine = slugHint ? `\nSLUG SUGERIDO PELO USUÁRIO (use exatamente este se for válido): "${slugHint}"` : "";
+        const catLine = category ? `\nCATEGORIA: ${category}` : "";
+
+        systemPrompt = `Você é um redator humano experiente, especialista em neurodivergências (TDAH, TEA, Dislexia, Altas Habilidades, TOC) para o público brasileiro. Idioma: ${lang}.
+
+${SEO_AND_HUMAN_RULES}
+
+FORMATO DE SAÍDA OBRIGATÓRIO — siga À RISCA:
+Sua resposta deve começar com UMA ÚNICA LINHA contendo um JSON válido (sem markdown, sem code fences, sem quebras de linha dentro do JSON), depois o delimitador "===CONTENT===" em uma linha sozinha, e DEPOIS o HTML do artigo.
+
+Exemplo EXATO de formato:
+{"title":"...","slug":"...","excerpt":"...","focus_keyword":"..."}
+===CONTENT===
+<p>Primeiro parágrafo do artigo...</p>
+<h2>...</h2>
+...
+
+REGRAS DOS CAMPOS:
+- title: H1 otimizado, máximo 60 caracteres, com a palavra-chave foco o mais à esquerda possível, desperta curiosidade ou promete valor claro.
+- slug: URL amigável em kebab-case, somente a-z 0-9 e hífens, máximo 70 caracteres, sem stopwords desnecessárias, com a palavra-chave foco. Se SLUG SUGERIDO foi passado, use-o.
+- excerpt: meta description entre 120 e 150 caracteres (CONTE!), com a palavra-chave foco no início, verbo de ação, desperta cliques.
+- focus_keyword: a palavra-chave foco (2-5 palavras, pt-BR).
+
+PROIBIDO no JSON: aspas não escapadas, quebras de linha, markdown, code fences, comentários, campos extras.`;
+
+        userPrompt = `Gere um pacote completo de artigo SEO sobre: "${topic}".${kwLine}${secLine}${intentLine}${slugLine}${catLine}
+
+REGRAS DO HTML (após o delimitador ===CONTENT===):
+- NÃO inclua <h1> (o title vai no JSON).
+- Use HTML semântico: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <blockquote>, <strong>, <em>, <a>, <img>.
+- MÍNIMO 1200 palavras (idealmente 1500-2500).
+- 5-7 seções H2 formuladas como perguntas/buscas reais do Google.
+- Sub-seções H3 dentro de pelo menos 3 H2.
+- Listas (ul/ol) em pelo menos 3 seções.
+- 1+ blockquote com citação/dado.
+- Parágrafos MUITO curtos (máx. 3 frases / 80 palavras).
+- 3-5 links internos: <a href="/blog/SLUG">âncora natural</a>.
+- 1-2 links externos a fontes confiáveis com target="_blank" rel="noopener noreferrer".
+- 2-3 <img src="https://images.unsplash.com/photo-placeholder" alt="descrição rica" /> entre seções.
+- Conclusão com CTA implícito.
+
+REGRAS DA PALAVRA-CHAVE FOCO:
+- Aparecer no PRIMEIRO parágrafo em <strong>.
+- Em pelo menos 2 H2 e 1 H3.
+- 8-15 ocorrências totais distribuídas (densidade 0.5-2%).
+- Use a frase EXATA, contígua, sem palavras entre as palavras da keyword.
+
+PROIBIDO: clichês de IA ("é importante ressaltar", "vale destacar", "diante disso"), generalizações, keyword stuffing, conteúdo superficial.
+
+Lembre-se: PRIMEIRA LINHA = JSON puro. SEGUNDA LINHA = ===CONTENT===. RESTO = HTML.`;
+        break;
+      }
+
       default:
         return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
           status: 400,
