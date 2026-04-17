@@ -1,0 +1,18 @@
+-- Substitui hrefs quebrados no content dos artigos por slugs existentes (fuzzy match manual)
+UPDATE public.articles SET content = REPLACE(content, '/blog/tdah-o-que-e-sintomas-e-como-lidar-no-dia-a-dia', '/blog/o-que-e-tdah') WHERE content ILIKE '%/blog/tdah-o-que-e-sintomas-e-como-lidar-no-dia-a-dia%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/tea-transtorno-do-espectro-autista-sinais-diagnostico-e-apoio', '/blog/o-que-e-tea-transtorno-espectro-autista') WHERE content ILIKE '%/blog/tea-transtorno-do-espectro-autista-sinais-diagnostico-e-apoio%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/tdah-sintomas-infancia', '/blog/tdah-7-sintomas-que-passam-despercebidos-no-dia-a-dia') WHERE content ILIKE '%/blog/tdah-sintomas-infancia%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/tdah-em-adultos-sintomas', '/blog/tdah-7-sintomas-que-passam-despercebidos-no-dia-a-dia') WHERE content ILIKE '%/blog/tdah-em-adultos-sintomas%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/diagnostico-tardio-adultos', '/blog/diagnostico-de-tdah-em-mulheres-por-que-e-mais-dificil') WHERE content ILIKE '%/blog/diagnostico-tardio-adultos%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/estrategias-organizacao-tdah', '/blog/vida-cotidiana-10-life-hacks-que-vao-facilitar-sua-rotina') WHERE content ILIKE '%/blog/estrategias-organizacao-tdah%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/tdah-e-organizacao', '/blog/vida-cotidiana-10-life-hacks-que-vao-facilitar-sua-rotina') WHERE content ILIKE '%/blog/tdah-e-organizacao%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/guia-organizacao-tdah', '/blog/vida-cotidiana-10-life-hacks-que-vao-facilitar-sua-rotina') WHERE content ILIKE '%/blog/guia-organizacao-tdah%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/estrategias-foco-tdah', '/blog/vida-cotidiana-10-life-hacks-que-vao-facilitar-sua-rotina') WHERE content ILIKE '%/blog/estrategias-foco-tdah%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/neurobiologia-do-tdah', '/blog/tratamento-para-tdah-opcoes-alem-do-uso-de-medicacao') WHERE content ILIKE '%/blog/neurobiologia-do-tdah%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/tdah-e-aprendizagem', '/blog/dislexia-na-escola-6-estrategias-de-apoio-para-professores') WHERE content ILIKE '%/blog/tdah-e-aprendizagem%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/comunicacao-escola-familia-neurodivergencia', '/blog/dislexia-na-escola-6-estrategias-de-apoio-para-professores') WHERE content ILIKE '%/blog/comunicacao-escola-familia-neurodivergencia%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/neurodiversidade-no-trabalho', '/blog/masking-o-que-e-e-por-que-deixar-a-mascara-e-libertador') WHERE content ILIKE '%/blog/neurodiversidade-no-trabalho%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/autoaceitacao-neurodivergente', '/blog/masking-o-que-e-e-por-que-deixar-a-mascara-e-libertador') WHERE content ILIKE '%/blog/autoaceitacao-neurodivergente%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/rotina-para-neurodivergentes', '/blog/masking-o-que-e-e-por-que-deixar-a-mascara-e-libertador') WHERE content ILIKE '%/blog/rotina-para-neurodivergentes%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/neurodiversidade-e-saude-mental', '/blog/viver-com-toc-estrategias-para-melhorar-a-qualidade-de-vida') WHERE content ILIKE '%/blog/neurodiversidade-e-saude-mental%';
+UPDATE public.articles SET content = REPLACE(content, '/blog/tdah-e-tea-comorbidades', '/blog/o-que-e-tea-transtorno-espectro-autista') WHERE content ILIKE '%/blog/tdah-e-tea-comorbidades%';
