@@ -82,6 +82,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     secondaryKeywords: article?.tags?.filter((t) => t.includes(" ")).slice(0, 8) || [],
     searchIntent: "informacional",
     slugHint: "",
+    autoInsertLinks: true,
   });
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
