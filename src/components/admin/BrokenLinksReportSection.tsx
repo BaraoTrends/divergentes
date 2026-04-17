@@ -16,7 +16,18 @@ import {
   RefreshCw,
   Replace,
   Scissors,
+  Sparkles,
+  Wand2,
 } from "lucide-react";
+
+const FIX_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fix-broken-link`;
+
+interface AiSuggestion {
+  action: "replace" | "remove";
+  slug?: string;
+  confidence: number;
+  reason: string;
+}
 
 const SITE_URL = "https://neurorotina.com";
 
