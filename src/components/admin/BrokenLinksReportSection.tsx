@@ -416,10 +416,49 @@ const BrokenLinksReportSection = () => {
             Analisa o HTML de cada artigo publicado e identifica links que apontam para slugs ou rotas inexistentes.
           </p>
         </div>
-        <Button onClick={() => refetch()} size="sm" variant="outline" className="gap-2">
-          <RefreshCw className="h-3.5 w-3.5" /> Reanalisar
-        </Button>
+        <div className="flex items-center gap-2">
+          {totalBroken > 0 && (
+            <Button
+              onClick={handleFixAllWithAi}
+              size="sm"
+              variant="default"
+              disabled={batchRunning}
+              className="gap-2"
+            >
+              {batchRunning ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Zap className="h-3.5 w-3.5" />
+              )}
+              Corrigir todos com IA
+            </Button>
+          )}
+          <Button onClick={() => refetch()} size="sm" variant="outline" disabled={batchRunning} className="gap-2">
+            <RefreshCw className="h-3.5 w-3.5" /> Reanalisar
+          </Button>
+        </div>
       </div>
+
+      {batchProgress && (
+        <div className="border rounded-lg p-3 bg-primary/5 space-y-2">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-medium text-foreground inline-flex items-center gap-1.5">
+              <Loader2 className="h-3 w-3 animate-spin text-primary" />
+              Processando com IA: {batchProgress.current} / {batchProgress.total}
+            </span>
+            <span className="text-muted-foreground">
+              {Math.round((batchProgress.current / Math.max(batchProgress.total, 1)) * 100)}%
+            </span>
+          </div>
+          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-300"
+              style={{ width: `${(batchProgress.current / Math.max(batchProgress.total, 1)) * 100}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground truncate font-mono">{batchProgress.label}</p>
+        </div>
+      )}
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2">
