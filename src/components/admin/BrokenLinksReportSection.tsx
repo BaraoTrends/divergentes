@@ -3,6 +3,8 @@ import { useArticles, useUpdateArticle, type Article } from "@/hooks/useArticles
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertTriangle,
@@ -98,6 +100,18 @@ const BrokenLinksReportSection = () => {
   const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
   const [batchRunning, setBatchRunning] = useState(false);
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; label: string } | null>(null);
+  const [confidenceThreshold, setConfidenceThreshold] = useState<number>(() => {
+    if (typeof window === "undefined") return 0.75;
+    const stored = window.localStorage.getItem("brokenLinks:aiConfidenceThreshold");
+    const parsed = stored ? Number(stored) : NaN;
+    return Number.isFinite(parsed) && parsed >= 0.5 && parsed <= 0.95 ? parsed : 0.75;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("brokenLinks:aiConfidenceThreshold", String(confidenceThreshold));
+    }
+  }, [confidenceThreshold]);
 
   const publishedSlugCandidates = useMemo(
     () =>
@@ -249,7 +263,7 @@ const BrokenLinksReportSection = () => {
       const suggestion: AiSuggestion = await resp.json();
       setAiSuggestions((p) => ({ ...p, [sugKey]: suggestion }));
 
-      if (autoApply || suggestion.confidence >= 0.75) {
+      if (autoApply || suggestion.confidence >= confidenceThreshold) {
         if (suggestion.action === "replace" && suggestion.slug) {
           const newPath = `/${suggestion.slug.replace(/^\/+/, "")}`;
           const newAnchor = link.fullAnchor.replace(
@@ -319,7 +333,7 @@ const BrokenLinksReportSection = () => {
   const handleFixAllWithAi = async () => {
     if (batchRunning || !reports.length) return;
     const total = reports.reduce((s, r) => s + r.brokenLinks.length, 0);
-    if (!window.confirm(`Processar ${total} link(s) quebrado(s) com IA? Sugestões com confiança ≥75% serão aplicadas automaticamente; demais ficam para revisão manual.`)) {
+    if (!window.confirm(`Processar ${total} link(s) quebrado(s) com IA? Sugestões com confiança ≥${Math.round(confidenceThreshold * 100)}% serão aplicadas automaticamente; demais ficam para revisão manual.`)) {
       return;
     }
 
@@ -354,7 +368,7 @@ const BrokenLinksReportSection = () => {
           const sugKey = `${article.id}::${link.href}`;
           setAiSuggestions((p) => ({ ...p, [sugKey]: suggestion }));
 
-          if (suggestion.confidence >= 0.75) {
+          if (suggestion.confidence >= confidenceThreshold) {
             if (suggestion.action === "replace" && suggestion.slug) {
               const newPath = `/${suggestion.slug.replace(/^\/+/, "")}`;
               const newAnchor = link.fullAnchor.replace(
@@ -438,6 +452,32 @@ const BrokenLinksReportSection = () => {
           </Button>
         </div>
       </div>
+
+      {totalBroken > 0 && (
+        <div className="border rounded-lg p-3 bg-card flex items-center gap-4 flex-wrap">
+          <Label htmlFor="ai-confidence-threshold" className="text-[11px] font-medium text-foreground shrink-0">
+            Limiar de confiança para auto-aplicar
+          </Label>
+          <div className="flex items-center gap-3 flex-1 min-w-[200px]">
+            <Slider
+              id="ai-confidence-threshold"
+              min={50}
+              max={95}
+              step={5}
+              value={[Math.round(confidenceThreshold * 100)]}
+              onValueChange={(v) => setConfidenceThreshold((v[0] ?? 75) / 100)}
+              disabled={batchRunning}
+              className="flex-1"
+            />
+            <Badge variant="secondary" className="text-[11px] font-mono shrink-0 min-w-[44px] justify-center">
+              {Math.round(confidenceThreshold * 100)}%
+            </Badge>
+          </div>
+          <p className="text-[10px] text-muted-foreground basis-full">
+            Sugestões da IA com confiança ≥ este valor são aplicadas automaticamente; abaixo disso ficam como cartão de revisão manual.
+          </p>
+        </div>
+      )}
 
       {batchProgress && (
         <div className="border rounded-lg p-3 bg-primary/5 space-y-2">
