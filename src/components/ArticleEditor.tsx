@@ -1001,6 +1001,14 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               placeholder="Comece a escrever o conteúdo do artigo..."
               editorRef={editorInstanceRef}
             />
+
+            {/* AI Internal Links Suggester */}
+            <AiInternalLinksSuggester
+              content={content}
+              currentSlug={slug}
+              category={category}
+              onInsertLink={insertInternalLink}
+            />
           </div>
 
           <div className="flex items-center gap-6 p-4 bg-card border rounded-lg">
