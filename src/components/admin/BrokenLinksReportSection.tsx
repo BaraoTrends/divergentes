@@ -294,6 +294,111 @@ const BrokenLinksReportSection = () => {
     }
   };
 
+  const requestAiSuggestion = async (article: Article, link: BrokenLink): Promise<AiSuggestion | null> => {
+    try {
+      const resp = await fetch(FIX_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          brokenPath: link.normalizedPath,
+          anchorText: link.anchorText,
+          sourceTitle: article.title,
+          candidates: publishedSlugCandidates,
+        }),
+      });
+      if (!resp.ok) return null;
+      return (await resp.json()) as AiSuggestion;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleFixAllWithAi = async () => {
+    if (batchRunning || !reports.length) return;
+    const total = reports.reduce((s, r) => s + r.brokenLinks.length, 0);
+    if (!window.confirm(`Processar ${total} link(s) quebrado(s) com IA? Sugestões com confiança ≥75% serão aplicadas automaticamente; demais ficam para revisão manual.`)) {
+      return;
+    }
+
+    setBatchRunning(true);
+    setBatchProgress({ current: 0, total, label: "Iniciando..." });
+
+    let processed = 0;
+    let appliedCount = 0;
+    let lowConfCount = 0;
+    let errorCount = 0;
+
+    try {
+      for (const { article, brokenLinks } of reports) {
+        let workingContent = article.content;
+        let mutated = false;
+
+        for (const link of brokenLinks) {
+          processed += 1;
+          setBatchProgress({
+            current: processed,
+            total,
+            label: `${article.title.slice(0, 60)} — "${link.anchorText.slice(0, 30)}"`,
+          });
+
+          const suggestion = await requestAiSuggestion(article, link);
+          if (!suggestion) {
+            errorCount += 1;
+            await new Promise((r) => setTimeout(r, 1200));
+            continue;
+          }
+
+          const sugKey = `${article.id}::${link.href}`;
+          setAiSuggestions((p) => ({ ...p, [sugKey]: suggestion }));
+
+          if (suggestion.confidence >= 0.75) {
+            if (suggestion.action === "replace" && suggestion.slug) {
+              const newPath = `/${suggestion.slug.replace(/^\/+/, "")}`;
+              const newAnchor = link.fullAnchor.replace(
+                /(href\s*=\s*")([^"]+)(")/i,
+                (_, p1, _old, p3) => `${p1}${newPath}${p3}`
+              );
+              workingContent = workingContent.split(link.fullAnchor).join(newAnchor);
+            } else {
+              workingContent = workingContent.split(link.fullAnchor).join(link.anchorText);
+            }
+            mutated = true;
+            appliedCount += 1;
+          } else {
+            lowConfCount += 1;
+          }
+
+          await new Promise((r) => setTimeout(r, 1200));
+        }
+
+        if (mutated) {
+          try {
+            await new Promise<void>((resolve, reject) => {
+              updateArticle.mutate(
+                { id: article.id, content: workingContent },
+                { onSuccess: () => resolve(), onError: (e) => reject(e) }
+              );
+            });
+          } catch {
+            errorCount += 1;
+          }
+        }
+      }
+
+      toast({
+        title: "Correção em lote concluída",
+        description: `${appliedCount} aplicados • ${lowConfCount} para revisão • ${errorCount} erros`,
+      });
+      refetch();
+    } finally {
+      setBatchRunning(false);
+      setBatchProgress(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
