@@ -49,6 +49,10 @@ function buildHtml(opts: {
     .map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`)
     .join("\n");
 
+  const keywordsMeta = opts.keywords && opts.keywords.length > 0
+    ? `<meta name="keywords" content="${escapeHtml(opts.keywords.join(", "))}" />`
+    : "";
+
   const articleMeta = opts.article
     ? `<meta property="article:published_time" content="${opts.article.datePublished}" />
        <meta property="article:modified_time" content="${opts.article.dateModified}" />
