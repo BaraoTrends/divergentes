@@ -555,6 +555,36 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
           {/* SEO Briefing — define keyword principal, secundárias e intenção ANTES de gerar */}
           <SeoBriefingPanel value={briefing} onChange={setBriefing} defaultExpanded={!article} />
 
+          {/* Geração unificada: 1 botão → título + slug + meta + focus_keyword + conteúdo */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5">
+            <div className="text-sm">
+              <p className="font-medium text-foreground flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-primary" /> Geração unificada
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                A IA devolve título H1, slug, meta description e o conteúdo HTML em uma única chamada — usando o briefing acima.
+              </p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              disabled={isGeneratingFull}
+              onClick={handleGenerateFullArticle}
+              className="gap-1.5 shrink-0"
+            >
+              {isGeneratingFull ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Gerando...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="h-4 w-4" />
+                  Gerar artigo completo
+                </>
+              )}
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
