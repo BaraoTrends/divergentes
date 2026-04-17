@@ -80,7 +80,7 @@ const SocialPublishLogsTab = () => {
         </div>
         <div className="bg-card border rounded-lg p-4">
           <p className="text-xs text-muted-foreground uppercase">Sucesso</p>
-          <p className="text-2xl font-bold text-green-600">{successCount}</p>
+          <p className="text-2xl font-bold text-primary">{successCount}</p>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <p className="text-xs text-muted-foreground uppercase">Falhas</p>
@@ -132,7 +132,7 @@ const SocialPublishLogsTab = () => {
               <TableRow key={log.id}>
                 <TableCell>
                   {log.status === "success" ? (
-                    <Badge variant="outline" className="border-green-600 text-green-700">
+                    <Badge variant="outline" className="border-primary text-primary">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Sucesso
                     </Badge>
