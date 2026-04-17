@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { categories } from "@/lib/content";
 import RichTextEditor from "@/components/RichTextEditor";
+import Base64ImageWarning from "@/components/Base64ImageWarning";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Save, Eye, Upload, X, ImageIcon, Sparkles, Loader2, Wand2, FileText, Send, Lightbulb, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -917,6 +918,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
                 }
               }}
             />
+
+            <Base64ImageWarning content={content} onContentChange={setContent} />
 
             <RichTextEditor
               content={content}
