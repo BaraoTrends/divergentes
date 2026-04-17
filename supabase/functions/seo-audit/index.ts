@@ -248,6 +248,11 @@ serve(async (req) => {
 
     const allRoutes = [...staticRoutes, ...articleRoutes];
 
+    // Conjunto de paths válidos (para checagem de links internos quebrados)
+    const validPaths = new Set<string>(allRoutes.map((r) => r.path.replace(/\/$/, "") || "/"));
+    // Paths estáticos extras conhecidos do site (rodapé, legal etc.)
+    ["/politica-de-privacidade", "/termos-de-uso", "/admin", "/admin/login"].forEach((p) => validPaths.add(p));
+
     // Fetch prerendered HTML for each route
     const prerenderUrl = `${supabaseUrl}/functions/v1/prerender`;
     const results: RouteAudit[] = [];
@@ -269,7 +274,7 @@ serve(async (req) => {
         }
 
         const html = await res.text();
-        const checks = auditHtml(html, route.path);
+        const checks = auditHtml(html, route.path, validPaths);
         const fails = checks.filter((c) => c.status === "fail").length;
         const warns = checks.filter((c) => c.status === "warn").length;
 
