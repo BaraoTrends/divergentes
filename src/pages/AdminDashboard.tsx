@@ -32,6 +32,7 @@ import ConfiguracoesTab from "@/components/admin/ConfiguracoesTab";
 import AnunciosTab from "@/components/admin/AnunciosTab";
 import SeoTab from "@/components/admin/SeoTab";
 import MetricasTab from "@/components/admin/MetricasTab";
+import SocialPublishLogsTab from "@/components/admin/SocialPublishLogsTab";
 import {
   LayoutDashboard,
   FileText,
@@ -48,9 +49,10 @@ import {
   Wrench,
   SearchIcon,
   TrendingUp,
+  Share2,
 } from "lucide-react";
 
-type Tab = "dashboard" | "artigos" | "metricas" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "perfil";
+type Tab = "dashboard" | "artigos" | "metricas" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "social" | "perfil";
 type EditorMode = null | "create" | "edit";
 
 const AdminDashboard = () => {
@@ -85,6 +87,7 @@ const AdminDashboard = () => {
     { id: "configuracoes" as Tab, label: "Configurações", icon: Wrench },
     { id: "seo" as Tab, label: "SEO", icon: SearchIcon },
     { id: "anuncios" as Tab, label: "Anúncios", icon: Megaphone },
+    { id: "social" as Tab, label: "Autopublicação", icon: Share2 },
     { id: "perfil" as Tab, label: "Perfil", icon: Settings },
   ];
 
@@ -148,6 +151,7 @@ const AdminDashboard = () => {
             {activeTab === "configuracoes" && <ConfiguracoesTab />}
             {activeTab === "seo" && <SeoTab />}
             {activeTab === "anuncios" && <AnunciosTab />}
+            {activeTab === "social" && <SocialPublishLogsTab />}
             {activeTab === "perfil" && <PerfilTab />}
           </main>
         </div>
