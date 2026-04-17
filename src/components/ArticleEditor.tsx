@@ -494,6 +494,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
         </div>
       ) : (
         <div className="space-y-4">
+          {/* SEO Briefing — define keyword principal, secundárias e intenção ANTES de gerar */}
+          <SeoBriefingPanel value={briefing} onChange={setBriefing} defaultExpanded={!article} />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
