@@ -240,9 +240,25 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
 
   useEffect(() => {
     if (!article) {
-      setSlug(generateSlug(title));
+      // If user provided a slugHint in briefing, prefer it; otherwise auto from title
+      const next = briefing.slugHint.trim() ? generateSlug(briefing.slugHint) : generateSlug(title);
+      setSlug(next);
     }
-  }, [title, article]);
+  }, [title, article, briefing.slugHint]);
+
+  // Keep briefing.focusKeyword and main focusKeyword in sync (briefing is source of truth when filled)
+  useEffect(() => {
+    if (briefing.focusKeyword.trim() && briefing.focusKeyword !== focusKeyword) {
+      setFocusKeyword(briefing.focusKeyword);
+    }
+  }, [briefing.focusKeyword]);
+
+  // Auto-add briefing secondary keywords as tags
+  useEffect(() => {
+    if (briefing.secondaryKeywords.length > 0) {
+      setTags((prev) => [...new Set([...prev, ...briefing.secondaryKeywords])]);
+    }
+  }, [briefing.secondaryKeywords]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
