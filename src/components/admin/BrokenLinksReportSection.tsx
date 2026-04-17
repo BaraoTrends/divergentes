@@ -18,6 +18,7 @@ import {
   Scissors,
   Sparkles,
   Wand2,
+  Zap,
 } from "lucide-react";
 
 const FIX_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fix-broken-link`;
@@ -95,6 +96,8 @@ const BrokenLinksReportSection = () => {
   const [replaceInputs, setReplaceInputs] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; label: string } | null>(null);
 
   const publishedSlugCandidates = useMemo(
     () =>
@@ -291,6 +294,111 @@ const BrokenLinksReportSection = () => {
     }
   };
 
+  const requestAiSuggestion = async (article: Article, link: BrokenLink): Promise<AiSuggestion | null> => {
+    try {
+      const resp = await fetch(FIX_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          brokenPath: link.normalizedPath,
+          anchorText: link.anchorText,
+          sourceTitle: article.title,
+          candidates: publishedSlugCandidates,
+        }),
+      });
+      if (!resp.ok) return null;
+      return (await resp.json()) as AiSuggestion;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleFixAllWithAi = async () => {
+    if (batchRunning || !reports.length) return;
+    const total = reports.reduce((s, r) => s + r.brokenLinks.length, 0);
+    if (!window.confirm(`Processar ${total} link(s) quebrado(s) com IA? Sugestões com confiança ≥75% serão aplicadas automaticamente; demais ficam para revisão manual.`)) {
+      return;
+    }
+
+    setBatchRunning(true);
+    setBatchProgress({ current: 0, total, label: "Iniciando..." });
+
+    let processed = 0;
+    let appliedCount = 0;
+    let lowConfCount = 0;
+    let errorCount = 0;
+
+    try {
+      for (const { article, brokenLinks } of reports) {
+        let workingContent = article.content;
+        let mutated = false;
+
+        for (const link of brokenLinks) {
+          processed += 1;
+          setBatchProgress({
+            current: processed,
+            total,
+            label: `${article.title.slice(0, 60)} — "${link.anchorText.slice(0, 30)}"`,
+          });
+
+          const suggestion = await requestAiSuggestion(article, link);
+          if (!suggestion) {
+            errorCount += 1;
+            await new Promise((r) => setTimeout(r, 1200));
+            continue;
+          }
+
+          const sugKey = `${article.id}::${link.href}`;
+          setAiSuggestions((p) => ({ ...p, [sugKey]: suggestion }));
+
+          if (suggestion.confidence >= 0.75) {
+            if (suggestion.action === "replace" && suggestion.slug) {
+              const newPath = `/${suggestion.slug.replace(/^\/+/, "")}`;
+              const newAnchor = link.fullAnchor.replace(
+                /(href\s*=\s*")([^"]+)(")/i,
+                (_, p1, _old, p3) => `${p1}${newPath}${p3}`
+              );
+              workingContent = workingContent.split(link.fullAnchor).join(newAnchor);
+            } else {
+              workingContent = workingContent.split(link.fullAnchor).join(link.anchorText);
+            }
+            mutated = true;
+            appliedCount += 1;
+          } else {
+            lowConfCount += 1;
+          }
+
+          await new Promise((r) => setTimeout(r, 1200));
+        }
+
+        if (mutated) {
+          try {
+            await new Promise<void>((resolve, reject) => {
+              updateArticle.mutate(
+                { id: article.id, content: workingContent },
+                { onSuccess: () => resolve(), onError: (e) => reject(e) }
+              );
+            });
+          } catch {
+            errorCount += 1;
+          }
+        }
+      }
+
+      toast({
+        title: "Correção em lote concluída",
+        description: `${appliedCount} aplicados • ${lowConfCount} para revisão • ${errorCount} erros`,
+      });
+      refetch();
+    } finally {
+      setBatchRunning(false);
+      setBatchProgress(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -308,10 +416,49 @@ const BrokenLinksReportSection = () => {
             Analisa o HTML de cada artigo publicado e identifica links que apontam para slugs ou rotas inexistentes.
           </p>
         </div>
-        <Button onClick={() => refetch()} size="sm" variant="outline" className="gap-2">
-          <RefreshCw className="h-3.5 w-3.5" /> Reanalisar
-        </Button>
+        <div className="flex items-center gap-2">
+          {totalBroken > 0 && (
+            <Button
+              onClick={handleFixAllWithAi}
+              size="sm"
+              variant="default"
+              disabled={batchRunning}
+              className="gap-2"
+            >
+              {batchRunning ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Zap className="h-3.5 w-3.5" />
+              )}
+              Corrigir todos com IA
+            </Button>
+          )}
+          <Button onClick={() => refetch()} size="sm" variant="outline" disabled={batchRunning} className="gap-2">
+            <RefreshCw className="h-3.5 w-3.5" /> Reanalisar
+          </Button>
+        </div>
       </div>
+
+      {batchProgress && (
+        <div className="border rounded-lg p-3 bg-primary/5 space-y-2">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-medium text-foreground inline-flex items-center gap-1.5">
+              <Loader2 className="h-3 w-3 animate-spin text-primary" />
+              Processando com IA: {batchProgress.current} / {batchProgress.total}
+            </span>
+            <span className="text-muted-foreground">
+              {Math.round((batchProgress.current / Math.max(batchProgress.total, 1)) * 100)}%
+            </span>
+          </div>
+          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-300"
+              style={{ width: `${(batchProgress.current / Math.max(batchProgress.total, 1)) * 100}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground truncate font-mono">{batchProgress.label}</p>
+        </div>
+      )}
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2">
