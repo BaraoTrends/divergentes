@@ -224,6 +224,8 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       category,
     });
   };
+
+  const handleSuggestTopics = async () => {
     const cat = categories.find(c => c.slug === category);
     const catName = cat?.name || category;
 
