@@ -77,6 +77,12 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [tags, setTags] = useState<string[]>(article?.tags || []);
   const [tagInput, setTagInput] = useState("");
   const [focusKeyword, setFocusKeyword] = useState(article?.focus_keyword || "");
+  const [briefing, setBriefing] = useState<SeoBriefing>({
+    focusKeyword: article?.focus_keyword || "",
+    secondaryKeywords: article?.tags?.filter((t) => t.includes(" ")).slice(0, 8) || [],
+    searchIntent: "informacional",
+    slugHint: "",
+  });
   const [previewMode, setPreviewMode] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverPrompt, setCoverPrompt] = useState("");
