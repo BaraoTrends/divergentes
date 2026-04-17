@@ -16,7 +16,18 @@ import {
   RefreshCw,
   Replace,
   Scissors,
+  Sparkles,
+  Wand2,
 } from "lucide-react";
+
+const FIX_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fix-broken-link`;
+
+interface AiSuggestion {
+  action: "replace" | "remove";
+  slug?: string;
+  confidence: number;
+  reason: string;
+}
 
 const SITE_URL = "https://neurorotina.com";
 
@@ -83,6 +94,20 @@ const BrokenLinksReportSection = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [replaceInputs, setReplaceInputs] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
+
+  const publishedSlugCandidates = useMemo(
+    () =>
+      articles
+        .filter((a) => a.published)
+        .map((a) => ({
+          slug: `blog/${a.slug}`,
+          title: a.title,
+          category: a.category,
+          excerpt: a.excerpt || undefined,
+        })),
+    [articles]
+  );
 
   const validPaths = useMemo(() => {
     const set = new Set<string>(STATIC_PATHS);
@@ -189,6 +214,81 @@ const BrokenLinksReportSection = () => {
     window.dispatchEvent(
       new CustomEvent("admin:open-article-editor", { detail: { articleId: article.id } })
     );
+  };
+
+  const handleAiFix = async (article: Article, link: BrokenLink, autoApply = false) => {
+    const key = `${article.id}::${link.href}::ai`;
+    const sugKey = `${article.id}::${link.href}`;
+    setBusyKey(key);
+    try {
+      const resp = await fetch(FIX_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          brokenPath: link.normalizedPath,
+          anchorText: link.anchorText,
+          sourceTitle: article.title,
+          candidates: publishedSlugCandidates,
+        }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        toast({
+          title: resp.status === 402 ? "Créditos esgotados" : resp.status === 429 ? "Limite excedido" : "Erro na IA",
+          description: err.error || `HTTP ${resp.status}`,
+          variant: "destructive",
+        });
+        return;
+      }
+      const suggestion: AiSuggestion = await resp.json();
+      setAiSuggestions((p) => ({ ...p, [sugKey]: suggestion }));
+
+      if (autoApply || suggestion.confidence >= 0.75) {
+        if (suggestion.action === "replace" && suggestion.slug) {
+          const newPath = `/${suggestion.slug.replace(/^\/+/, "")}`;
+          const newAnchor = link.fullAnchor.replace(
+            /(href\s*=\s*")([^"]+)(")/i,
+            (_, p1, _old, p3) => `${p1}${newPath}${p3}`
+          );
+          const newContent = article.content.split(link.fullAnchor).join(newAnchor);
+          await updateContent(article, newContent, `IA: link substituído por ${newPath}`, key);
+        } else {
+          const newContent = article.content.split(link.fullAnchor).join(link.anchorText);
+          await updateContent(article, newContent, "IA: link removido (texto preservado)", key);
+        }
+      } else {
+        toast({
+          title: "Sugestão pronta — confiança baixa",
+          description: `${suggestion.action === "replace" ? `Trocar por /${suggestion.slug}` : "Remover link"} (${Math.round(suggestion.confidence * 100)}%) — revise antes de aplicar.`,
+        });
+      }
+    } catch (e: any) {
+      toast({ title: "Erro ao consultar IA", description: e?.message, variant: "destructive" });
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const applySuggestion = (article: Article, link: BrokenLink) => {
+    const sugKey = `${article.id}::${link.href}`;
+    const s = aiSuggestions[sugKey];
+    if (!s) return;
+    const key = `${article.id}::${link.href}::apply`;
+    if (s.action === "replace" && s.slug) {
+      const newPath = `/${s.slug.replace(/^\/+/, "")}`;
+      const newAnchor = link.fullAnchor.replace(
+        /(href\s*=\s*")([^"]+)(")/i,
+        (_, p1, _old, p3) => `${p1}${newPath}${p3}`
+      );
+      const newContent = article.content.split(link.fullAnchor).join(newAnchor);
+      updateContent(article, newContent, `IA: link substituído por ${newPath}`, key);
+    } else {
+      const newContent = article.content.split(link.fullAnchor).join(link.anchorText);
+      updateContent(article, newContent, "IA: link removido", key);
+    }
   };
 
   if (isLoading) {
@@ -309,6 +409,9 @@ const BrokenLinksReportSection = () => {
                           const inputKey = `${article.id}::${link.href}`;
                           const removeKey = `${article.id}::${link.href}::remove`;
                           const replaceKey = `${article.id}::${link.href}::replace`;
+                          const aiKey = `${article.id}::${link.href}::ai`;
+                          const applyKey = `${article.id}::${link.href}::apply`;
+                          const suggestion = aiSuggestions[inputKey];
                           return (
                             <li key={`${link.href}-${idx}`} className="px-3 py-2.5 space-y-2">
                               <div className="flex items-start gap-2">
@@ -322,7 +425,58 @@ const BrokenLinksReportSection = () => {
                                   </p>
                                 </div>
                               </div>
+
+                              {suggestion && (
+                                <div className="ml-5 p-2 rounded-md border border-primary/30 bg-primary/5 space-y-1.5">
+                                  <div className="flex items-start gap-1.5">
+                                    <Sparkles className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                                    <div className="flex-1 text-[11px]">
+                                      <p className="text-foreground">
+                                        <span className="font-semibold">IA sugere:</span>{" "}
+                                        {suggestion.action === "replace" ? (
+                                          <>trocar por <span className="font-mono text-primary">/{suggestion.slug}</span></>
+                                        ) : (
+                                          <>remover o link</>
+                                        )}{" "}
+                                        <span className="text-muted-foreground">({Math.round(suggestion.confidence * 100)}%)</span>
+                                      </p>
+                                      <p className="text-muted-foreground italic">{suggestion.reason}</p>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="default"
+                                      disabled={busyKey === applyKey}
+                                      onClick={() => applySuggestion(article, link)}
+                                      className="h-6 text-[10px] px-2 gap-1 shrink-0"
+                                    >
+                                      {busyKey === applyKey ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <CheckCircle2 className="h-3 w-3" />
+                                      )}
+                                      Aplicar
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+
                               <div className="flex flex-wrap items-center gap-2 pl-5">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="default"
+                                  disabled={busyKey === aiKey}
+                                  onClick={() => handleAiFix(article, link)}
+                                  className="h-7 text-[11px] gap-1"
+                                >
+                                  {busyKey === aiKey ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Wand2 className="h-3 w-3" />
+                                  )}
+                                  Corrigir com IA
+                                </Button>
                                 <Button
                                   type="button"
                                   size="sm"
@@ -336,7 +490,7 @@ const BrokenLinksReportSection = () => {
                                   ) : (
                                     <Scissors className="h-3 w-3" />
                                   )}
-                                  Remover link
+                                  Remover
                                 </Button>
                                 <div className="flex items-center gap-1 flex-1 min-w-[200px]">
                                   <Input
