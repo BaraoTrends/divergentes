@@ -11,6 +11,7 @@ export interface SeoBriefing {
   secondaryKeywords: string[];
   searchIntent: string;
   slugHint: string;
+  autoInsertLinks: boolean;
 }
 
 interface SeoBriefingPanelProps {
