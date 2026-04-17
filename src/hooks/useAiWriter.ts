@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-writer`;
 
-type AiAction = "generate_article" | "generate_excerpt" | "improve_text" | "expand_text" | "generate_title" | "suggest_keywords" | "generate_focus_keyword";
+type AiAction = "generate_article" | "generate_excerpt" | "improve_text" | "expand_text" | "generate_title" | "suggest_keywords" | "generate_focus_keyword" | "suggest_internal_links";
 
 interface UseAiWriterOptions {
   onStream?: (text: string) => void;
@@ -15,7 +15,19 @@ export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
   const { toast } = useToast();
 
   const generate = useCallback(
-    async (action: AiAction, params: { topic?: string; content?: string; model?: string; focusKeyword?: string }) => {
+    async (
+      action: AiAction,
+      params: {
+        topic?: string;
+        content?: string;
+        model?: string;
+        focusKeyword?: string;
+        secondaryKeywords?: string[];
+        searchIntent?: string;
+        slugHint?: string;
+        availableSlugs?: { slug: string; title: string }[];
+      },
+    ) => {
       setIsGenerating(true);
       let fullText = "";
 
