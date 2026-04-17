@@ -244,24 +244,95 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
         .slice(0, 3);
       if (picks.length === 0) return;
 
-      // Build "Leia também" block and append to content
       const escape = (s: string) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      const items = picks
-        .map(
-          (p: any) =>
-            `<li><a href="/blog/${escape(p.slug)}">${escape(p.anchor)}</a></li>`,
-        )
-        .join("");
-      const block = `\n<h3>Leia também</h3>\n<ul>${items}</ul>\n`;
+      const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      // Try to insert each pick INLINE inside a <p>...</p> by replacing the first
+      // exact (case-insensitive) occurrence of the anchor text that is NOT already
+      // inside a tag or an existing <a>. Cap inline insertions at 2.
+      const tryInlineInsert = (sourceHtml: string, anchor: string, slugVal: string): string | null => {
+        const safeAnchor = escapeRegex(anchor.trim());
+        if (!safeAnchor) return null;
+        // Match anchor inside a <p>…</p>, but skip if anchor is inside an <a>...</a>.
+        // Strategy: walk paragraphs, find first one containing the anchor (case-insensitive)
+        // outside any existing <a> tag, and replace just that occurrence.
+        const paraRegex = /<p\b[^>]*>([\s\S]*?)<\/p>/gi;
+        let result = sourceHtml;
+        let replaced = false;
+        result = result.replace(paraRegex, (full, inner: string) => {
+          if (replaced) return full;
+          // Skip if this paragraph already contains a link to the same slug
+          if (inner.includes(`href="/blog/${slugVal}"`)) return full;
+          // Strip existing <a>...</a> blocks to know "free text" zones
+          // Simpler: find anchor outside <a> tags using a tokenized approach
+          // Build regex with case-insensitive, word-ish boundaries (\b doesn't work well in PT, use lookarounds)
+          const re = new RegExp(
+            `(^|[^a-zA-Z0-9À-ÿ>])(${safeAnchor})(?=[^a-zA-Z0-9À-ÿ<]|$)`,
+            "i",
+          );
+          // Skip if match is inside an <a> tag — quick heuristic: check that the
+          // substring before the match in this <p> doesn't have an unclosed <a.
+          const m = inner.match(re);
+          if (!m || m.index === undefined) return full;
+          const matchStart = m.index + m[1].length;
+          const before = inner.slice(0, matchStart);
+          const openA = (before.match(/<a\b/gi) || []).length;
+          const closeA = (before.match(/<\/a>/gi) || []).length;
+          if (openA > closeA) return full; // inside an existing <a>
+          const matched = m[2];
+          const newInner =
+            before +
+            `<a href="/blog/${escape(slugVal)}">${escape(matched)}</a>` +
+            inner.slice(matchStart + matched.length);
+          replaced = true;
+          return full.replace(inner, newInner);
+        });
+        return replaced ? result : null;
+      };
+
+      let working = "";
+      // Defer reading prev content until inside setContent for atomicity
+      let inlineInserted = 0;
+      const remaining: { slug: string; anchor: string }[] = [];
 
       setContent((prev) => {
-        // Avoid duplicating if user re-runs
-        if (prev.includes("<h3>Leia também</h3>")) return prev;
-        return prev + block;
+        working = prev;
+        // Skip if we already injected once
+        if (working.includes("<h3>Leia também</h3>")) return working;
+
+        for (const p of picks) {
+          if (inlineInserted < 2) {
+            const next = tryInlineInsert(working, p.anchor, p.slug);
+            if (next) {
+              working = next;
+              inlineInserted++;
+              continue;
+            }
+          }
+          remaining.push({ slug: p.slug, anchor: p.anchor });
+        }
+
+        // Append remaining as "Leia também" so all 3 picks are used
+        if (remaining.length > 0) {
+          const items = remaining
+            .map(
+              (p) =>
+                `<li><a href="/blog/${escape(p.slug)}">${escape(p.anchor)}</a></li>`,
+            )
+            .join("");
+          working += `\n<h3>Leia também</h3>\n<ul>${items}</ul>\n`;
+        }
+
+        return working;
       });
+
+      const totalInserted = inlineInserted + remaining.length;
       toast({
         title: "Links internos inseridos",
-        description: `${picks.length} sugestões adicionadas ao final do artigo.`,
+        description:
+          inlineInserted > 0
+            ? `${inlineInserted} inline + ${remaining.length} em "Leia também" (${totalInserted} total).`
+            : `${totalInserted} sugestões adicionadas em "Leia também".`,
       });
     } catch (e) {
       console.warn("[autoInsertInternalLinks] falhou:", e);
