@@ -98,6 +98,18 @@ const BrokenLinksReportSection = () => {
   const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
   const [batchRunning, setBatchRunning] = useState(false);
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; label: string } | null>(null);
+  const [confidenceThreshold, setConfidenceThreshold] = useState<number>(() => {
+    if (typeof window === "undefined") return 0.75;
+    const stored = window.localStorage.getItem("brokenLinks:aiConfidenceThreshold");
+    const parsed = stored ? Number(stored) : NaN;
+    return Number.isFinite(parsed) && parsed >= 0.5 && parsed <= 0.95 ? parsed : 0.75;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("brokenLinks:aiConfidenceThreshold", String(confidenceThreshold));
+    }
+  }, [confidenceThreshold]);
 
   const publishedSlugCandidates = useMemo(
     () =>
