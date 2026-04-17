@@ -426,7 +426,12 @@ const BrokenLinksReportSection = () => {
                                 </div>
                               </div>
 
-                              {suggestion && (
+                              {suggestion && (() => {
+                                const suggestedTitle =
+                                  suggestion.action === "replace" && suggestion.slug
+                                    ? publishedSlugCandidates.find((c) => c.slug === suggestion.slug)?.title
+                                    : null;
+                                return (
                                 <div className="ml-5 p-2 rounded-md border border-primary/30 bg-primary/5 space-y-1.5">
                                   <div className="flex items-start gap-1.5">
                                     <Sparkles className="h-3 w-3 text-primary mt-0.5 shrink-0" />
@@ -440,6 +445,12 @@ const BrokenLinksReportSection = () => {
                                         )}{" "}
                                         <span className="text-muted-foreground">({Math.round(suggestion.confidence * 100)}%)</span>
                                       </p>
+                                      {suggestedTitle && (
+                                        <p className="text-foreground mt-0.5">
+                                          <span className="text-muted-foreground">Destino:</span>{" "}
+                                          <span className="font-medium">"{suggestedTitle}"</span>
+                                        </p>
+                                      )}
                                       <p className="text-muted-foreground italic">{suggestion.reason}</p>
                                     </div>
                                     <Button
