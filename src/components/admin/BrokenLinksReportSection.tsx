@@ -333,7 +333,7 @@ const BrokenLinksReportSection = () => {
   const handleFixAllWithAi = async () => {
     if (batchRunning || !reports.length) return;
     const total = reports.reduce((s, r) => s + r.brokenLinks.length, 0);
-    if (!window.confirm(`Processar ${total} link(s) quebrado(s) com IA? Sugestões com confiança ≥75% serão aplicadas automaticamente; demais ficam para revisão manual.`)) {
+    if (!window.confirm(`Processar ${total} link(s) quebrado(s) com IA? Sugestões com confiança ≥${Math.round(confidenceThreshold * 100)}% serão aplicadas automaticamente; demais ficam para revisão manual.`)) {
       return;
     }
 
