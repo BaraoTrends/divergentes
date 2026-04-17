@@ -3,11 +3,20 @@ import { useToast } from "@/hooks/use-toast";
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-writer`;
 
-type AiAction = "generate_article" | "generate_excerpt" | "improve_text" | "expand_text" | "generate_title" | "suggest_keywords" | "generate_focus_keyword" | "suggest_internal_links";
+type AiAction = "generate_article" | "generate_full_article" | "generate_excerpt" | "improve_text" | "expand_text" | "generate_title" | "suggest_keywords" | "generate_focus_keyword" | "suggest_internal_links";
+
+export interface FullArticleMeta {
+  title: string;
+  slug: string;
+  excerpt: string;
+  focus_keyword: string;
+}
 
 interface UseAiWriterOptions {
   onStream?: (text: string) => void;
   onComplete?: (text: string) => void;
+  /** Fired once when generate_full_article emits its metadata JSON header */
+  onMeta?: (meta: FullArticleMeta) => void;
 }
 
 export function useAiWriter({ onStream, onComplete }: UseAiWriterOptions = {}) {
