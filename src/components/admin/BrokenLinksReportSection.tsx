@@ -96,6 +96,8 @@ const BrokenLinksReportSection = () => {
   const [replaceInputs, setReplaceInputs] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; label: string } | null>(null);
 
   const publishedSlugCandidates = useMemo(
     () =>
