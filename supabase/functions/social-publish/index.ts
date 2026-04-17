@@ -49,30 +49,44 @@ function toHashtag(term: string): string {
   );
 }
 
-/** Monta string "#categoria #tag1 #tag2" — categoria sempre primeiro, sem duplicar */
-function buildHashtagString(category: string | null | undefined, tags: string[] | null | undefined): string {
+/** Monta string "#categoria #tag1 #tag2" — categoria sempre primeiro, sem duplicar. limit=0 → sem limite */
+function buildHashtagString(
+  category: string | null | undefined,
+  tags: string[] | null | undefined,
+  limit: number,
+): string {
   const parts: string[] = [];
   const seen = new Set<string>();
 
-  if (category && category.trim().length > 0) {
-    const h = toHashtag(category);
-    if (h.length > 1 && !seen.has(h)) {
-      parts.push(h);
-      seen.add(h);
-    }
-  }
+  const push = (raw: string | null | undefined) => {
+    if (!raw || raw.trim().length === 0) return;
+    const h = toHashtag(raw);
+    if (h.length <= 1 || seen.has(h)) return;
+    if (limit > 0 && parts.length >= limit) return;
+    parts.push(h);
+    seen.add(h);
+  };
 
-  if (tags && tags.length > 0) {
-    for (const t of tags) {
-      const h = toHashtag(t);
-      if (h.length > 1 && !seen.has(h)) {
-        parts.push(h);
-        seen.add(h);
-      }
-    }
-  }
+  push(category);
+  if (tags) for (const t of tags) push(t);
 
   return parts.join(" ");
+}
+
+/** Lê o limite de hashtags do site_settings. Default: 5. 0 = sem limite. */
+async function getHashtagLimit(): Promise<number> {
+  try {
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+    const { data } = await admin
+      .from("site_settings")
+      .select("value")
+      .eq("key", "social_hashtag_limit")
+      .maybeSingle();
+    const n = parseInt(data?.value ?? "5", 10);
+    return Number.isFinite(n) && n >= 0 ? n : 5;
+  } catch {
+    return 5;
+  }
 }
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
