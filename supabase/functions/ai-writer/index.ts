@@ -121,29 +121,48 @@ ATENÇÃO CRÍTICA: use a frase COMPLETA e EXATA "${focusKeyword}" — NUNCA sep
 ERRO COMUM A EVITAR: NÃO escreva variações como "método multissensorial para dislexia" quando a keyword é "método multissensorial dislexia". Use a frase EXATA.`
           : "";
 
-        userPrompt = `Escreva um artigo completo e aprofundado sobre: "${topic}".${kwInstruction}
+        const secondaryBlock = secondaryKwList.length
+          ? `\n\nPALAVRAS-CHAVE SECUNDÁRIAS (cauda longa) — distribua naturalmente ao longo do texto, cada uma deve aparecer pelo menos 1-2 vezes:\n${secondaryKwList.map((k) => `- ${k}`).join("\n")}\n\nUse-as preferencialmente em subtítulos H3, primeiras frases de seções e em listas. NÃO force — deve soar natural.`
+          : "";
 
-REGRA CRÍTICA DE TAMANHO: O artigo DEVE ter NO MÍNIMO 400 palavras (ou 3000 caracteres). Artigos abaixo desse limite são inaceitáveis. O ideal é entre 1500-2500 palavras.
+        const intentBlock = intent
+          ? `\n\nINTENÇÃO DE BUSCA do leitor: ${intent}\nEstruture o artigo para responder COMPLETAMENTE essa intenção logo nas primeiras seções (não deixe a resposta para o final). O leitor deve sentir que encontrou exatamente o que procurava.`
+          : "";
 
-O artigo deve incluir:
-- Uma introdução envolvente que prenda o leitor e inclua a palavra-chave principal
-- 4-6 seções com subtítulos H2 formulados como perguntas de busca ou frases que pessoas realmente pesquisam
-- Sub-seções H3 quando apropriado para aprofundar pontos
-- Listas práticas (ul/ol) em pelo menos 2 seções
-- Pelo menos uma citação em blockquote (de especialista, estudo ou reflexão)
-- Exemplos práticos e situações do cotidiano que o leitor se identifique
-- Uma conclusão com orientação prática e chamada sutil à ação
-- Tom empático e acolhedor, como se estivesse conversando com o leitor
+        userPrompt = `Escreva um artigo PREMIUM, completo e aprofundado sobre: "${topic}".${kwInstruction}${secondaryBlock}${intentBlock}
 
-REGRAS CRÍTICAS DE SEO (OBRIGATÓRIAS):
-- PARÁGRAFOS CURTOS: Cada parágrafo deve ter no MÁXIMO 3-4 frases (menos de 100 palavras). NUNCA crie parágrafos longos.
-- LINKS INTERNOS: Inclua pelo menos 2-3 links internos usando <a href="/blog/slug-do-artigo">texto âncora</a> ou <a href="/glossario">glossário</a> ou <a href="/sobre">sobre nós</a>. Use links naturais no texto.
-- LINKS EXTERNOS: Inclua pelo menos 1-2 links externos para fontes confiáveis (ex: <a href="https://www.gov.br/saude" target="_blank" rel="noopener noreferrer">Ministério da Saúde</a>, sites de universidades, artigos científicos).
-- IMAGENS: Inclua pelo menos 2-3 tags <img> no corpo do artigo com src de placeholder e alt descritivo. Use: <img src="https://images.unsplash.com/photo-placeholder" alt="descrição relevante da imagem" />. Posicione as imagens entre seções para quebrar o texto.
+REGRA CRÍTICA DE TAMANHO: O artigo DEVE ter NO MÍNIMO 1200 palavras (idealmente 1500-2500). Artigos abaixo de 1200 palavras são INACEITÁVEIS porque não rankeiam no Google em 2026.
 
-IMPORTANTE: Escreva como um ser humano real. Varie seu estilo, use expressões naturais, evite padrões repetitivos. Cada parágrafo deve soar diferente do anterior.
+OBJETIVO: este artigo precisa ser MELHOR que os 3 primeiros resultados do Google sobre o tema. Profundidade, exemplos práticos e originalidade são obrigatórios.
 
-Retorne APENAS o conteúdo HTML do artigo (sem título h1, sem metadados).`;
+ESTRUTURA OBRIGATÓRIA:
+- Introdução de 2 parágrafos curtos que prendam a atenção (problema + promessa de solução)
+- 5-7 seções H2 formuladas como perguntas reais que pessoas digitam no Google (use "Como", "Por que", "Quando", "O que")
+- Sub-seções H3 dentro de pelo menos 3 H2 (aprofundamento)
+- Listas (ul/ol) em pelo menos 3 seções diferentes
+- Pelo menos 1 blockquote com citação de especialista, dado científico ou reflexão de impacto
+- Exemplos práticos do cotidiano em pelo menos 4 seções (situações reais que o leitor reconheça)
+- Passo a passo numerado em pelo menos 1 seção
+- Conclusão com CTA implícito (próximo passo prático que o leitor pode tomar HOJE)
+
+REGRAS CRÍTICAS DE SEO ON-PAGE (OBRIGATÓRIAS):
+- PARÁGRAFOS CURTOS: máximo 3 frases (menos de 80 palavras). PROIBIDO parágrafos longos — eles matam a leitura mobile.
+- LINKS INTERNOS: inclua 3-5 links internos usando <a href="/blog/SLUG">texto âncora natural</a>. Use âncoras descritivas (NUNCA "clique aqui").
+- LINKS EXTERNOS: 1-2 links para fontes confiáveis (Ministério da Saúde, universidades, artigos científicos), com target="_blank" rel="noopener noreferrer".
+- IMAGENS: 2-3 tags <img src="https://images.unsplash.com/photo-placeholder" alt="descrição rica e relevante" /> entre seções.
+
+TOM E ESTILO:
+- Direto, sem enrolação. Frases curtas e impactantes alternadas com explicações mais elaboradas.
+- Autoridade + empatia. Resolva problemas reais, não fale por falar.
+- Persuasivo mas honesto — sem clickbait, sem promessas vazias.
+
+PROIBIDO ABSOLUTAMENTE:
+- Generalizações ("é muito importante...", "vale ressaltar...")
+- Conteúdo superficial que apenas repete óbvio
+- Repetição vazia de palavras-chave (keyword stuffing)
+- Frases formulaicas de IA ("nesse contexto", "diante disso", "em suma")
+
+Retorne APENAS o conteúdo HTML do artigo (sem título h1, sem metadados, sem code fences).`;
         break;
 
       case "generate_excerpt":
