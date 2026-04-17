@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -10,7 +11,6 @@ import {
   ChevronDown,
   ChevronUp,
   Activity,
-  RefreshCw,
 } from "lucide-react";
 
 interface AuditCheck {
@@ -34,6 +34,8 @@ interface AuditResult {
   timestamp: string;
 }
 
+const ACTIVE_JOB_KEY = "nr_seo_audit_active_job";
+
 const StatusIcon = ({ status }: { status: string }) => {
   switch (status) {
     case "pass":
@@ -47,31 +49,92 @@ const StatusIcon = ({ status }: { status: string }) => {
 
 const SeoAuditSection = () => {
   const [result, setResult] = useState<AuditResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
   const [expandedRoute, setExpandedRoute] = useState<string | null>(null);
+  const pollRef = useRef<number | null>(null);
+
+  const isRunning = jobStatus === "pending" || jobStatus === "processing";
+
+  // Retoma job ativo ao montar (se o user minimizou/saiu da página)
+  useEffect(() => {
+    const saved = localStorage.getItem(ACTIVE_JOB_KEY);
+    if (saved) {
+      setJobId(saved);
+      setJobStatus("processing");
+    }
+    return () => {
+      if (pollRef.current) window.clearInterval(pollRef.current);
+    };
+  }, []);
+
+  // Polling do status do job
+  useEffect(() => {
+    if (!jobId || !isRunning) return;
+
+    const poll = async () => {
+      const { data, error: err } = await supabase
+        .from("seo_audit_jobs")
+        .select("status, result, error_message, progress_done, progress_total")
+        .eq("id", jobId)
+        .maybeSingle();
+      if (err) {
+        setError(err.message);
+        return;
+      }
+      if (!data) return;
+
+      setJobStatus(data.status);
+      setProgress({ done: data.progress_done || 0, total: data.progress_total || 0 });
+
+      if (data.status === "completed" && data.result) {
+        setResult(data.result as unknown as AuditResult);
+        localStorage.removeItem(ACTIVE_JOB_KEY);
+        if (pollRef.current) window.clearInterval(pollRef.current);
+      } else if (data.status === "failed") {
+        setError(data.error_message || "Auditoria falhou.");
+        localStorage.removeItem(ACTIVE_JOB_KEY);
+        if (pollRef.current) window.clearInterval(pollRef.current);
+      }
+    };
+
+    poll();
+    pollRef.current = window.setInterval(poll, 3000);
+    return () => {
+      if (pollRef.current) window.clearInterval(pollRef.current);
+    };
+  }, [jobId, isRunning]);
 
   const runAudit = async () => {
-    setLoading(true);
     setError(null);
+    setResult(null);
+    setProgress({ done: 0, total: 0 });
+    setJobStatus("pending");
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seo-audit`,
         {
+          method: "POST",
           headers: {
             Authorization: `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             "Content-Type": "application/json",
           },
         }
       );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok && res.status !== 202) {
+        const txt = await res.text();
+        throw new Error(`HTTP ${res.status}: ${txt.slice(0, 200)}`);
+      }
       const data = await res.json();
-      setResult(data);
+      if (!data.jobId) throw new Error("Resposta sem jobId");
+      setJobId(data.jobId);
+      localStorage.setItem(ACTIVE_JOB_KEY, data.jobId);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
+      setJobStatus(null);
     }
   };
 
@@ -83,20 +146,34 @@ const SeoAuditSection = () => {
     }
   };
 
+  const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-foreground">Auditoria SEO Automatizada</p>
           <p className="text-[11px] text-muted-foreground">
-            Valida título, description, canonical, robots, OG tags, H1, JSON-LD e conteúdo de cada rota.
+            Roda em background — pode minimizar ou trocar de página sem interromper.
           </p>
         </div>
-        <Button onClick={runAudit} disabled={loading} size="sm" className="gap-2">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
-          {loading ? "Auditando..." : result ? "Reaudit" : "Executar Auditoria"}
+        <Button onClick={runAudit} disabled={isRunning} size="sm" className="gap-2">
+          {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
+          {isRunning ? "Auditando..." : result ? "Reaudit" : "Executar Auditoria"}
         </Button>
       </div>
+
+      {isRunning && (
+        <div className="border rounded-lg p-3 bg-card space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              {jobStatus === "pending" ? "Iniciando…" : `Processando rota ${progress.done} de ${progress.total || "?"}`}
+            </span>
+            <span className="font-medium text-foreground">{pct}%</span>
+          </div>
+          <Progress value={pct} className="h-1.5" />
+        </div>
+      )}
 
       {error && (
         <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/5 text-sm text-red-600">
@@ -106,7 +183,6 @@ const SeoAuditSection = () => {
 
       {result && (
         <>
-          {/* Summary cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="border rounded-lg p-3 bg-card text-center">
               <p className="text-[11px] text-muted-foreground">Total</p>
@@ -130,7 +206,6 @@ const SeoAuditSection = () => {
             Última auditoria: {new Date(result.timestamp).toLocaleString("pt-BR")}
           </p>
 
-          {/* Route results */}
           <div className="space-y-1.5">
             {result.routes.map((route) => {
               const isExpanded = expandedRoute === route.path;

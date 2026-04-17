@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Service role manages audit jobs" ON public.seo_audit_jobs;
