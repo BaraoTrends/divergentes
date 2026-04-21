@@ -304,6 +304,12 @@ const BlogPost = () => {
         type="article"
         schemas={allSchemas}
         keywords={articleKeywords}
+        article={{
+          datePublished: post.datePublished,
+          dateModified: post.dateModified,
+          author: post.author,
+          category: post.category,
+        }}
       />
       <article className="container py-8 md:py-12">
         <Breadcrumbs items={[{ label: "Blog", href: "/blog" }, { label: post.title }]} />
