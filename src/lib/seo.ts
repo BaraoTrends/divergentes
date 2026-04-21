@@ -72,7 +72,7 @@ export function generateArticleSchema(data: {
 }) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: data.title,
     description: data.description,
     image: data.image,
