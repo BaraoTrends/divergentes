@@ -26,6 +26,36 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Sanitize article HTML before serving it to bots.
+ * Removes <script>, <style>, <iframe>, event handlers and javascript: URLs.
+ * Keeps a safe subset of tags/attrs commonly used in articles.
+ */
+function sanitizeArticleHtml(html: string): string {
+  if (!html) return "";
+  let out = html;
+  // Strip dangerous blocks entirely
+  out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
+  out = out.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, "");
+  out = out.replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, "");
+  out = out.replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, "");
+  out = out.replace(/<embed\b[^>]*\/?>/gi, "");
+  out = out.replace(/<form\b[^>]*>[\s\S]*?<\/form>/gi, "");
+  // Strip inline event handlers (on*="...")
+  out = out.replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
+  out = out.replace(/\son[a-z]+\s*=\s*'[^']*'/gi, "");
+  out = out.replace(/\son[a-z]+\s*=\s*[^\s>]+/gi, "");
+  // Neutralize javascript:/data:text/html in href/src
+  out = out.replace(/(href|src)\s*=\s*"\s*javascript:[^"]*"/gi, '$1="#"');
+  out = out.replace(/(href|src)\s*=\s*'\s*javascript:[^']*'/gi, "$1='#'");
+  out = out.replace(/(href|src)\s*=\s*"\s*data:text\/html[^"]*"/gi, '$1="#"');
+  // Remove HTML comments
+  out = out.replace(/<!--[\s\S]*?-->/g, "");
+  return out;
+}
+
+
 function buildHtml(opts: {
   title: string;
   description: string;
@@ -36,7 +66,7 @@ function buildHtml(opts: {
   noindex?: boolean;
   schemas?: object[];
   keywords?: string[];
-  article?: { datePublished: string; dateModified: string; author: string };
+  article?: { datePublished: string; dateModified: string; author: string; section?: string };
 }): string {
   const rawTitle = opts.path === "/" ? `${SITE_NAME} — ${opts.title}` : `${opts.title} | ${SITE_NAME}`;
   const fullTitle = rawTitle.length > 60 ? opts.title : rawTitle;
@@ -56,7 +86,9 @@ function buildHtml(opts: {
   const articleMeta = opts.article
     ? `<meta property="article:published_time" content="${opts.article.datePublished}" />
        <meta property="article:modified_time" content="${opts.article.dateModified}" />
-       <meta property="article:author" content="${escapeHtml(opts.article.author)}" />`
+       <meta property="article:author" content="${escapeHtml(opts.article.author)}" />
+       ${opts.article.section ? `<meta property="article:section" content="${escapeHtml(opts.article.section)}" />` : ""}
+       ${(opts.keywords || []).map((k) => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join("\n       ")}`
     : "";
 
   return `<!DOCTYPE html>
@@ -74,6 +106,9 @@ function buildHtml(opts: {
   <meta property="og:url" content="${canonical}" />
   <meta property="og:type" content="${ogType}" />
   <meta property="og:image" content="${ogImage}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="${escapeHtml(opts.title)}" />
   <meta property="og:site_name" content="${SITE_NAME}" />
   <meta property="og:locale" content="pt_BR" />
   ${articleMeta}
@@ -82,6 +117,7 @@ function buildHtml(opts: {
   <meta name="twitter:title" content="${escapeHtml(fullTitle)}" />
   <meta name="twitter:description" content="${escapeHtml(desc)}" />
   <meta name="twitter:image" content="${ogImage}" />
+  <meta name="twitter:image:alt" content="${escapeHtml(opts.title)}" />
 
   ${schemaScripts}
 </head>
@@ -114,7 +150,7 @@ function buildArticleSchema(data: {
 }) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: data.title,
     description: data.description,
     image: data.image,
@@ -320,18 +356,20 @@ serve(async (req) => {
       }
 
       const isHtml = /^<[a-z][\s\S]*>/i.test((article.content || "").trim());
-      const contentHtml = isHtml ? article.content : markdownToHtml(article.content);
+      const rawContentHtml = isHtml ? article.content : markdownToHtml(article.content);
+      const contentHtml = sanitizeArticleHtml(rawContentHtml);
       const supabaseOgUrl = `${supabaseUrl}/functions/v1/og-image?slug=${encodeURIComponent(slug)}`;
       const image = article.image_url || supabaseOgUrl;
       const datePublished = article.created_at.split("T")[0];
       const dateModified = article.updated_at.split("T")[0];
       const author = "Equipe Neurodivergências";
-      const plainContent = (isHtml ? contentHtml : article.content).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      const plainContent = stripHtml(contentHtml);
       const wordCount = plainContent ? plainContent.split(/\s+/).filter(Boolean).length : 0;
       const articleKeywords = [
         ...(article.focus_keyword ? [article.focus_keyword] : []),
         ...(article.tags || []),
       ].filter(Boolean) as string[];
+      const categoryShortName = CATEGORIES[article.category]?.shortName || article.category;
 
       return new Response(
         buildHtml({
@@ -340,7 +378,7 @@ serve(async (req) => {
           path,
           image,
           type: "article",
-          article: { datePublished, dateModified, author },
+          article: { datePublished, dateModified, author, section: categoryShortName },
           keywords: articleKeywords,
           body: `
             <header><nav><a href="/">${SITE_NAME}</a> &rsaquo; <a href="/blog">Blog</a></nav></header>
@@ -348,7 +386,7 @@ serve(async (req) => {
               <article>
                 <h1>${escapeHtml(article.title)}</h1>
                 <p>Por ${escapeHtml(author)} &bull; ${datePublished} &bull; ${article.read_time} min de leitura</p>
-                ${article.image_url ? `<img src="${escapeHtml(article.image_url)}" alt="${escapeHtml(article.title)}" width="1200" height="672" />` : ""}
+                ${article.image_url ? `<img src="${escapeHtml(article.image_url)}" alt="${escapeHtml(article.title)}" width="1200" height="672" loading="eager" fetchpriority="high" decoding="async" />` : ""}
                 <div>${contentHtml}</div>
               </article>
             </main>
