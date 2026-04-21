@@ -347,6 +347,9 @@ const BlogPost = () => {
                   alt={post.title}
                   width={1200}
                   height={672}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   className="w-full h-auto"
                 />
               </div>
