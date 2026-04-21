@@ -23,6 +23,7 @@ import TopicSlider from "@/components/TopicSlider";
 import SeoChecker from "@/components/SeoChecker";
 import SeoBriefingPanel, { type SeoBriefing } from "@/components/SeoBriefingPanel";
 import AiInternalLinksSuggester from "@/components/editor/AiInternalLinksSuggester";
+import HowToStepsEditor, { type HowToStepInput } from "@/components/editor/HowToStepsEditor";
 import { analyzeSeo, calculateScore } from "@/lib/seoAnalysis";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
 import { useAiWriter } from "@/hooks/useAiWriter";
@@ -50,6 +51,7 @@ interface ArticleEditorProps {
     tags: string[];
     author_id: string;
     focus_keyword?: string;
+    how_to_steps?: HowToStepInput[] | null;
   }) => void;
   onCancel: () => void;
   saving?: boolean;
@@ -77,6 +79,17 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [tags, setTags] = useState<string[]>(article?.tags || []);
   const [tagInput, setTagInput] = useState("");
   const [focusKeyword, setFocusKeyword] = useState(article?.focus_keyword || "");
+  const [howToSteps, setHowToSteps] = useState<HowToStepInput[]>(() => {
+    const raw = (article as unknown as { how_to_steps?: unknown })?.how_to_steps;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter((s): s is Record<string, unknown> => !!s && typeof s === "object")
+      .map((s) => ({
+        name: typeof s.name === "string" ? s.name : "",
+        text: typeof s.text === "string" ? s.text : "",
+        image: typeof s.image === "string" ? s.image : "",
+      }));
+  });
   const [briefing, setBriefing] = useState<SeoBriefing>({
     focusKeyword: article?.focus_keyword || "",
     secondaryKeywords: article?.tags?.filter((t) => t.includes(" ")).slice(0, 8) || [],
@@ -560,6 +573,22 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     return null;
   };
 
+  const cleanedHowToSteps = (): HowToStepInput[] | null => {
+    const cleaned = howToSteps
+      .map((s) => ({
+        name: (s.name || "").trim(),
+        text: (s.text || "").trim(),
+        image: (s.image || "").trim(),
+      }))
+      .filter((s) => s.name.length > 0)
+      .map((s) => ({
+        name: s.name,
+        ...(s.text ? { text: s.text } : {}),
+        ...(s.image ? { image: s.image } : {}),
+      }));
+    return cleaned.length > 0 ? cleaned : null;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!meetsMinimum) {
@@ -583,6 +612,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       tags,
       author_id: article?.author_id || userId,
       focus_keyword: focusKeyword.trim(),
+      how_to_steps: cleanedHowToSteps(),
     });
   };
 
@@ -622,6 +652,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       tags,
       author_id: article?.author_id || userId,
       focus_keyword: focusKeyword.trim(),
+      how_to_steps: cleanedHowToSteps(),
     });
   };
 
@@ -639,6 +670,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       tags,
       author_id: article?.author_id || userId,
       focus_keyword: focusKeyword.trim(),
+      how_to_steps: cleanedHowToSteps(),
     });
   };
 
@@ -1194,6 +1226,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
               className="hidden"
             />
           </div>
+
+          {/* HowTo schema steps (optional, for "how to" articles) */}
+          <HowToStepsEditor value={howToSteps} onChange={setHowToSteps} />
 
           {/* SEO Checker */}
           <SeoChecker

@@ -36,6 +36,7 @@ export interface Article {
   tags: string[];
   custom_schema: Json | null;
   focus_keyword: string | null;
+  how_to_steps: Json | null;
   created_at: string;
   updated_at: string;
 }

@@ -72,7 +72,7 @@ export function generateArticleSchema(data: {
 }) {
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: data.title,
     description: data.description,
     image: data.image,
@@ -110,3 +110,85 @@ export function generateFAQSchema(faqs: { question: string; answer: string }[]) 
     })),
   };
 }
+
+export interface HowToStep {
+  name: string;
+  text?: string;
+  image?: string;
+  url?: string;
+}
+
+export function generateHowToSchema(data: {
+  name: string;
+  description?: string;
+  image?: string;
+  totalTime?: string;
+  steps: HowToStep[];
+  pageUrl: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: data.name,
+    ...(data.description ? { description: data.description } : {}),
+    ...(data.image ? { image: data.image } : {}),
+    ...(data.totalTime ? { totalTime: data.totalTime } : {}),
+    inLanguage: "pt-BR",
+    step: data.steps.map((s, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: s.name,
+      ...(s.text ? { text: s.text } : {}),
+      ...(s.image ? { image: s.image } : {}),
+      url: s.url || `${data.pageUrl}#step-${i + 1}`,
+    })),
+  };
+}
+
+/**
+ * Detect Q&A blocks in article HTML.
+ * Patterns recognized:
+ *  - <h2>/<h3> ending with "?" followed by paragraph(s) → Q&A pair
+ *  - <strong>Pergunta?</strong> followed by text → Q&A pair (bolded inline questions)
+ * Returns sanitized plain-text pairs (HTML stripped from answers).
+ */
+export function extractFAQsFromHtml(html: string): { question: string; answer: string }[] {
+  if (!html || typeof html !== "string") return [];
+  const faqs: { question: string; answer: string }[] = [];
+  const stripTags = (s: string) =>
+    s
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  // Pattern 1: heading-based Q&A (<h2>...?</h2><p>...</p>)
+  const headingRe = /<(h[2-4])[^>]*>([\s\S]*?)<\/\1>\s*([\s\S]*?)(?=<h[2-4]\b|$)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = headingRe.exec(html)) !== null) {
+    const question = stripTags(m[2]);
+    if (!question.endsWith("?") || question.length < 8 || question.length > 200) continue;
+    // Take the immediate paragraph(s) up to next heading
+    const block = m[3];
+    const pMatch = block.match(/<p\b[^>]*>([\s\S]*?)<\/p>/gi);
+    if (!pMatch) continue;
+    const answer = stripTags(pMatch.slice(0, 2).join(" "));
+    if (answer.length < 20) continue;
+    faqs.push({ question, answer: answer.slice(0, 1000) });
+  }
+
+  // De-duplicate by question
+  const seen = new Set<string>();
+  return faqs.filter((f) => {
+    const k = f.question.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).slice(0, 10);
+}
+
