@@ -1227,6 +1227,9 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             />
           </div>
 
+          {/* HowTo schema steps (optional, for "how to" articles) */}
+          <HowToStepsEditor value={howToSteps} onChange={setHowToSteps} />
+
           {/* SEO Checker */}
           <SeoChecker
             title={title}
