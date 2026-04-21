@@ -573,6 +573,22 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
     return null;
   };
 
+  const cleanedHowToSteps = (): HowToStepInput[] | null => {
+    const cleaned = howToSteps
+      .map((s) => ({
+        name: (s.name || "").trim(),
+        text: (s.text || "").trim(),
+        image: (s.image || "").trim(),
+      }))
+      .filter((s) => s.name.length > 0)
+      .map((s) => ({
+        name: s.name,
+        ...(s.text ? { text: s.text } : {}),
+        ...(s.image ? { image: s.image } : {}),
+      }));
+    return cleaned.length > 0 ? cleaned : null;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!meetsMinimum) {
@@ -596,6 +612,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       tags,
       author_id: article?.author_id || userId,
       focus_keyword: focusKeyword.trim(),
+      how_to_steps: cleanedHowToSteps(),
     });
   };
 
@@ -635,6 +652,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       tags,
       author_id: article?.author_id || userId,
       focus_keyword: focusKeyword.trim(),
+      how_to_steps: cleanedHowToSteps(),
     });
   };
 
@@ -652,6 +670,7 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
       tags,
       author_id: article?.author_id || userId,
       focus_keyword: focusKeyword.trim(),
+      how_to_steps: cleanedHowToSteps(),
     });
   };
 
