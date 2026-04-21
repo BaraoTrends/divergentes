@@ -23,6 +23,7 @@ import TopicSlider from "@/components/TopicSlider";
 import SeoChecker from "@/components/SeoChecker";
 import SeoBriefingPanel, { type SeoBriefing } from "@/components/SeoBriefingPanel";
 import AiInternalLinksSuggester from "@/components/editor/AiInternalLinksSuggester";
+import HowToStepsEditor, { type HowToStepInput } from "@/components/editor/HowToStepsEditor";
 import { analyzeSeo, calculateScore } from "@/lib/seoAnalysis";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
 import { useAiWriter } from "@/hooks/useAiWriter";
