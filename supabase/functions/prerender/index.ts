@@ -26,6 +26,36 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Sanitize article HTML before serving it to bots.
+ * Removes <script>, <style>, <iframe>, event handlers and javascript: URLs.
+ * Keeps a safe subset of tags/attrs commonly used in articles.
+ */
+function sanitizeArticleHtml(html: string): string {
+  if (!html) return "";
+  let out = html;
+  // Strip dangerous blocks entirely
+  out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
+  out = out.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, "");
+  out = out.replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, "");
+  out = out.replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, "");
+  out = out.replace(/<embed\b[^>]*\/?>/gi, "");
+  out = out.replace(/<form\b[^>]*>[\s\S]*?<\/form>/gi, "");
+  // Strip inline event handlers (on*="...")
+  out = out.replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
+  out = out.replace(/\son[a-z]+\s*=\s*'[^']*'/gi, "");
+  out = out.replace(/\son[a-z]+\s*=\s*[^\s>]+/gi, "");
+  // Neutralize javascript:/data:text/html in href/src
+  out = out.replace(/(href|src)\s*=\s*"\s*javascript:[^"]*"/gi, '$1="#"');
+  out = out.replace(/(href|src)\s*=\s*'\s*javascript:[^']*'/gi, "$1='#'");
+  out = out.replace(/(href|src)\s*=\s*"\s*data:text\/html[^"]*"/gi, '$1="#"');
+  // Remove HTML comments
+  out = out.replace(/<!--[\s\S]*?-->/g, "");
+  return out;
+}
+
+
 function buildHtml(opts: {
   title: string;
   description: string;
