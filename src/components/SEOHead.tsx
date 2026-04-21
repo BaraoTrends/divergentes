@@ -37,13 +37,29 @@ const SEOHead = ({ title, description, path, image, type = "website", schemas = 
       <meta property="og:url" content={canonical} />
       <meta property="og:type" content={type} />
       <meta property="og:image" content={ogImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={title} />
       <meta property="og:site_name" content={siteName} />
       <meta property="og:locale" content={ogLocale} />
+
+      {type === "article" && article && (
+        <>
+          <meta property="article:published_time" content={article.datePublished} />
+          <meta property="article:modified_time" content={article.dateModified} />
+          <meta property="article:author" content={article.author} />
+          <meta property="article:section" content={article.category} />
+        </>
+      )}
+      {type === "article" && keywords.length > 0 && keywords.map((kw, i) => (
+        <meta key={`tag-${i}`} property="article:tag" content={kw} />
+      ))}
 
       <meta name="twitter:card" content={twitterCard} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={descTrimmed} />
       <meta name="twitter:image" content={ogImage} />
+      <meta name="twitter:image:alt" content={title} />
       {seo?.twitterHandle && <meta name="twitter:site" content={seo.twitterHandle} />}
       {seo?.facebookAppId && <meta property="fb:app_id" content={seo.facebookAppId} />}
       {seo?.googleVerification && <meta name="google-site-verification" content={seo.googleVerification} />}
