@@ -86,7 +86,9 @@ function buildHtml(opts: {
   const articleMeta = opts.article
     ? `<meta property="article:published_time" content="${opts.article.datePublished}" />
        <meta property="article:modified_time" content="${opts.article.dateModified}" />
-       <meta property="article:author" content="${escapeHtml(opts.article.author)}" />`
+       <meta property="article:author" content="${escapeHtml(opts.article.author)}" />
+       ${opts.article.section ? `<meta property="article:section" content="${escapeHtml(opts.article.section)}" />` : ""}
+       ${(opts.keywords || []).map((k) => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join("\n       ")}`
     : "";
 
   return `<!DOCTYPE html>
