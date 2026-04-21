@@ -116,6 +116,7 @@ export type Database = {
           excerpt: string | null
           featured: boolean
           focus_keyword: string | null
+          how_to_steps: Json | null
           id: string
           image_url: string | null
           published: boolean
@@ -134,6 +135,7 @@ export type Database = {
           excerpt?: string | null
           featured?: boolean
           focus_keyword?: string | null
+          how_to_steps?: Json | null
           id?: string
           image_url?: string | null
           published?: boolean
@@ -152,6 +154,7 @@ export type Database = {
           excerpt?: string | null
           featured?: boolean
           focus_keyword?: string | null
+          how_to_steps?: Json | null
           id?: string
           image_url?: string | null
           published?: boolean
