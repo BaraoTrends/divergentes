@@ -51,6 +51,7 @@ interface ArticleEditorProps {
     tags: string[];
     author_id: string;
     focus_keyword?: string;
+    how_to_steps?: HowToStepInput[] | null;
   }) => void;
   onCancel: () => void;
   saving?: boolean;
