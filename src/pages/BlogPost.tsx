@@ -14,7 +14,7 @@ import { blogPosts as staticPosts } from "@/lib/content";
 import { blogImages } from "@/lib/images";
 import { useArticleBySlug, useArticles } from "@/hooks/useArticles";
 import { useArticleTracking } from "@/hooks/useArticleTracking";
-import { generateBreadcrumbSchema, generateArticleSchema, SITE_URL } from "@/lib/seo";
+import { generateBreadcrumbSchema, generateArticleSchema, generateFAQSchema, generateHowToSchema, extractFAQsFromHtml, SITE_URL, type HowToStep } from "@/lib/seo";
 import { countWords } from "@/lib/seoAnalysis";
 import { Clock, Calendar } from "lucide-react";
 import type { BlogPost as BlogPostType } from "@/lib/content";
