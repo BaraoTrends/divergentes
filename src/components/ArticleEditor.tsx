@@ -79,6 +79,17 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
   const [tags, setTags] = useState<string[]>(article?.tags || []);
   const [tagInput, setTagInput] = useState("");
   const [focusKeyword, setFocusKeyword] = useState(article?.focus_keyword || "");
+  const [howToSteps, setHowToSteps] = useState<HowToStepInput[]>(() => {
+    const raw = (article as unknown as { how_to_steps?: unknown })?.how_to_steps;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter((s): s is Record<string, unknown> => !!s && typeof s === "object")
+      .map((s) => ({
+        name: typeof s.name === "string" ? s.name : "",
+        text: typeof s.text === "string" ? s.text : "",
+        image: typeof s.image === "string" ? s.image : "",
+      }));
+  });
   const [briefing, setBriefing] = useState<SeoBriefing>({
     focusKeyword: article?.focus_keyword || "",
     secondaryKeywords: article?.tags?.filter((t) => t.includes(" ")).slice(0, 8) || [],
