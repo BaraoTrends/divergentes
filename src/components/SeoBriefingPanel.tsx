@@ -33,9 +33,60 @@ const INTENTS = [
 const SeoBriefingPanel = ({ value, onChange, defaultExpanded = false }: SeoBriefingPanelProps) => {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [secondaryInput, setSecondaryInput] = useState("");
+  const { toast } = useToast();
 
   const update = <K extends keyof SeoBriefing>(key: K, v: SeoBriefing[K]) => {
     onChange({ ...value, [key]: v });
+  };
+
+  const { generate, isGenerating } = useAiWriter({
+    onComplete: (text) => {
+      try {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("Sem JSON na resposta");
+        const parsed = JSON.parse(jsonMatch[0]);
+        const incoming: string[] = (parsed.keywords || [])
+          .filter((k: any) => k && typeof k.term === "string")
+          // priorizar cauda longa, depois semântica/relacionada
+          .sort((a: any, b: any) => {
+            const order = (t: string) => (t === "long_tail" ? 0 : t === "semantic" ? 1 : 2);
+            return order(a.type) - order(b.type);
+          })
+          .map((k: any) => String(k.term).trim().toLowerCase())
+          .filter(Boolean);
+
+        const existing = new Set(value.secondaryKeywords);
+        const merged = [...value.secondaryKeywords];
+        for (const kw of incoming) {
+          if (merged.length >= 10) break;
+          if (!existing.has(kw)) {
+            merged.push(kw);
+            existing.add(kw);
+          }
+        }
+        if (merged.length === value.secondaryKeywords.length) {
+          toast({ title: "Nenhuma palavra-chave nova", description: "A IA não retornou termos diferentes dos atuais." });
+        } else {
+          onChange({ ...value, secondaryKeywords: merged });
+          toast({ title: "Palavras-chave geradas", description: `${merged.length - value.secondaryKeywords.length} adicionadas.` });
+        }
+      } catch (e: any) {
+        toast({ title: "Erro ao processar resposta", description: e.message, variant: "destructive" });
+      }
+    },
+  });
+
+  const generateSecondaryKeywords = () => {
+    const focus = value.focusKeyword.trim();
+    if (!focus) {
+      toast({
+        title: "Defina a palavra-chave principal",
+        description: "Preencha a palavra-chave principal antes de gerar variações.",
+        variant: "destructive",
+      });
+      return;
+    }
+    generate("suggest_keywords", { topic: focus });
   };
 
   const addSecondary = () => {
