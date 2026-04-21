@@ -158,9 +158,27 @@ const SeoBriefingPanel = ({ value, onChange, defaultExpanded = false }: SeoBrief
 
           {/* Secondary keywords */}
           <div className="space-y-1.5">
-            <Label className="text-xs">
-              Palavras-chave secundárias (cauda longa)
-            </Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs">
+                Palavras-chave secundárias (cauda longa)
+              </Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={generateSecondaryKeywords}
+                disabled={isGenerating || !value.focusKeyword.trim() || value.secondaryKeywords.length >= 10}
+                className="h-7 gap-1 text-[11px] px-2"
+                title={!value.focusKeyword.trim() ? "Preencha a palavra-chave principal primeiro" : "Gerar variações com IA"}
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3 w-3" />
+                )}
+                {isGenerating ? "Gerando..." : "Gerar com IA"}
+              </Button>
+            </div>
             <div className="flex gap-2">
               <Input
                 value={secondaryInput}
