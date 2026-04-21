@@ -106,6 +106,9 @@ function buildHtml(opts: {
   <meta property="og:url" content="${canonical}" />
   <meta property="og:type" content="${ogType}" />
   <meta property="og:image" content="${ogImage}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="${escapeHtml(opts.title)}" />
   <meta property="og:site_name" content="${SITE_NAME}" />
   <meta property="og:locale" content="pt_BR" />
   ${articleMeta}
@@ -114,6 +117,7 @@ function buildHtml(opts: {
   <meta name="twitter:title" content="${escapeHtml(fullTitle)}" />
   <meta name="twitter:description" content="${escapeHtml(desc)}" />
   <meta name="twitter:image" content="${ogImage}" />
+  <meta name="twitter:image:alt" content="${escapeHtml(opts.title)}" />
 
   ${schemaScripts}
 </head>
