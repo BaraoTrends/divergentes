@@ -66,7 +66,7 @@ function buildHtml(opts: {
   noindex?: boolean;
   schemas?: object[];
   keywords?: string[];
-  article?: { datePublished: string; dateModified: string; author: string };
+  article?: { datePublished: string; dateModified: string; author: string; section?: string };
 }): string {
   const rawTitle = opts.path === "/" ? `${SITE_NAME} — ${opts.title}` : `${opts.title} | ${SITE_NAME}`;
   const fullTitle = rawTitle.length > 60 ? opts.title : rawTitle;
