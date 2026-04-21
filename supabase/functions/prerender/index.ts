@@ -356,18 +356,20 @@ serve(async (req) => {
       }
 
       const isHtml = /^<[a-z][\s\S]*>/i.test((article.content || "").trim());
-      const contentHtml = isHtml ? article.content : markdownToHtml(article.content);
+      const rawContentHtml = isHtml ? article.content : markdownToHtml(article.content);
+      const contentHtml = sanitizeArticleHtml(rawContentHtml);
       const supabaseOgUrl = `${supabaseUrl}/functions/v1/og-image?slug=${encodeURIComponent(slug)}`;
       const image = article.image_url || supabaseOgUrl;
       const datePublished = article.created_at.split("T")[0];
       const dateModified = article.updated_at.split("T")[0];
       const author = "Equipe Neurodivergências";
-      const plainContent = (isHtml ? contentHtml : article.content).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      const plainContent = stripHtml(contentHtml);
       const wordCount = plainContent ? plainContent.split(/\s+/).filter(Boolean).length : 0;
       const articleKeywords = [
         ...(article.focus_keyword ? [article.focus_keyword] : []),
         ...(article.tags || []),
       ].filter(Boolean) as string[];
+      const categoryShortName = CATEGORIES[article.category]?.shortName || article.category;
 
       return new Response(
         buildHtml({
@@ -376,7 +378,7 @@ serve(async (req) => {
           path,
           image,
           type: "article",
-          article: { datePublished, dateModified, author },
+          article: { datePublished, dateModified, author, section: categoryShortName },
           keywords: articleKeywords,
           body: `
             <header><nav><a href="/">${SITE_NAME}</a> &rsaquo; <a href="/blog">Blog</a></nav></header>
@@ -384,7 +386,7 @@ serve(async (req) => {
               <article>
                 <h1>${escapeHtml(article.title)}</h1>
                 <p>Por ${escapeHtml(author)} &bull; ${datePublished} &bull; ${article.read_time} min de leitura</p>
-                ${article.image_url ? `<img src="${escapeHtml(article.image_url)}" alt="${escapeHtml(article.title)}" width="1200" height="672" />` : ""}
+                ${article.image_url ? `<img src="${escapeHtml(article.image_url)}" alt="${escapeHtml(article.title)}" width="1200" height="672" loading="eager" fetchpriority="high" decoding="async" />` : ""}
                 <div>${contentHtml}</div>
               </article>
             </main>
