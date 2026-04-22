@@ -7,7 +7,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useArticles } from "@/hooks/useArticles";
-import { categories, faqs, glossaryTerms } from "@/lib/content";
+import { categories, faqItems, glossaryTerms } from "@/lib/content";
 import {
   generateBreadcrumbSchema,
   generateWebSiteSchema,
@@ -103,7 +103,7 @@ const Buscar = () => {
       }
     }
 
-    for (const f of faqs) {
+    for (const f of faqItems) {
       const score = scoreText(`${f.question} ${f.answer}`, tokens);
       if (score > 0) {
         all.push({
