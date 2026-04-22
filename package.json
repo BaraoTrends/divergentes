@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/sync-sitemap.mjs && vite build",
-    "build:dev": "node scripts/sync-sitemap.mjs && vite build --mode development",
+    "build": "node scripts/generate-og-default.mjs && node scripts/sync-sitemap.mjs && vite build",
+    "build:dev": "node scripts/generate-og-default.mjs && node scripts/sync-sitemap.mjs && vite build --mode development",
+    "og:generate": "node scripts/generate-og-default.mjs",
+    "og:generate:force": "node scripts/generate-og-default.mjs --force",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
