@@ -27,6 +27,45 @@ function stripHtml(html: string): string {
 }
 
 /**
+ * Validate and sanitize an external image URL before exposing it to crawlers.
+ * - Only http(s) allowed (https preferred — http upgraded silently to https for og:image:secure_url).
+ * - Blocks javascript:, data:, file:, vbscript: and any non-URL value.
+ * - Rejects URLs with embedded credentials (user:pass@host).
+ * Returns null if the URL is unsafe — caller should fall back to a default OG image.
+ */
+function sanitizeImageUrl(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  // Block obvious dangerous schemes early (case-insensitive, ignore whitespace).
+  if (/^(javascript|data|vbscript|file|blob):/i.test(trimmed.replace(/\s+/g, ""))) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+  if (parsed.username || parsed.password) return null;
+  // Force https output so og:image is always over secure transport.
+  if (parsed.protocol === "http:") parsed.protocol = "https:";
+  return parsed.toString();
+}
+
+/**
+ * Pick the best OG image URL for a crawler.
+ * Prefers a same-origin .webp variant when the image lives in /public,
+ * since most modern social crawlers (Facebook, X, LinkedIn, Slack, Discord)
+ * advertise WebP support. JPG remains the og:image fallback.
+ */
+function preferWebpVariant(url: string): string {
+  // Only auto-promote known same-origin OG defaults shipped in /public.
+  if (!url.startsWith(`${SITE_URL}/og-`)) return url;
+  if (!url.endsWith(".jpg")) return url;
+  return url.replace(/\.jpg$/, ".webp");
+}
+
+/**
  * Sanitize article HTML before serving it to bots.
  * Removes <script>, <style>, <iframe>, event handlers and javascript: URLs.
  * Keeps a safe subset of tags/attrs commonly used in articles.
