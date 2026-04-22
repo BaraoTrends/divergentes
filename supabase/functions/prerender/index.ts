@@ -588,6 +588,31 @@ serve(async (req) => {
 
     if (staticPages[path]) {
       const page = staticPages[path];
+      const schemas: object[] = [
+        buildBreadcrumbSchema([{ name: "Início", url: "/" }, { name: page.title, url: path }]),
+      ];
+      // Emit FAQPage JSON-LD ONLY on /perguntas-frequentes, derived from <h2>?</h2><p>…</p> pairs in the body.
+      if (path === "/perguntas-frequentes") {
+        const pairs: { question: string; answer: string }[] = [];
+        const re = /<h2[^>]*>([\s\S]*?)<\/h2>\s*<p[^>]*>([\s\S]*?)<\/p>/gi;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(page.body)) !== null) {
+          const q = stripHtml(m[1]);
+          const a = stripHtml(m[2]);
+          if (q.endsWith("?") && a.length >= 20) pairs.push({ question: q, answer: a });
+        }
+        if (pairs.length > 0) {
+          schemas.push({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: pairs.map((p) => ({
+              "@type": "Question",
+              name: p.question,
+              acceptedAnswer: { "@type": "Answer", text: p.answer },
+            })),
+          });
+        }
+      }
       return new Response(
         buildHtml({
           title: page.title,
@@ -597,7 +622,7 @@ serve(async (req) => {
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>${page.body}</main>
           `,
-          schemas: [buildBreadcrumbSchema([{ name: "Início", url: "/" }, { name: page.title, url: path }])],
+          schemas,
         }),
         { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=86400" } }
       );
