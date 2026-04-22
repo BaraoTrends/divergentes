@@ -449,7 +449,7 @@ serve(async (req) => {
               <article>
                 <h1>${escapeHtml(article.title)}</h1>
                 <p>Por ${escapeHtml(author)} &bull; ${datePublished} &bull; ${article.read_time} min de leitura</p>
-                ${article.image_url ? `<img src="${escapeHtml(article.image_url)}" alt="${escapeHtml(article.title)}" width="1200" height="672" loading="eager" fetchpriority="high" decoding="async" />` : ""}
+                ${bodyImage ? `<img src="${escapeHtml(bodyImage)}" alt="${escapeHtml(article.title)}" width="1200" height="672" loading="eager" fetchpriority="high" decoding="async" />` : ""}
                 <div>${contentHtml}</div>
               </article>
             </main>
