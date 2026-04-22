@@ -110,7 +110,12 @@ function buildHtml(opts: {
   const rawTitle = opts.path === "/" ? `${SITE_NAME} — ${opts.title}` : `${opts.title} | ${SITE_NAME}`;
   const fullTitle = rawTitle.length > 60 ? opts.title : rawTitle;
   const canonical = `${SITE_URL}${opts.path}`;
-  const ogImage = opts.image || `${SITE_URL}/og-default.jpg`;
+
+  // Sanitize → fall back to default. Default is also normalized through the same path.
+  const safeImage = sanitizeImageUrl(opts.image) || `${SITE_URL}/og-default.jpg`;
+  const ogImage = safeImage;
+  const ogImageWebp = preferWebpVariant(safeImage);
+
   const desc = opts.description.length > 160 ? opts.description.slice(0, 157) + "..." : opts.description;
   const ogType = opts.type || "website";
 
@@ -130,6 +135,13 @@ function buildHtml(opts: {
        ${(opts.keywords || []).map((k) => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join("\n       ")}`
     : "";
 
+  // When a WebP variant is available we advertise it FIRST as og:image (most
+  // modern crawlers honor whichever appears first / use the secure_url variant).
+  // The JPG remains as a guaranteed fallback for older crawlers.
+  const hasWebp = ogImageWebp !== ogImage;
+  const ogImagePrimary = hasWebp ? ogImageWebp : ogImage;
+  const ogImageFallback = ogImage;
+
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -144,10 +156,17 @@ function buildHtml(opts: {
   <meta property="og:description" content="${escapeHtml(desc)}" />
   <meta property="og:url" content="${canonical}" />
   <meta property="og:type" content="${ogType}" />
-  <meta property="og:image" content="${ogImage}" />
+  <meta property="og:image" content="${ogImagePrimary}" />
+  <meta property="og:image:secure_url" content="${ogImagePrimary}" />
+  <meta property="og:image:type" content="${hasWebp ? "image/webp" : "image/jpeg"}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="${escapeHtml(opts.title)}" />
+  ${hasWebp ? `<meta property="og:image" content="${ogImageFallback}" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="${escapeHtml(opts.title)}" />` : ""}
   <meta property="og:site_name" content="${SITE_NAME}" />
   <meta property="og:locale" content="pt_BR" />
   ${articleMeta}
@@ -155,7 +174,7 @@ function buildHtml(opts: {
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(fullTitle)}" />
   <meta name="twitter:description" content="${escapeHtml(desc)}" />
-  <meta name="twitter:image" content="${ogImage}" />
+  <meta name="twitter:image" content="${ogImageFallback}" />
   <meta name="twitter:image:alt" content="${escapeHtml(opts.title)}" />
 
   ${schemaScripts}
