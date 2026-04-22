@@ -5,10 +5,17 @@
  * For each known route, asserts that:
  *   1. SEOHead (client) and prerender (Edge Function) emit the SAME 4 critical tags:
  *        - <title>, <meta name="description">, <link rel="canonical">, <meta og:url>
- *   2. canonical and og:url match exactly.
+ *   2. canonical and og:url match exactly (NEVER diverge).
  *   3. Title length ≤ 65 chars.
  *   4. Description length 50–160 chars.
  *   5. Canonical is absolute https://...
+ *
+ * JSON-LD audit (per route, against prerender output):
+ *   6. BreadcrumbList MUST be present on every internal route, MUST be absent on "/".
+ *   7. FAQPage MUST appear ONLY on /perguntas-frequentes (and on article pages
+ *      with detected Q&A — those are not in the static ROUTES set, so we just
+ *      assert it never leaks onto category/static pages).
+ *   8. Every emitted JSON-LD block must be valid JSON with @context + @type.
  *
  * If the prerender Edge Function is unreachable (offline build), only the static
  * structural checks against SEOHead.tsx run — but the build is NOT failed for
@@ -44,6 +51,34 @@ const extractSeo = (html) => ({
   ogUrl: pickTag(html, /<meta\s+property="og:url"\s+content="([^"]*)"/i),
 });
 
+/** Extract every JSON-LD block from HTML and return the parsed @type list. */
+function extractJsonLdTypes(html) {
+  const blocks = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  const results = []; // { type: string, raw: string, parseError?: string }
+  for (const m of blocks) {
+    const raw = m[1].trim();
+    try {
+      const json = JSON.parse(raw);
+      const items = Array.isArray(json) ? json : [json];
+      for (const item of items) {
+        const t = item && item["@type"];
+        const types = Array.isArray(t) ? t : [t];
+        for (const type of types) {
+          if (typeof type === "string") results.push({ type, hasContext: !!item["@context"] });
+        }
+      }
+    } catch (err) {
+      results.push({ type: "__invalid__", parseError: err.message });
+    }
+  }
+  return results;
+}
+
+// Routes where FAQPage is EXPECTED. All other static routes must NOT emit it.
+const FAQ_ALLOWED = new Set(["/perguntas-frequentes"]);
+// "/" is the only route that may legitimately omit BreadcrumbList.
+const BREADCRUMB_OPTIONAL = new Set(["/"]);
+
 const errors = [];
 
 function check(path, seo, source) {
@@ -61,6 +96,30 @@ function check(path, seo, source) {
     errors.push(`${id}: canonical ≠ og:url\n        canonical: ${seo.canonical}\n        og:url:    ${seo.ogUrl}`);
 }
 
+function checkSchemas(path, html) {
+  const id = `[schema] ${path}`;
+  const found = extractJsonLdTypes(html);
+
+  for (const f of found) {
+    if (f.type === "__invalid__") errors.push(`${id}: invalid JSON-LD block — ${f.parseError}`);
+    else if (!f.hasContext) errors.push(`${id}: JSON-LD ${f.type} missing @context`);
+  }
+
+  const types = new Set(found.map((f) => f.type));
+  const hasBreadcrumb = types.has("BreadcrumbList");
+  const hasFaq = types.has("FAQPage");
+
+  if (!hasBreadcrumb && !BREADCRUMB_OPTIONAL.has(path))
+    errors.push(`${id}: missing BreadcrumbList JSON-LD`);
+  if (hasBreadcrumb && BREADCRUMB_OPTIONAL.has(path))
+    errors.push(`${id}: BreadcrumbList should NOT be emitted on "${path}"`);
+
+  if (hasFaq && !FAQ_ALLOWED.has(path))
+    errors.push(`${id}: FAQPage leaked onto "${path}" — only allowed on ${[...FAQ_ALLOWED].join(", ")}`);
+  if (!hasFaq && FAQ_ALLOWED.has(path))
+    errors.push(`${id}: FAQPage missing on "${path}" (expected)`);
+}
+
 let prerenderReachable = true;
 try {
   const res = await fetch(`${PRERENDER_URL}?path=/`, { method: "GET", headers: { Accept: "text/html" } });
@@ -75,7 +134,9 @@ if (prerenderReachable) {
     try {
       const res = await fetch(`${PRERENDER_URL}?path=${encodeURIComponent(path)}`, { headers: { Accept: "text/html" } });
       if (!res.ok) { errors.push(`[prerender] ${path}: HTTP ${res.status}`); continue; }
-      check(path, extractSeo(await res.text()), "prerender");
+      const html = await res.text();
+      check(path, extractSeo(html), "prerender");
+      checkSchemas(path, html);
     } catch (err) {
       errors.push(`[prerender] ${path}: fetch failed (${err.message || err})`);
     }
