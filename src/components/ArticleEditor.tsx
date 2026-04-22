@@ -27,6 +27,7 @@ import HowToStepsEditor, { type HowToStepInput } from "@/components/editor/HowTo
 import { analyzeSeo, calculateScore } from "@/lib/seoAnalysis";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
 import { useAiWriter } from "@/hooks/useAiWriter";
+import { generateExcerpt as buildExcerptFromHtml } from "@/lib/excerpt";
 import type { Article } from "@/hooks/useArticles";
 
 import coverIlustracao from "@/assets/cover-styles/ilustracao.jpg";
@@ -911,21 +912,43 @@ const ArticleEditor = ({ article, onSave, onCancel, saving, userId }: ArticleEdi
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="excerpt">Resumo</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                  disabled={isGeneratingExcerpt || (!content.trim() && !title.trim())}
-                  onClick={() => generateExcerpt("generate_excerpt", { content: content || title })}
-                >
-                  {isGeneratingExcerpt ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Wand2 className="h-3 w-3" />
-                  )}
-                  Gerar com IA
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    disabled={!content.trim()}
+                    title="Gerar resumo determinístico do conteúdo (sem HTML, sem IA)"
+                    onClick={() => {
+                      const generated = buildExcerptFromHtml(content);
+                      if (!generated) {
+                        toast({ title: "Conteúdo vazio", description: "Escreva o artigo antes de gerar o resumo.", variant: "destructive" });
+                        return;
+                      }
+                      setExcerpt(generated);
+                      toast({ title: "Resumo gerado", description: `${generated.length} caracteres a partir do conteúdo.` });
+                    }}
+                  >
+                    <FileText className="h-3 w-3" />
+                    Do conteúdo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    disabled={isGeneratingExcerpt || (!content.trim() && !title.trim())}
+                    onClick={() => generateExcerpt("generate_excerpt", { content: content || title, focusKeyword: focusKeyword || undefined })}
+                  >
+                    {isGeneratingExcerpt ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Wand2 className="h-3 w-3" />
+                    )}
+                    Gerar com IA
+                  </Button>
+                </div>
               </div>
               <div className="relative">
                 <Textarea
