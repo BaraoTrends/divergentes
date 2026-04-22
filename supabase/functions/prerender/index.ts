@@ -478,6 +478,57 @@ serve(async (req) => {
       );
     }
 
+    // SEARCH PAGE — bots see a noindex shell + SearchAction-enabled WebSite schema.
+    // Real search runs client-side from useArticles; we don't pre-resolve hits here
+    // because the long-tail of /buscar?q=... URLs should not be indexed.
+    if (path === "/buscar" || path.startsWith("/buscar?")) {
+      const websiteSchema = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: SITE_URL,
+        description: SITE_DESC,
+        inLanguage: "pt-BR",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${SITE_URL}/buscar?q={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      };
+      return new Response(
+        buildHtml({
+          title: "Buscar no site",
+          description:
+            "Busque por temas, sintomas ou termos relacionados a TDAH, TEA, Dislexia, Altas Habilidades, TOC e neurodivergências.",
+          path: "/buscar",
+          noindex: true,
+          schemas: [
+            websiteSchema,
+            buildBreadcrumbSchema([
+              { name: "Início", url: "/" },
+              { name: "Buscar", url: "/buscar" },
+            ]),
+          ],
+          body: `
+            <header><nav><a href="/">${SITE_NAME}</a></nav></header>
+            <main>
+              <h1>Buscar no site</h1>
+              <p>Procure por artigos, categorias, perguntas frequentes e termos do glossário.</p>
+              <form role="search" action="/buscar" method="get">
+                <label for="q">Termo de busca</label>
+                <input id="q" name="q" type="search" placeholder="Ex.: TDAH em adultos" />
+                <button type="submit">Buscar</button>
+              </form>
+            </main>
+          `,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=86400" } }
+      );
+    }
+
     // STATIC PAGES (FAQ, Glossário, Sobre, Contato)
     const staticPages: Record<string, { title: string; description: string; body: string }> = {
       "/perguntas-frequentes": {
