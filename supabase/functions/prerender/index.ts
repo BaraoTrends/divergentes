@@ -27,6 +27,45 @@ function stripHtml(html: string): string {
 }
 
 /**
+ * Validate and sanitize an external image URL before exposing it to crawlers.
+ * - Only http(s) allowed (https preferred — http upgraded silently to https for og:image:secure_url).
+ * - Blocks javascript:, data:, file:, vbscript: and any non-URL value.
+ * - Rejects URLs with embedded credentials (user:pass@host).
+ * Returns null if the URL is unsafe — caller should fall back to a default OG image.
+ */
+function sanitizeImageUrl(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  // Block obvious dangerous schemes early (case-insensitive, ignore whitespace).
+  if (/^(javascript|data|vbscript|file|blob):/i.test(trimmed.replace(/\s+/g, ""))) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+  if (parsed.username || parsed.password) return null;
+  // Force https output so og:image is always over secure transport.
+  if (parsed.protocol === "http:") parsed.protocol = "https:";
+  return parsed.toString();
+}
+
+/**
+ * Pick the best OG image URL for a crawler.
+ * Prefers a same-origin .webp variant when the image lives in /public,
+ * since most modern social crawlers (Facebook, X, LinkedIn, Slack, Discord)
+ * advertise WebP support. JPG remains the og:image fallback.
+ */
+function preferWebpVariant(url: string): string {
+  // Only auto-promote known same-origin OG defaults shipped in /public.
+  if (!url.startsWith(`${SITE_URL}/og-`)) return url;
+  if (!url.endsWith(".jpg")) return url;
+  return url.replace(/\.jpg$/, ".webp");
+}
+
+/**
  * Sanitize article HTML before serving it to bots.
  * Removes <script>, <style>, <iframe>, event handlers and javascript: URLs.
  * Keeps a safe subset of tags/attrs commonly used in articles.
@@ -71,7 +110,12 @@ function buildHtml(opts: {
   const rawTitle = opts.path === "/" ? `${SITE_NAME} — ${opts.title}` : `${opts.title} | ${SITE_NAME}`;
   const fullTitle = rawTitle.length > 60 ? opts.title : rawTitle;
   const canonical = `${SITE_URL}${opts.path}`;
-  const ogImage = opts.image || `${SITE_URL}/og-default.jpg`;
+
+  // Sanitize → fall back to default. Default is also normalized through the same path.
+  const safeImage = sanitizeImageUrl(opts.image) || `${SITE_URL}/og-default.jpg`;
+  const ogImage = safeImage;
+  const ogImageWebp = preferWebpVariant(safeImage);
+
   const desc = opts.description.length > 160 ? opts.description.slice(0, 157) + "..." : opts.description;
   const ogType = opts.type || "website";
 
@@ -91,6 +135,13 @@ function buildHtml(opts: {
        ${(opts.keywords || []).map((k) => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join("\n       ")}`
     : "";
 
+  // When a WebP variant is available we advertise it FIRST as og:image (most
+  // modern crawlers honor whichever appears first / use the secure_url variant).
+  // The JPG remains as a guaranteed fallback for older crawlers.
+  const hasWebp = ogImageWebp !== ogImage;
+  const ogImagePrimary = hasWebp ? ogImageWebp : ogImage;
+  const ogImageFallback = ogImage;
+
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -105,10 +156,17 @@ function buildHtml(opts: {
   <meta property="og:description" content="${escapeHtml(desc)}" />
   <meta property="og:url" content="${canonical}" />
   <meta property="og:type" content="${ogType}" />
-  <meta property="og:image" content="${ogImage}" />
+  <meta property="og:image" content="${ogImagePrimary}" />
+  <meta property="og:image:secure_url" content="${ogImagePrimary}" />
+  <meta property="og:image:type" content="${hasWebp ? "image/webp" : "image/jpeg"}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="${escapeHtml(opts.title)}" />
+  ${hasWebp ? `<meta property="og:image" content="${ogImageFallback}" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="${escapeHtml(opts.title)}" />` : ""}
   <meta property="og:site_name" content="${SITE_NAME}" />
   <meta property="og:locale" content="pt_BR" />
   ${articleMeta}
@@ -116,7 +174,7 @@ function buildHtml(opts: {
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(fullTitle)}" />
   <meta name="twitter:description" content="${escapeHtml(desc)}" />
-  <meta name="twitter:image" content="${ogImage}" />
+  <meta name="twitter:image" content="${ogImageFallback}" />
   <meta name="twitter:image:alt" content="${escapeHtml(opts.title)}" />
 
   ${schemaScripts}
@@ -359,7 +417,12 @@ serve(async (req) => {
       const rawContentHtml = isHtml ? article.content : markdownToHtml(article.content);
       const contentHtml = sanitizeArticleHtml(rawContentHtml);
       const supabaseOgUrl = `${supabaseUrl}/functions/v1/og-image?slug=${encodeURIComponent(slug)}`;
-      const image = article.image_url || supabaseOgUrl;
+      // Sanitize the article's image_url before falling back. If unsafe, use the
+      // category-themed default OG (auto-generated, textless, 1200x630).
+      const safeArticleImage = sanitizeImageUrl(article.image_url);
+      const themedDefault = `${SITE_URL}/og-${article.category}.jpg`;
+      const image = safeArticleImage || supabaseOgUrl || themedDefault;
+      const bodyImage = safeArticleImage; // only render <img> in body if URL is safe
       const datePublished = article.created_at.split("T")[0];
       const dateModified = article.updated_at.split("T")[0];
       const author = "Equipe Neurodivergências";
@@ -386,7 +449,7 @@ serve(async (req) => {
               <article>
                 <h1>${escapeHtml(article.title)}</h1>
                 <p>Por ${escapeHtml(author)} &bull; ${datePublished} &bull; ${article.read_time} min de leitura</p>
-                ${article.image_url ? `<img src="${escapeHtml(article.image_url)}" alt="${escapeHtml(article.title)}" width="1200" height="672" loading="eager" fetchpriority="high" decoding="async" />` : ""}
+                ${bodyImage ? `<img src="${escapeHtml(bodyImage)}" alt="${escapeHtml(article.title)}" width="1200" height="672" loading="eager" fetchpriority="high" decoding="async" />` : ""}
                 <div>${contentHtml}</div>
               </article>
             </main>
@@ -412,6 +475,57 @@ serve(async (req) => {
           ],
         }),
         { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600, s-maxage=86400" } }
+      );
+    }
+
+    // SEARCH PAGE — bots see a noindex shell + SearchAction-enabled WebSite schema.
+    // Real search runs client-side from useArticles; we don't pre-resolve hits here
+    // because the long-tail of /buscar?q=... URLs should not be indexed.
+    if (path === "/buscar" || path.startsWith("/buscar?")) {
+      const websiteSchema = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: SITE_URL,
+        description: SITE_DESC,
+        inLanguage: "pt-BR",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${SITE_URL}/buscar?q={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      };
+      return new Response(
+        buildHtml({
+          title: "Buscar no site",
+          description:
+            "Busque por temas, sintomas ou termos relacionados a TDAH, TEA, Dislexia, Altas Habilidades, TOC e neurodivergências.",
+          path: "/buscar",
+          noindex: true,
+          schemas: [
+            websiteSchema,
+            buildBreadcrumbSchema([
+              { name: "Início", url: "/" },
+              { name: "Buscar", url: "/buscar" },
+            ]),
+          ],
+          body: `
+            <header><nav><a href="/">${SITE_NAME}</a></nav></header>
+            <main>
+              <h1>Buscar no site</h1>
+              <p>Procure por artigos, categorias, perguntas frequentes e termos do glossário.</p>
+              <form role="search" action="/buscar" method="get">
+                <label for="q">Termo de busca</label>
+                <input id="q" name="q" type="search" placeholder="Ex.: TDAH em adultos" />
+                <button type="submit">Buscar</button>
+              </form>
+            </main>
+          `,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=86400" } }
       );
     }
 

@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-og-default.mjs && node scripts/sync-sitemap.mjs && vite build",
+    "build": "node scripts/generate-og-default.mjs && node scripts/sync-sitemap.mjs && node scripts/validate-seo-consistency.mjs && vite build",
     "build:dev": "node scripts/generate-og-default.mjs && node scripts/sync-sitemap.mjs && vite build --mode development",
     "og:generate": "node scripts/generate-og-default.mjs",
     "og:generate:force": "node scripts/generate-og-default.mjs --force",
+    "seo:validate": "node scripts/validate-seo-consistency.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

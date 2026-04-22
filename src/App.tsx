@@ -18,6 +18,7 @@ const FAQ = lazy(() => import("./pages/FAQ"));
 const Glossario = lazy(() => import("./pages/Glossario"));
 const Sobre = lazy(() => import("./pages/Sobre"));
 const Contato = lazy(() => import("./pages/Contato"));
+const Buscar = lazy(() => import("./pages/Buscar"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
@@ -56,6 +57,7 @@ const App = () => (
                   <Route path="/glossario" element={<Glossario />} />
                   <Route path="/sobre" element={<Sobre />} />
                   <Route path="/contato" element={<Contato />} />
+                  <Route path="/buscar" element={<Buscar />} />
                   <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
                   <Route path="/termos-de-uso" element={<TermosDeUso />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
