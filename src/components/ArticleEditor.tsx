@@ -27,6 +27,7 @@ import HowToStepsEditor, { type HowToStepInput } from "@/components/editor/HowTo
 import { analyzeSeo, calculateScore } from "@/lib/seoAnalysis";
 import { useAiImageGen } from "@/hooks/useAiImageGen";
 import { useAiWriter } from "@/hooks/useAiWriter";
+import { generateExcerpt as buildExcerptFromHtml } from "@/lib/excerpt";
 import type { Article } from "@/hooks/useArticles";
 
 import coverIlustracao from "@/assets/cover-styles/ilustracao.jpg";
