@@ -1,7 +1,114 @@
 {
-  "hash": "6ab6da65b031",
-  "generatedAt": "2026-04-22T00:09:57.986Z",
+  "generatedAt": "2026-04-22T00:10:08.424Z",
   "width": 1200,
   "height": 630,
-  "source": "src/index.css"
+  "source": "src/index.css",
+  "relevantTokens": [
+    "background",
+    "accent",
+    "primary",
+    "cat-tdah",
+    "cat-tea",
+    "cat-dislexia",
+    "cat-ah",
+    "cat-toc"
+  ],
+  "variants": {
+    "og-default": {
+      "hash": "87e18fef7df1",
+      "featured": null,
+      "qa": {
+        "jpg": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0
+        },
+        "webp": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0
+        }
+      }
+    },
+    "og-tdah": {
+      "hash": "bc80e0fe3631",
+      "featured": "cat-tdah",
+      "qa": {
+        "jpg": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0.01
+        },
+        "webp": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0.01
+        }
+      }
+    },
+    "og-tea": {
+      "hash": "90cb09b6a905",
+      "featured": "cat-tea",
+      "qa": {
+        "jpg": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0
+        },
+        "webp": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0
+        }
+      }
+    },
+    "og-dislexia": {
+      "hash": "3aec71c8f272",
+      "featured": "cat-dislexia",
+      "qa": {
+        "jpg": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0.01
+        },
+        "webp": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0.01
+        }
+      }
+    },
+    "og-altas-habilidades": {
+      "hash": "14354bd4069b",
+      "featured": "cat-ah",
+      "qa": {
+        "jpg": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0
+        },
+        "webp": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0
+        }
+      }
+    },
+    "og-toc": {
+      "hash": "f63fa5fa869b",
+      "featured": "cat-toc",
+      "qa": {
+        "jpg": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0.01
+        },
+        "webp": {
+          "width": 1200,
+          "height": 630,
+          "edgeDensity": 0.01
+        }
+      }
+    }
+  }
 }
