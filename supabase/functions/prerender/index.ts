@@ -417,7 +417,12 @@ serve(async (req) => {
       const rawContentHtml = isHtml ? article.content : markdownToHtml(article.content);
       const contentHtml = sanitizeArticleHtml(rawContentHtml);
       const supabaseOgUrl = `${supabaseUrl}/functions/v1/og-image?slug=${encodeURIComponent(slug)}`;
-      const image = article.image_url || supabaseOgUrl;
+      // Sanitize the article's image_url before falling back. If unsafe, use the
+      // category-themed default OG (auto-generated, textless, 1200x630).
+      const safeArticleImage = sanitizeImageUrl(article.image_url);
+      const themedDefault = `${SITE_URL}/og-${article.category}.jpg`;
+      const image = safeArticleImage || supabaseOgUrl || themedDefault;
+      const bodyImage = safeArticleImage; // only render <img> in body if URL is safe
       const datePublished = article.created_at.split("T")[0];
       const dateModified = article.updated_at.split("T")[0];
       const author = "Equipe Neurodivergências";
