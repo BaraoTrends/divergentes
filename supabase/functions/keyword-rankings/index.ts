@@ -28,11 +28,25 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   const encoder = new TextEncoder();
   const signingInput = `${header}.${payload}`;
 
-  const pemBody = serviceAccount.private_key
+  // Normalize private_key: aceitar tanto "\n" literal (escapado) quanto quebras reais
+  const normalizedPem = String(serviceAccount.private_key || "")
+    .replace(/\\n/g, "\n")
+    .trim();
+  if (!/-----BEGIN PRIVATE KEY-----/.test(normalizedPem)) {
+    throw new Error(
+      "GOOGLE_SERVICE_ACCOUNT_JSON.private_key inválida: faltam delimitadores BEGIN/END PRIVATE KEY. Recole o JSON da Service Account."
+    );
+  }
+  const pemBody = normalizedPem
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
     .replace(/-----END PRIVATE KEY-----/g, "")
     .replace(/\s/g, "");
-  const binaryKey = Uint8Array.from(atob(pemBody), (c) => c.charCodeAt(0));
+  let binaryKey: Uint8Array;
+  try {
+    binaryKey = Uint8Array.from(atob(pemBody), (c) => c.charCodeAt(0));
+  } catch {
+    throw new Error("private_key não é base64 válido. Recole o JSON original da Service Account do Google Cloud.");
+  }
 
   const key = await crypto.subtle.importKey(
     "pkcs8",
