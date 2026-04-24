@@ -47,8 +47,17 @@ const Header = () => {
       }`}
     >
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center max-w-full overflow-hidden">
-          <img src={logoImg} alt="Neuro Rotina" className="w-[500px] h-[80px] max-w-full object-contain object-left" width={500} height={80} fetchPriority="high" decoding="sync" />
+        <Link to="/" className="flex items-center max-w-full overflow-hidden h-12 md:h-16">
+          <img
+            src={logoImg}
+            alt="Neuro Rotina"
+            width={500}
+            height={80}
+            fetchPriority="high"
+            decoding="sync"
+            className="h-full w-auto max-w-full object-contain object-left"
+            style={{ aspectRatio: "500 / 80" }}
+          />
         </Link>
 
         {/* Desktop nav */}

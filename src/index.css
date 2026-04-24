@@ -1,5 +1,17 @@
 /* Google Fonts loaded via preload in index.html to avoid render-blocking */
 
+/* Fallback metrics-adjusted local font to minimize CLS during web font swap.
+   Mirrors Atkinson Hyperlegible cap-height/x-height so the FOUT is near-invisible. */
+@font-face {
+  font-family: "Atkinson Fallback";
+  src: local("Arial"), local("Helvetica"), local("sans-serif");
+  size-adjust: 100%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
