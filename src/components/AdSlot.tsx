@@ -41,7 +41,19 @@ const AdSlot = ({ slotId, format = "banner", className = "" }: AdSlotProps) => {
     });
   }, [adCode, consent]);
 
-  if (!enabled || consent !== "accepted") return null;
+  // Always reserve the slot's vertical space to prevent CLS, even when ad is disabled
+  // or consent is pending. This avoids layout shifts when ads load asynchronously.
+  if (!enabled || consent !== "accepted") {
+    return (
+      <div
+        aria-hidden="true"
+        className={`ad-slot mx-auto ${className}`}
+        data-ad-slot={slotId}
+        data-ad-state={!enabled ? "disabled" : "pending-consent"}
+        style={{ maxWidth: size.width, height: size.height, width: "100%" }}
+      />
+    );
+  }
 
   // If there's custom ad code, render it
   if (adCode) {
@@ -49,7 +61,7 @@ const AdSlot = ({ slotId, format = "banner", className = "" }: AdSlotProps) => {
       <div
         className={`ad-slot flex items-center justify-center mx-auto ${className}`}
         data-ad-slot={slotId}
-        style={{ maxWidth: size.width, minHeight: size.height }}
+        style={{ maxWidth: size.width, minHeight: size.height, height: size.height }}
         ref={containerRef}
       />
     );
@@ -60,7 +72,7 @@ const AdSlot = ({ slotId, format = "banner", className = "" }: AdSlotProps) => {
     <div
       className={`ad-slot flex items-center justify-center mx-auto ${className}`}
       data-ad-slot={slotId}
-      style={{ maxWidth: size.width, minHeight: size.height }}
+      style={{ maxWidth: size.width, minHeight: size.height, height: size.height }}
     >
       <div
         className="w-full border-2 border-dashed border-muted-foreground/20 rounded-md flex items-center justify-center text-muted-foreground/40 text-xs select-none"
