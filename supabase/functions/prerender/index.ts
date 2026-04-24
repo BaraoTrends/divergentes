@@ -60,20 +60,26 @@ function normalizeKeywords(list: string[]): string[] {
  * Build the final keyword list for an article. Combines focus_keyword + tags +
  * category keywords + brand fallback. Capped at 15.
  * MUST stay byte-identical to src/lib/keywords.ts#buildArticleKeywords.
+ * Returns [] when category is unknown — caller MUST then skip emitting
+ * <meta name="keywords"> entirely (off-schema content).
  */
 function buildArticleKeywords(input: {
   focusKeyword?: string | null;
   tags?: string[] | null;
   category?: string | null;
 }): string[] {
+  if (!input.category || !CATEGORY_KEYWORDS[input.category]) return [];
   const merged: string[] = [];
   if (input.focusKeyword) merged.push(input.focusKeyword);
   if (Array.isArray(input.tags)) merged.push(...input.tags);
-  if (input.category && CATEGORY_KEYWORDS[input.category]) {
-    merged.push(...CATEGORY_KEYWORDS[input.category]);
-  }
+  merged.push(...CATEGORY_KEYWORDS[input.category]);
   merged.push(...BRAND_KEYWORDS);
   return normalizeKeywords(merged).slice(0, 15);
+}
+
+/** Serialize keywords for <meta name="keywords">. Mirror of src/lib/keywords.ts#serializeKeywordsMeta. */
+function serializeKeywordsMeta(keywords: string[]): string {
+  return normalizeKeywords(keywords).join(", ");
 }
 
 function escapeHtml(str: string): string {
