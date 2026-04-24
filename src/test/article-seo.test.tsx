@@ -11,7 +11,7 @@
  * together they guarantee client output and prerender output stay in lock-step.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, waitFor } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -115,8 +115,10 @@ describe("Article SEO emission", () => {
       />,
     );
 
-    // react-helmet-async writes async; flush microtasks.
-    await new Promise((r) => setTimeout(r, 0));
+    // react-helmet-async writes async; wait for the keywords tag to appear.
+    await waitFor(() => {
+      expect(document.head.querySelector('meta[name="keywords"]')).not.toBeNull();
+    });
 
     // 1. <meta name="keywords">
     const kwTag = document.head.querySelector('meta[name="keywords"]') as HTMLMetaElement | null;
