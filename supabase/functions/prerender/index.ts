@@ -268,26 +268,38 @@ function buildBreadcrumbSchema(items: { name: string; url: string }[]) {
 function buildArticleSchema(data: {
   title: string; description: string; url: string; image: string;
   datePublished: string; dateModified: string; author: string;
+  authorUrl?: string;
   keywords?: string[]; articleSection?: string; wordCount?: number;
 }) {
+  const absoluteUrl = `${SITE_URL}${data.url}`;
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: data.title,
+    headline: data.title.slice(0, 110),
     description: data.description,
-    image: data.image,
+    image: { "@type": "ImageObject", url: data.image, width: 1200, height: 630 },
+    url: absoluteUrl,
     datePublished: data.datePublished,
     dateModified: data.dateModified,
     inLanguage: "pt-BR",
-    author: { "@type": "Person", name: data.author },
+    author: {
+      "@type": "Person",
+      name: data.author,
+      url: data.authorUrl || `${SITE_URL}/sobre`,
+    },
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
-      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+      url: SITE_URL,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png`, width: 512, height: 512 },
     },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}${data.url}` },
+    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl },
   };
-  if (data.keywords && data.keywords.length > 0) schema.keywords = data.keywords;
+  if (data.keywords && data.keywords.length > 0) {
+    // Schema.org: comma-separated string. Mirror the EXACT meta-keywords
+    // formatting so crawlers see one consistent list.
+    schema.keywords = serializeKeywordsMeta(data.keywords);
+  }
   if (data.articleSection) schema.articleSection = data.articleSection;
   if (data.wordCount && data.wordCount > 0) schema.wordCount = data.wordCount;
   return schema;
