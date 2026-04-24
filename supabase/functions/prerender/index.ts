@@ -196,7 +196,7 @@ function buildHtml(opts: {
        <meta property="article:modified_time" content="${opts.article.dateModified}" />
        <meta property="article:author" content="${escapeHtml(opts.article.author)}" />
        ${opts.article.section ? `<meta property="article:section" content="${escapeHtml(opts.article.section)}" />` : ""}
-       ${(opts.keywords || []).map((k) => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join("\n       ")}`
+       ${normalizeKeywords(opts.keywords || []).map((k) => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join("\n       ")}`
     : "";
 
   // When a WebP variant is available we advertise it FIRST as og:image (most
