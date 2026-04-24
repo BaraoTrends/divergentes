@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { SITE_URL, SITE_NAME, type SEOData } from "@/lib/seo";
+import { serializeKeywordsMeta, normalizeKeywords } from "@/lib/keywords";
 import { useGlobalSeo } from "@/hooks/useGlobalSeo";
 
 interface Props extends SEOData {
@@ -42,7 +43,7 @@ const SEOHead = ({ title, description, path, image, type = "website", schemas = 
       <meta name="description" content={descTrimmed} />
       <link rel="canonical" href={canonical} />
       <meta name="robots" content={robots} />
-      {keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
+      {keywords.length > 0 && <meta name="keywords" content={serializeKeywordsMeta(keywords)} />}
 
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={descTrimmed} />
@@ -71,7 +72,7 @@ const SEOHead = ({ title, description, path, image, type = "website", schemas = 
           <meta property="article:section" content={article.category} />
         </>
       )}
-      {type === "article" && keywords.length > 0 && keywords.map((kw, i) => (
+      {type === "article" && normalizeKeywords(keywords).map((kw, i) => (
         <meta key={`tag-${i}`} property="article:tag" content={kw} />
       ))}
 

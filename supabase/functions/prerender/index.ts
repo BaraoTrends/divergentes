@@ -60,20 +60,26 @@ function normalizeKeywords(list: string[]): string[] {
  * Build the final keyword list for an article. Combines focus_keyword + tags +
  * category keywords + brand fallback. Capped at 15.
  * MUST stay byte-identical to src/lib/keywords.ts#buildArticleKeywords.
+ * Returns [] when category is unknown — caller MUST then skip emitting
+ * <meta name="keywords"> entirely (off-schema content).
  */
 function buildArticleKeywords(input: {
   focusKeyword?: string | null;
   tags?: string[] | null;
   category?: string | null;
 }): string[] {
+  if (!input.category || !CATEGORY_KEYWORDS[input.category]) return [];
   const merged: string[] = [];
   if (input.focusKeyword) merged.push(input.focusKeyword);
   if (Array.isArray(input.tags)) merged.push(...input.tags);
-  if (input.category && CATEGORY_KEYWORDS[input.category]) {
-    merged.push(...CATEGORY_KEYWORDS[input.category]);
-  }
+  merged.push(...CATEGORY_KEYWORDS[input.category]);
   merged.push(...BRAND_KEYWORDS);
   return normalizeKeywords(merged).slice(0, 15);
+}
+
+/** Serialize keywords for <meta name="keywords">. Mirror of src/lib/keywords.ts#serializeKeywordsMeta. */
+function serializeKeywordsMeta(keywords: string[]): string {
+  return normalizeKeywords(keywords).join(", ");
 }
 
 function escapeHtml(str: string): string {
@@ -182,7 +188,7 @@ function buildHtml(opts: {
     .join("\n");
 
   const keywordsMeta = opts.keywords && opts.keywords.length > 0
-    ? `<meta name="keywords" content="${escapeHtml(opts.keywords.join(", "))}" />`
+    ? `<meta name="keywords" content="${escapeHtml(serializeKeywordsMeta(opts.keywords))}" />`
     : "";
 
   const articleMeta = opts.article
@@ -190,7 +196,7 @@ function buildHtml(opts: {
        <meta property="article:modified_time" content="${opts.article.dateModified}" />
        <meta property="article:author" content="${escapeHtml(opts.article.author)}" />
        ${opts.article.section ? `<meta property="article:section" content="${escapeHtml(opts.article.section)}" />` : ""}
-       ${(opts.keywords || []).map((k) => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join("\n       ")}`
+       ${normalizeKeywords(opts.keywords || []).map((k) => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join("\n       ")}`
     : "";
 
   // When a WebP variant is available we advertise it FIRST as og:image (most
@@ -262,26 +268,38 @@ function buildBreadcrumbSchema(items: { name: string; url: string }[]) {
 function buildArticleSchema(data: {
   title: string; description: string; url: string; image: string;
   datePublished: string; dateModified: string; author: string;
+  authorUrl?: string;
   keywords?: string[]; articleSection?: string; wordCount?: number;
 }) {
+  const absoluteUrl = `${SITE_URL}${data.url}`;
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: data.title,
+    headline: data.title.slice(0, 110),
     description: data.description,
-    image: data.image,
+    image: { "@type": "ImageObject", url: data.image, width: 1200, height: 630 },
+    url: absoluteUrl,
     datePublished: data.datePublished,
     dateModified: data.dateModified,
     inLanguage: "pt-BR",
-    author: { "@type": "Person", name: data.author },
+    author: {
+      "@type": "Person",
+      name: data.author,
+      url: data.authorUrl || `${SITE_URL}/sobre`,
+    },
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
-      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+      url: SITE_URL,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png`, width: 512, height: 512 },
     },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}${data.url}` },
+    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl },
   };
-  if (data.keywords && data.keywords.length > 0) schema.keywords = data.keywords;
+  if (data.keywords && data.keywords.length > 0) {
+    // Schema.org: comma-separated string. Mirror the EXACT meta-keywords
+    // formatting so crawlers see one consistent list.
+    schema.keywords = serializeKeywordsMeta(data.keywords);
+  }
   if (data.articleSection) schema.articleSection = data.articleSection;
   if (data.wordCount && data.wordCount > 0) schema.wordCount = data.wordCount;
   return schema;

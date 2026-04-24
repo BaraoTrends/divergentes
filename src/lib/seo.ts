@@ -70,29 +70,52 @@ export function generateArticleSchema(data: {
   datePublished: string;
   dateModified: string;
   author: string;
+  authorUrl?: string;
   keywords?: string[];
   articleSection?: string;
   wordCount?: number;
 }) {
+  const absoluteUrl = `${SITE_URL}${data.url}`;
+  // image as ImageObject (Google rich results prefer structured)
+  const imageObj = {
+    "@type": "ImageObject",
+    url: data.image,
+    width: 1200,
+    height: 630,
+  };
+  const author = {
+    "@type": "Person",
+    name: data.author,
+    ...(data.authorUrl ? { url: data.authorUrl } : { url: `${SITE_URL}/sobre` }),
+  };
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: data.title,
+    headline: data.title.slice(0, 110), // Google truncates >110
     description: data.description,
-    image: data.image,
+    image: imageObj,
+    url: absoluteUrl,
     datePublished: data.datePublished,
     dateModified: data.dateModified,
     inLanguage: "pt-BR",
-    author: { "@type": "Person", name: data.author },
+    author,
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
-      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/logo.png`,
+        width: 512,
+        height: 512,
+      },
     },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}${data.url}` },
+    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl },
   };
   if (data.keywords && data.keywords.length > 0) {
-    schema.keywords = data.keywords;
+    // Schema.org spec: comma-separated string. Mirror the EXACT formatting we
+    // ship in <meta name="keywords"> so crawlers see one consistent list.
+    schema.keywords = data.keywords.join(", ");
   }
   if (data.articleSection) {
     schema.articleSection = data.articleSection;

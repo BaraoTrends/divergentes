@@ -33,6 +33,7 @@ import AnunciosTab from "@/components/admin/AnunciosTab";
 import SeoTab from "@/components/admin/SeoTab";
 import MetricasTab from "@/components/admin/MetricasTab";
 import SocialPublishLogsTab from "@/components/admin/SocialPublishLogsTab";
+import SeoInspectorTab from "@/components/admin/SeoInspectorTab";
 import {
   LayoutDashboard,
   FileText,
@@ -52,7 +53,7 @@ import {
   Share2,
 } from "lucide-react";
 
-type Tab = "dashboard" | "artigos" | "metricas" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "social" | "perfil";
+type Tab = "dashboard" | "artigos" | "metricas" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "seo-inspector" | "social" | "perfil";
 type EditorMode = null | "create" | "edit";
 
 const AdminDashboard = () => {
@@ -102,6 +103,7 @@ const AdminDashboard = () => {
     { id: "usuarios" as Tab, label: "Usuários", icon: Users },
     { id: "configuracoes" as Tab, label: "Configurações", icon: Wrench },
     { id: "seo" as Tab, label: "SEO", icon: SearchIcon },
+    { id: "seo-inspector" as Tab, label: "SEO Inspector", icon: Eye },
     { id: "anuncios" as Tab, label: "Anúncios", icon: Megaphone },
     { id: "social" as Tab, label: "Autopublicação", icon: Share2 },
     { id: "perfil" as Tab, label: "Perfil", icon: Settings },
@@ -166,6 +168,7 @@ const AdminDashboard = () => {
             {activeTab === "usuarios" && <UsuariosTab />}
             {activeTab === "configuracoes" && <ConfiguracoesTab />}
             {activeTab === "seo" && <SeoTab />}
+            {activeTab === "seo-inspector" && <SeoInspectorTab />}
             {activeTab === "anuncios" && <AnunciosTab />}
             {activeTab === "social" && <SocialPublishLogsTab />}
             {activeTab === "perfil" && <PerfilTab />}
