@@ -646,6 +646,7 @@ serve(async (req) => {
           title: page.title,
           description: page.description,
           path,
+          keywords: ROUTE_KEYWORDS[path],
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>${page.body}</main>
