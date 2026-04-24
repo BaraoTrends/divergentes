@@ -50,16 +50,14 @@ const SAMPLE_ARTICLE = {
 };
 
 function renderHead(children: React.ReactElement) {
-  const helmetCtx: { helmet?: unknown } = {};
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const utils = render(
-    <HelmetProvider context={helmetCtx}>
+  return render(
+    <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>{children}</MemoryRouter>
       </QueryClientProvider>
     </HelmetProvider>,
   );
-  return { helmetCtx, ...utils };
 }
 
 beforeEach(() => {
