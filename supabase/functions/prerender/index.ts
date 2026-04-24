@@ -188,7 +188,7 @@ function buildHtml(opts: {
     .join("\n");
 
   const keywordsMeta = opts.keywords && opts.keywords.length > 0
-    ? `<meta name="keywords" content="${escapeHtml(opts.keywords.join(", "))}" />`
+    ? `<meta name="keywords" content="${escapeHtml(serializeKeywordsMeta(opts.keywords))}" />`
     : "";
 
   const articleMeta = opts.article
