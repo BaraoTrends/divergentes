@@ -3,6 +3,7 @@ import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { glossaryTerms } from "@/lib/content";
 import { generateBreadcrumbSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 
 const Glossario = () => {
   const sorted = [...glossaryTerms].sort((a, b) => a.term.localeCompare(b.term, "pt-BR"));

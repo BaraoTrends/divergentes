@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { generateBreadcrumbSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 import { toast } from "sonner";
 
 const Contato = () => {

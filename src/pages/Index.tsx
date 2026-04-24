@@ -9,6 +9,7 @@ import { categories } from "@/lib/content";
 import type { BlogPost } from "@/lib/content";
 import { categoryImages } from "@/lib/images";
 import { generateWebSiteSchema, generateOrganizationSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 import { useArticles } from "@/hooks/useArticles";
 
 const Index = () => {

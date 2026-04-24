@@ -8,6 +8,7 @@ import AdSlot from "@/components/AdSlot";
 import { blogPosts as staticPosts, categories } from "@/lib/content";
 import { useArticles } from "@/hooks/useArticles";
 import { generateBreadcrumbSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 import {
   Pagination,
   PaginationContent,

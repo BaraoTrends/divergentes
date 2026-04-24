@@ -4,6 +4,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { faqItems } from "@/lib/content";
 import { generateBreadcrumbSchema, generateFAQSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 
 const FAQ = () => {
   const breadcrumbSchema = generateBreadcrumbSchema([
