@@ -12,10 +12,24 @@ interface GoogleToken {
   access_token: string;
 }
 
+function toBase64Url(input: string | Uint8Array): string {
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
 async function getAccessToken(serviceAccount: any): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const payload = btoa(
+  const header = toBase64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const payload = toBase64Url(
     JSON.stringify({
       iss: serviceAccount.client_email,
       scope: "https://www.googleapis.com/auth/webmasters.readonly",
@@ -62,10 +76,7 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
     encoder.encode(signingInput)
   );
 
-  const sig = btoa(String.fromCharCode(...new Uint8Array(signature)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  const sig = toBase64Url(new Uint8Array(signature));
 
   const jwt = `${header}.${payload}.${sig}`;
 
