@@ -33,6 +33,7 @@ import AnunciosTab from "@/components/admin/AnunciosTab";
 import SeoTab from "@/components/admin/SeoTab";
 import MetricasTab from "@/components/admin/MetricasTab";
 import SocialPublishLogsTab from "@/components/admin/SocialPublishLogsTab";
+import SeoInspectorTab from "@/components/admin/SeoInspectorTab";
 import {
   LayoutDashboard,
   FileText,
