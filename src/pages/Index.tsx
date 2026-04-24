@@ -9,6 +9,7 @@ import { categories } from "@/lib/content";
 import type { BlogPost } from "@/lib/content";
 import { categoryImages } from "@/lib/images";
 import { generateWebSiteSchema, generateOrganizationSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 import { useArticles } from "@/hooks/useArticles";
 
 const Index = () => {
@@ -41,6 +42,7 @@ const Index = () => {
         title="TDAH, Autismo, Dislexia, Altas Habilidades e TOC"
         description="Guia completo sobre TDAH, Autismo (TEA), Dislexia, Altas Habilidades e TOC. Artigos baseados em evidências, glossário e recursos para famílias brasileiras."
         path="/"
+        keywords={ROUTE_KEYWORDS["/"]}
         schemas={[generateWebSiteSchema(), generateOrganizationSchema()]}
       />
 

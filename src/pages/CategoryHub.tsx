@@ -9,6 +9,7 @@ import { categories, blogPosts as staticPosts } from "@/lib/content";
 import type { BlogPost } from "@/lib/content";
 import { categoryImages } from "@/lib/images";
 import { generateBreadcrumbSchema } from "@/lib/seo";
+import { CATEGORY_KEYWORDS, SITE_KEYWORDS } from "@/lib/keywords";
 import { useArticles } from "@/hooks/useArticles";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -112,6 +113,7 @@ const CategoryHub = () => {
         title={category.shortName}
         description={category.description}
         path={`/${category.slug}`}
+        keywords={CATEGORY_KEYWORDS[category.slug] || SITE_KEYWORDS}
         schemas={[breadcrumbSchema]}
       />
       {categoryImages[slug] && (

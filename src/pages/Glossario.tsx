@@ -3,6 +3,7 @@ import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { glossaryTerms } from "@/lib/content";
 import { generateBreadcrumbSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 
 const Glossario = () => {
   const sorted = [...glossaryTerms].sort((a, b) => a.term.localeCompare(b.term, "pt-BR"));
@@ -17,6 +18,7 @@ const Glossario = () => {
         title="Glossário de Neurodivergências"
         description="Glossário com os principais termos relacionados a neurodivergências: definições claras e acessíveis."
         path="/glossario"
+        keywords={ROUTE_KEYWORDS["/glossario"]}
         schemas={[breadcrumbSchema]}
       />
       <div className="container py-8 md:py-12">

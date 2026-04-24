@@ -8,6 +8,7 @@ import AdSlot from "@/components/AdSlot";
 import { blogPosts as staticPosts, categories } from "@/lib/content";
 import { useArticles } from "@/hooks/useArticles";
 import { generateBreadcrumbSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 import {
   Pagination,
   PaginationContent,
@@ -116,6 +117,7 @@ const Blog = () => {
         title="Blog — Artigos sobre Neurodivergências"
         description="Artigos informativos sobre TDAH, TEA, Dislexia, Altas Habilidades, TOC e outras neurodivergências. Conteúdo baseado em evidências para o público brasileiro."
         path="/blog"
+        keywords={ROUTE_KEYWORDS["/blog"]}
         schemas={[breadcrumbSchema]}
       />
       <div className="container py-8 md:py-12">

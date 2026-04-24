@@ -2,6 +2,7 @@ import Layout from "@/components/Layout";
 import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { generateBreadcrumbSchema } from "@/lib/seo";
+import { ROUTE_KEYWORDS } from "@/lib/keywords";
 
 const Sobre = () => {
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -15,6 +16,7 @@ const Sobre = () => {
         title="Sobre"
         description="Conheça o Neurodivergências: um portal dedicado a oferecer informação acessível e confiável sobre neurodivergências para o público brasileiro."
         path="/sobre"
+        keywords={ROUTE_KEYWORDS["/sobre"]}
         schemas={[breadcrumbSchema]}
       />
       <div className="container py-8 md:py-12">

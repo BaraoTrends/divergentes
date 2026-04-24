@@ -18,6 +18,31 @@ const CATEGORIES: Record<string, { name: string; shortName: string; description:
   toc: { name: "Transtorno Obsessivo-Compulsivo", shortName: "TOC", description: "Compreenda o TOC: obsessões, compulsões, tratamento e qualidade de vida.", icon: "🔄" },
 };
 
+/**
+ * Secondary-keyword maps. MUST stay byte-identical to src/lib/keywords.ts so
+ * the build-time SEO consistency audit (scripts/validate-seo-consistency.mjs)
+ * can verify <meta name="keywords"> parity between SEOHead and prerender.
+ */
+const BRAND_KEYWORDS = [
+  "neurodivergência", "neurodiversidade", "tdah", "autismo", "tea",
+  "dislexia", "altas habilidades", "superdotação", "toc",
+];
+const ROUTE_KEYWORDS: Record<string, string[]> = {
+  "/": [...BRAND_KEYWORDS, "neurodivergência brasil", "guia neurodivergência", "informação neurodivergente", "famílias neurodivergentes"],
+  "/blog": [...BRAND_KEYWORDS, "blog neurodivergência", "artigos tdah", "artigos autismo", "artigos dislexia"],
+  "/perguntas-frequentes": [...BRAND_KEYWORDS, "dúvidas tdah", "dúvidas autismo", "perguntas neurodivergência", "faq neurodiversidade"],
+  "/glossario": [...BRAND_KEYWORDS, "glossário neurodivergência", "termos neurodivergente", "dicionário neurodiversidade", "stimming", "masking", "hiperfoco", "disfunção executiva", "comorbidade"],
+  "/sobre": [...BRAND_KEYWORDS, "sobre neurorotina", "portal neurodivergência", "informação acessível neurodiversidade"],
+  "/contato": [...BRAND_KEYWORDS, "contato neurorotina", "fale conosco neurodivergência"],
+};
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  tdah: ["tdah", "transtorno de déficit de atenção", "hiperatividade", "desatenção", "tdah adulto", "tdah infantil", "metilfenidato", "diagnóstico tdah", "tratamento tdah", "tdah brasil"],
+  tea: ["tea", "autismo", "transtorno do espectro autista", "espectro autista", "autismo infantil", "autismo adulto", "níveis de suporte autismo", "diagnóstico autismo", "intervenção precoce autismo", "stimming"],
+  dislexia: ["dislexia", "dificuldade de leitura", "transtorno de aprendizagem", "alfabetização dislexia", "diagnóstico dislexia", "estratégias dislexia", "tecnologia assistiva dislexia", "dislexia escolar"],
+  "altas-habilidades": ["altas habilidades", "superdotação", "ah/sd", "dupla excepcionalidade", "criança superdotada", "enriquecimento curricular", "identificação altas habilidades", "criatividade superdotação"],
+  toc: ["toc", "transtorno obsessivo-compulsivo", "obsessões", "compulsões", "tcc-epr", "exposição prevenção resposta", "tratamento toc", "isrs toc", "ansiedade toc"],
+};
+
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
@@ -303,6 +328,7 @@ serve(async (req) => {
           title: "Informação sobre neurodivergências",
           description: SITE_DESC,
           path: "/",
+          keywords: ROUTE_KEYWORDS["/"],
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>
@@ -342,6 +368,7 @@ serve(async (req) => {
           title: cat.shortName,
           description: cat.description,
           path,
+          keywords: CATEGORY_KEYWORDS[slug] || BRAND_KEYWORDS,
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>
@@ -375,6 +402,7 @@ serve(async (req) => {
           title: "Blog — Artigos sobre Neurodivergências",
           description: "Artigos informativos sobre TDAH, TEA, Dislexia, Altas Habilidades, TOC e outras neurodivergências.",
           path: "/blog",
+          keywords: ROUTE_KEYWORDS["/blog"],
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>
@@ -618,6 +646,7 @@ serve(async (req) => {
           title: page.title,
           description: page.description,
           path,
+          keywords: ROUTE_KEYWORDS[path],
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>${page.body}</main>
