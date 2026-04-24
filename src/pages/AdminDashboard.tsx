@@ -103,6 +103,7 @@ const AdminDashboard = () => {
     { id: "usuarios" as Tab, label: "Usuários", icon: Users },
     { id: "configuracoes" as Tab, label: "Configurações", icon: Wrench },
     { id: "seo" as Tab, label: "SEO", icon: SearchIcon },
+    { id: "seo-inspector" as Tab, label: "SEO Inspector", icon: Eye },
     { id: "anuncios" as Tab, label: "Anúncios", icon: Megaphone },
     { id: "social" as Tab, label: "Autopublicação", icon: Share2 },
     { id: "perfil" as Tab, label: "Perfil", icon: Settings },
