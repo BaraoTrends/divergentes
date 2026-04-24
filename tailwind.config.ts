@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['"Atkinson Hyperlegible"', 'system-ui', 'sans-serif'],
-        body: ['"Atkinson Hyperlegible"', 'system-ui', 'sans-serif'],
+        heading: ['"Atkinson Hyperlegible"', '"Atkinson Fallback"', 'system-ui', 'sans-serif'],
+        body: ['"Atkinson Hyperlegible"', '"Atkinson Fallback"', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

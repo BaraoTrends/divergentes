@@ -138,6 +138,17 @@
   transition: width 0.1s ease-out;
 }
 
+/* Reduce CLS for images embedded in article HTML (rich-text) that lack
+   explicit width/height attributes. Browsers will reserve a 16/9 box
+   until the image loads, then keep intrinsic ratio if available. */
+.prose img,
+article img:not([width]):not([height]) {
+  aspect-ratio: 16 / 9;
+  height: auto;
+  max-width: 100%;
+  object-fit: cover;
+}
+
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
