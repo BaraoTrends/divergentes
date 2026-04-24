@@ -53,7 +53,7 @@ import {
   Share2,
 } from "lucide-react";
 
-type Tab = "dashboard" | "artigos" | "metricas" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "social" | "perfil";
+type Tab = "dashboard" | "artigos" | "metricas" | "categorias" | "usuarios" | "configuracoes" | "anuncios" | "seo" | "seo-inspector" | "social" | "perfil";
 type EditorMode = null | "create" | "edit";
 
 const AdminDashboard = () => {
