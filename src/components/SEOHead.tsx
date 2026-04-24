@@ -72,7 +72,7 @@ const SEOHead = ({ title, description, path, image, type = "website", schemas = 
           <meta property="article:section" content={article.category} />
         </>
       )}
-      {type === "article" && keywords.length > 0 && keywords.map((kw, i) => (
+      {type === "article" && normalizeKeywords(keywords).map((kw, i) => (
         <meta key={`tag-${i}`} property="article:tag" content={kw} />
       ))}
 
