@@ -43,7 +43,7 @@ const SEOHead = ({ title, description, path, image, type = "website", schemas = 
       <meta name="description" content={descTrimmed} />
       <link rel="canonical" href={canonical} />
       <meta name="robots" content={robots} />
-      {keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
+      {keywords.length > 0 && <meta name="keywords" content={serializeKeywordsMeta(keywords)} />}
 
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={descTrimmed} />
