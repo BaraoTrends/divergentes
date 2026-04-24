@@ -328,6 +328,7 @@ serve(async (req) => {
           title: "Informação sobre neurodivergências",
           description: SITE_DESC,
           path: "/",
+          keywords: ROUTE_KEYWORDS["/"],
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>
