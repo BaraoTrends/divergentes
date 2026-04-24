@@ -15,6 +15,7 @@ const Sobre = () => {
         title="Sobre"
         description="Conheça o Neurodivergências: um portal dedicado a oferecer informação acessível e confiável sobre neurodivergências para o público brasileiro."
         path="/sobre"
+        keywords={ROUTE_KEYWORDS["/sobre"]}
         schemas={[breadcrumbSchema]}
       />
       <div className="container py-8 md:py-12">

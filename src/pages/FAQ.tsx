@@ -18,6 +18,7 @@ const FAQ = () => {
         title="Perguntas Frequentes"
         description="Respostas para as dúvidas mais comuns sobre TDAH, TEA, Dislexia, Altas Habilidades, TOC e outras neurodivergências."
         path="/perguntas-frequentes"
+        keywords={ROUTE_KEYWORDS["/perguntas-frequentes"]}
         schemas={[breadcrumbSchema, faqSchema]}
       />
       <div className="container py-8 md:py-12">

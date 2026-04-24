@@ -112,6 +112,7 @@ const CategoryHub = () => {
         title={category.shortName}
         description={category.description}
         path={`/${category.slug}`}
+        keywords={CATEGORY_KEYWORDS[category.slug] || SITE_KEYWORDS}
         schemas={[breadcrumbSchema]}
       />
       {categoryImages[slug] && (

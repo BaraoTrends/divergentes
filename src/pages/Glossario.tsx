@@ -17,6 +17,7 @@ const Glossario = () => {
         title="Glossário de Neurodivergências"
         description="Glossário com os principais termos relacionados a neurodivergências: definições claras e acessíveis."
         path="/glossario"
+        keywords={ROUTE_KEYWORDS["/glossario"]}
         schemas={[breadcrumbSchema]}
       />
       <div className="container py-8 md:py-12">

@@ -28,6 +28,7 @@ const Contato = () => {
         title="Contato"
         description="Entre em contato com a equipe do Neurodivergências. Envie dúvidas, sugestões ou colaborações."
         path="/contato"
+        keywords={ROUTE_KEYWORDS["/contato"]}
         schemas={[breadcrumbSchema]}
       />
       <div className="container py-8 md:py-12">

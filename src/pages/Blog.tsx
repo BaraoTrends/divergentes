@@ -116,6 +116,7 @@ const Blog = () => {
         title="Blog — Artigos sobre Neurodivergências"
         description="Artigos informativos sobre TDAH, TEA, Dislexia, Altas Habilidades, TOC e outras neurodivergências. Conteúdo baseado em evidências para o público brasileiro."
         path="/blog"
+        keywords={ROUTE_KEYWORDS["/blog"]}
         schemas={[breadcrumbSchema]}
       />
       <div className="container py-8 md:py-12">
