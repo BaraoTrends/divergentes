@@ -166,20 +166,35 @@ export function normalizeKeywords(list: string[]): string[] {
  * Result is normalized (lowercase, trimmed, deduped) and capped at 15 entries
  * to avoid spam-looking meta tags.
  *
- * MUST stay byte-identical to the implementation in
- * supabase/functions/prerender/index.ts.
+ * Returns an empty array if the category is unknown — callers should treat
+ * that as "skip this article" so we don't ship a meta-keywords tag built
+ * solely from BRAND_KEYWORDS for off-schema content.
  */
 export function buildArticleKeywords(input: {
   focusKeyword?: string | null;
   tags?: string[] | null;
   category?: string | null;
 }): string[] {
+  if (!input.category || !CATEGORY_KEYWORDS[input.category]) return [];
   const merged: string[] = [];
   if (input.focusKeyword) merged.push(input.focusKeyword);
   if (Array.isArray(input.tags)) merged.push(...input.tags);
-  if (input.category && CATEGORY_KEYWORDS[input.category]) {
-    merged.push(...CATEGORY_KEYWORDS[input.category]);
-  }
+  merged.push(...CATEGORY_KEYWORDS[input.category]);
   merged.push(...BRAND_KEYWORDS);
   return normalizeKeywords(merged).slice(0, 15);
+}
+
+/**
+ * Serialize a keyword array into the EXACT string used by
+ * `<meta name="keywords" content="...">`. ALL emitters (SEOHead, prerender,
+ * build-time validator) MUST go through this so byte-level comparisons stay
+ * meaningful.
+ */
+export function serializeKeywordsMeta(keywords: string[]): string {
+  return normalizeKeywords(keywords).join(", ");
+}
+
+/** Inverse of serializeKeywordsMeta — used by the validator. */
+export function parseKeywordsMeta(content: string): string[] {
+  return normalizeKeywords(content.split(",").map((s) => s.trim()));
 }
