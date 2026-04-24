@@ -168,6 +168,7 @@ const AdminDashboard = () => {
             {activeTab === "usuarios" && <UsuariosTab />}
             {activeTab === "configuracoes" && <ConfiguracoesTab />}
             {activeTab === "seo" && <SeoTab />}
+            {activeTab === "seo-inspector" && <SeoInspectorTab />}
             {activeTab === "anuncios" && <AnunciosTab />}
             {activeTab === "social" && <SocialPublishLogsTab />}
             {activeTab === "perfil" && <PerfilTab />}
