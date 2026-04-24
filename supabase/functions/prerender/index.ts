@@ -368,6 +368,7 @@ serve(async (req) => {
           title: cat.shortName,
           description: cat.description,
           path,
+          keywords: CATEGORY_KEYWORDS[slug] || BRAND_KEYWORDS,
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>
@@ -401,6 +402,7 @@ serve(async (req) => {
           title: "Blog — Artigos sobre Neurodivergências",
           description: "Artigos informativos sobre TDAH, TEA, Dislexia, Altas Habilidades, TOC e outras neurodivergências.",
           path: "/blog",
+          keywords: ROUTE_KEYWORDS["/blog"],
           body: `
             <header><nav><a href="/">${SITE_NAME}</a></nav></header>
             <main>
