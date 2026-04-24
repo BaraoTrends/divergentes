@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { SITE_URL, SITE_NAME, type SEOData } from "@/lib/seo";
+import { serializeKeywordsMeta, normalizeKeywords } from "@/lib/keywords";
 import { useGlobalSeo } from "@/hooks/useGlobalSeo";
 
 interface Props extends SEOData {
