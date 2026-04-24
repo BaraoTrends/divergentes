@@ -43,6 +43,39 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   toc: ["toc", "transtorno obsessivo-compulsivo", "obsessões", "compulsões", "tcc-epr", "exposição prevenção resposta", "tratamento toc", "isrs toc", "ansiedade toc"],
 };
 
+/** Normalize: lowercase, trim, dedupe. Mirror of src/lib/keywords.ts. */
+function normalizeKeywords(list: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const k of list) {
+    const v = (k || "").toLowerCase().trim();
+    if (!v || seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
+/**
+ * Build the final keyword list for an article. Combines focus_keyword + tags +
+ * category keywords + brand fallback. Capped at 15.
+ * MUST stay byte-identical to src/lib/keywords.ts#buildArticleKeywords.
+ */
+function buildArticleKeywords(input: {
+  focusKeyword?: string | null;
+  tags?: string[] | null;
+  category?: string | null;
+}): string[] {
+  const merged: string[] = [];
+  if (input.focusKeyword) merged.push(input.focusKeyword);
+  if (Array.isArray(input.tags)) merged.push(...input.tags);
+  if (input.category && CATEGORY_KEYWORDS[input.category]) {
+    merged.push(...CATEGORY_KEYWORDS[input.category]);
+  }
+  merged.push(...BRAND_KEYWORDS);
+  return normalizeKeywords(merged).slice(0, 15);
+}
+
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
@@ -456,10 +489,11 @@ serve(async (req) => {
       const author = "Equipe Neurodivergências";
       const plainContent = stripHtml(contentHtml);
       const wordCount = plainContent ? plainContent.split(/\s+/).filter(Boolean).length : 0;
-      const articleKeywords = [
-        ...(article.focus_keyword ? [article.focus_keyword] : []),
-        ...(article.tags || []),
-      ].filter(Boolean) as string[];
+      const articleKeywords = buildArticleKeywords({
+        focusKeyword: article.focus_keyword,
+        tags: article.tags,
+        category: article.category,
+      });
       const categoryShortName = CATEGORIES[article.category]?.shortName || article.category;
 
       return new Response(

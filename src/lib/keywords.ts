@@ -156,3 +156,30 @@ export function normalizeKeywords(list: string[]): string[] {
   }
   return out;
 }
+
+/**
+ * Build the final keyword list for a single article. Combines:
+ *   1. focus_keyword (highest priority)
+ *   2. article tags
+ *   3. category-specific keywords (from CATEGORY_KEYWORDS)
+ *   4. brand fallback (so even untagged articles ship something)
+ * Result is normalized (lowercase, trimmed, deduped) and capped at 15 entries
+ * to avoid spam-looking meta tags.
+ *
+ * MUST stay byte-identical to the implementation in
+ * supabase/functions/prerender/index.ts.
+ */
+export function buildArticleKeywords(input: {
+  focusKeyword?: string | null;
+  tags?: string[] | null;
+  category?: string | null;
+}): string[] {
+  const merged: string[] = [];
+  if (input.focusKeyword) merged.push(input.focusKeyword);
+  if (Array.isArray(input.tags)) merged.push(...input.tags);
+  if (input.category && CATEGORY_KEYWORDS[input.category]) {
+    merged.push(...CATEGORY_KEYWORDS[input.category]);
+  }
+  merged.push(...BRAND_KEYWORDS);
+  return normalizeKeywords(merged).slice(0, 15);
+}

@@ -15,6 +15,7 @@ import { blogImages } from "@/lib/images";
 import { useArticleBySlug, useArticles } from "@/hooks/useArticles";
 import { useArticleTracking } from "@/hooks/useArticleTracking";
 import { generateBreadcrumbSchema, generateArticleSchema, generateFAQSchema, generateHowToSchema, extractFAQsFromHtml, SITE_URL, type HowToStep } from "@/lib/seo";
+import { buildArticleKeywords } from "@/lib/keywords";
 import { countWords } from "@/lib/seoAnalysis";
 import { Clock, Calendar } from "lucide-react";
 import type { BlogPost as BlogPostType } from "@/lib/content";
@@ -74,10 +75,11 @@ const BlogPost = () => {
   const ogImageEndpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-image?slug=${encodeURIComponent(post.slug)}`;
   const ogImage = articleImage.startsWith("http") ? articleImage : articleImage ? `${SITE_URL}${articleImage}` : ogImageEndpoint;
 
-  const articleKeywords = [
-    ...(dbArticle?.focus_keyword ? [dbArticle.focus_keyword] : []),
-    ...(dbArticle?.tags || []),
-  ].filter(Boolean);
+  const articleKeywords = buildArticleKeywords({
+    focusKeyword: dbArticle?.focus_keyword,
+    tags: dbArticle?.tags,
+    category: post.category,
+  });
 
   const articleSchema = generateArticleSchema({
     title: post.title,
