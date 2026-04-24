@@ -456,10 +456,11 @@ serve(async (req) => {
       const author = "Equipe Neurodivergências";
       const plainContent = stripHtml(contentHtml);
       const wordCount = plainContent ? plainContent.split(/\s+/).filter(Boolean).length : 0;
-      const articleKeywords = [
-        ...(article.focus_keyword ? [article.focus_keyword] : []),
-        ...(article.tags || []),
-      ].filter(Boolean) as string[];
+      const articleKeywords = buildArticleKeywords({
+        focusKeyword: article.focus_keyword,
+        tags: article.tags,
+        category: article.category,
+      });
       const categoryShortName = CATEGORIES[article.category]?.shortName || article.category;
 
       return new Response(
