@@ -135,7 +135,7 @@ serve(async (req) => {
     }
 
     // Generate SVG
-    const svg = generateOgSvg(article.title, article.category, "Neurodivergências");
+    const svg = generateOgSvg(article.title, article.category, "Neuro Rotina");
 
     // Convert SVG → PNG via resvg-wasm
     const pngData: Uint8Array = await renderSvgToPng(svg);

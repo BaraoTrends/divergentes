@@ -32,7 +32,7 @@ export const useGlobalSeo = (): GlobalSeo | null => {
       twitterCard: get("seo_twitter_card") || "summary_large_image",
       twitterHandle: get("seo_twitter_handle"),
       robotsDefault: get("seo_robots_default") || "index, follow",
-      orgName: get("seo_org_name") || "Neurodivergências",
+      orgName: get("seo_org_name") || "Neuro Rotina",
       orgLogo: get("seo_org_logo"),
       facebookAppId: get("seo_facebook_app_id"),
       googleVerification: get("seo_google_verification") || get("google_verification"),
