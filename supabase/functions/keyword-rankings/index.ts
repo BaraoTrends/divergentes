@@ -26,6 +26,43 @@ function toBase64Url(input: string | Uint8Array): string {
     .replace(/=+$/, "");
 }
 
+function normalizePrivateKey(raw: string): Uint8Array {
+  if (!raw) throw new Error("private_key vazia.");
+  let pem = raw
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
+
+  if (/-----BEGIN RSA PRIVATE KEY-----/.test(pem)) {
+    throw new Error(
+      "private_key está em formato PKCS#1 (RSA PRIVATE KEY). O Google emite chaves PKCS#8 (BEGIN PRIVATE KEY). Recole o JSON original da Service Account."
+    );
+  }
+  if (!/-----BEGIN PRIVATE KEY-----/.test(pem) || !/-----END PRIVATE KEY-----/.test(pem)) {
+    throw new Error(
+      "private_key inválida: faltam delimitadores BEGIN/END PRIVATE KEY. Recole o JSON original da Service Account."
+    );
+  }
+
+  const begin = "-----BEGIN PRIVATE KEY-----";
+  const end = "-----END PRIVATE KEY-----";
+  const body = pem
+    .slice(pem.indexOf(begin) + begin.length, pem.indexOf(end))
+    .replace(/\s+/g, "");
+
+  if (!/^[A-Za-z0-9+/=]+$/.test(body)) {
+    throw new Error("private_key contém caracteres não-base64. Recole o JSON original.");
+  }
+
+  try {
+    return Uint8Array.from(atob(body), (c) => c.charCodeAt(0));
+  } catch {
+    throw new Error("private_key não é base64 válido. Recole o JSON original da Service Account.");
+  }
+}
+
 async function getAccessToken(serviceAccount: any): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const header = toBase64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
@@ -42,25 +79,7 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   const encoder = new TextEncoder();
   const signingInput = `${header}.${payload}`;
 
-  // Normalize private_key: aceitar tanto "\n" literal (escapado) quanto quebras reais
-  const normalizedPem = String(serviceAccount.private_key || "")
-    .replace(/\\n/g, "\n")
-    .trim();
-  if (!/-----BEGIN PRIVATE KEY-----/.test(normalizedPem)) {
-    throw new Error(
-      "GOOGLE_SERVICE_ACCOUNT_JSON.private_key inválida: faltam delimitadores BEGIN/END PRIVATE KEY. Recole o JSON da Service Account."
-    );
-  }
-  const pemBody = normalizedPem
-    .replace(/-----BEGIN PRIVATE KEY-----/g, "")
-    .replace(/-----END PRIVATE KEY-----/g, "")
-    .replace(/\s/g, "");
-  let binaryKey: Uint8Array;
-  try {
-    binaryKey = Uint8Array.from(atob(pemBody), (c) => c.charCodeAt(0));
-  } catch {
-    throw new Error("private_key não é base64 válido. Recole o JSON original da Service Account do Google Cloud.");
-  }
+  const binaryKey = normalizePrivateKey(String(serviceAccount.private_key || ""));
 
   const key = await crypto.subtle.importKey(
     "pkcs8",
@@ -134,16 +153,41 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const saJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // DB-first lookup (managed via Admin SEO panel), fallback to env secret
+    const { data: dbSecret } = await supabase
+      .from("integration_secrets")
+      .select("value")
+      .eq("key", "GOOGLE_SERVICE_ACCOUNT_JSON")
+      .maybeSingle();
+
+    const saJson = dbSecret?.value ?? Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
     if (!saJson) {
       return new Response(
-        JSON.stringify({ error: "GOOGLE_SERVICE_ACCOUNT_JSON not configured" }),
+        JSON.stringify({ error: "GOOGLE_SERVICE_ACCOUNT_JSON não configurada. Adicione a chave no painel Admin → SEO." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const serviceAccount = JSON.parse(saJson);
-    const body = await req.json();
+    let serviceAccount: any;
+    try {
+      serviceAccount = JSON.parse(saJson);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "GOOGLE_SERVICE_ACCOUNT_JSON não é um JSON válido. Recole o arquivo original da Service Account." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!serviceAccount.client_email || !serviceAccount.private_key) {
+      return new Response(
+        JSON.stringify({ error: "JSON da Service Account incompleto: faltam 'client_email' e/ou 'private_key'." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const body = await req.json().catch(() => ({}));
     const {
       siteUrl = "https://neurorotina.com/",
       startDate,
@@ -156,7 +200,6 @@ Deno.serve(async (req) => {
     const start = startDate || new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
     const accessToken = await getAccessToken(serviceAccount);
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     let totalInserted = 0;
 
