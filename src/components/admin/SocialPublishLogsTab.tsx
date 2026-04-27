@@ -143,8 +143,44 @@ const SocialPublishLogsTab = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Filtrar por status:</span>
+      <div className="bg-card border rounded-lg p-4 space-y-3">
+        <div>
+          <h2 className="font-semibold text-foreground flex items-center gap-2">
+            <Send className="h-4 w-4" />
+            Envio manual
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Reenvia um artigo já publicado para o webhook de autopublicação (Make.com).
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Select value={selectedArticleId} onValueChange={setSelectedArticleId}>
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Selecione um artigo publicado..." />
+            </SelectTrigger>
+            <SelectContent>
+              {articles.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            onClick={handleManualPublish}
+            disabled={!selectedArticleId || isPublishing}
+            className="sm:w-auto"
+          >
+            {isPublishing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4 mr-2" />
+            )}
+            Enviar para autopublicação
+          </Button>
+        </div>
+      </div>
+
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue />
