@@ -26,6 +26,43 @@ function toBase64Url(input: string | Uint8Array): string {
     .replace(/=+$/, "");
 }
 
+function normalizePrivateKey(raw: string): Uint8Array {
+  if (!raw) throw new Error("private_key vazia.");
+  let pem = raw
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
+
+  if (/-----BEGIN RSA PRIVATE KEY-----/.test(pem)) {
+    throw new Error(
+      "private_key está em formato PKCS#1 (RSA PRIVATE KEY). O Google emite chaves PKCS#8 (BEGIN PRIVATE KEY). Recole o JSON original da Service Account."
+    );
+  }
+  if (!/-----BEGIN PRIVATE KEY-----/.test(pem) || !/-----END PRIVATE KEY-----/.test(pem)) {
+    throw new Error(
+      "private_key inválida: faltam delimitadores BEGIN/END PRIVATE KEY. Recole o JSON original da Service Account."
+    );
+  }
+
+  const begin = "-----BEGIN PRIVATE KEY-----";
+  const end = "-----END PRIVATE KEY-----";
+  const body = pem
+    .slice(pem.indexOf(begin) + begin.length, pem.indexOf(end))
+    .replace(/\s+/g, "");
+
+  if (!/^[A-Za-z0-9+/=]+$/.test(body)) {
+    throw new Error("private_key contém caracteres não-base64. Recole o JSON original.");
+  }
+
+  try {
+    return Uint8Array.from(atob(body), (c) => c.charCodeAt(0));
+  } catch {
+    throw new Error("private_key não é base64 válido. Recole o JSON original da Service Account.");
+  }
+}
+
 async function getAccessToken(serviceAccount: any): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const header = toBase64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
@@ -42,25 +79,7 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   const encoder = new TextEncoder();
   const signingInput = `${header}.${payload}`;
 
-  // Normalize private_key: aceitar tanto "\n" literal (escapado) quanto quebras reais
-  const normalizedPem = String(serviceAccount.private_key || "")
-    .replace(/\\n/g, "\n")
-    .trim();
-  if (!/-----BEGIN PRIVATE KEY-----/.test(normalizedPem)) {
-    throw new Error(
-      "GOOGLE_SERVICE_ACCOUNT_JSON.private_key inválida: faltam delimitadores BEGIN/END PRIVATE KEY. Recole o JSON da Service Account."
-    );
-  }
-  const pemBody = normalizedPem
-    .replace(/-----BEGIN PRIVATE KEY-----/g, "")
-    .replace(/-----END PRIVATE KEY-----/g, "")
-    .replace(/\s/g, "");
-  let binaryKey: Uint8Array;
-  try {
-    binaryKey = Uint8Array.from(atob(pemBody), (c) => c.charCodeAt(0));
-  } catch {
-    throw new Error("private_key não é base64 válido. Recole o JSON original da Service Account do Google Cloud.");
-  }
+  const binaryKey = normalizePrivateKey(String(serviceAccount.private_key || ""));
 
   const key = await crypto.subtle.importKey(
     "pkcs8",
