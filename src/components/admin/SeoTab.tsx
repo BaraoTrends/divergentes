@@ -39,6 +39,7 @@ import {
   Bell,
   Target,
   Lightbulb,
+  KeyRound,
 } from "lucide-react";
 
 const SeoTab = () => {
