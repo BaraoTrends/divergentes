@@ -153,16 +153,39 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const saJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // DB-first lookup (managed via Admin SEO panel), fallback to env secret
+    const { data: dbSecret } = await supabase
+      .from("integration_secrets")
+      .select("value")
+      .eq("key", "GOOGLE_SERVICE_ACCOUNT_JSON")
+      .maybeSingle();
+
+    const saJson = dbSecret?.value ?? Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
     if (!saJson) {
       return new Response(
-        JSON.stringify({ error: "GOOGLE_SERVICE_ACCOUNT_JSON not configured" }),
+        JSON.stringify({ error: "GOOGLE_SERVICE_ACCOUNT_JSON não configurada. Adicione a chave no painel Admin → SEO." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const serviceAccount = JSON.parse(saJson);
-    const body = await req.json();
+    let serviceAccount: any;
+    try {
+      serviceAccount = JSON.parse(saJson);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "GOOGLE_SERVICE_ACCOUNT_JSON não é um JSON válido. Recole o arquivo original da Service Account." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!serviceAccount.client_email || !serviceAccount.private_key) {
+      return new Response(
+        JSON.stringify({ error: "JSON da Service Account incompleto: faltam 'client_email' e/ou 'private_key'." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const {
       siteUrl = "https://neurorotina.com/",
       startDate,
