@@ -186,6 +186,8 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const body = await req.json().catch(() => ({}));
     const {
       siteUrl = "https://neurorotina.com/",
       startDate,
@@ -198,7 +200,6 @@ Deno.serve(async (req) => {
     const start = startDate || new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
     const accessToken = await getAccessToken(serviceAccount);
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     let totalInserted = 0;
 
