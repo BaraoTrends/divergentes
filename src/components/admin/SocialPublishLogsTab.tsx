@@ -28,7 +28,61 @@ interface SocialPublishLog {
 
 const SocialPublishLogsTab = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [selectedArticleId, setSelectedArticleId] = useState<string>("");
+  const [isPublishing, setIsPublishing] = useState(false);
   const queryClient = useQueryClient();
+
+  const { data: articles = [] } = useQuery({
+    queryKey: ["admin-published-articles-for-social"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("id, title, slug, excerpt, image_url, category, tags, created_at, published")
+        .eq("published", true)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const handleManualPublish = async () => {
+    if (!selectedArticleId) {
+      toast.error("Selecione um artigo para publicar.");
+      return;
+    }
+    const article = articles.find((a) => a.id === selectedArticleId);
+    if (!article) {
+      toast.error("Artigo não encontrado.");
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("social-publish", {
+        body: {
+          id: article.id,
+          title: article.title,
+          slug: article.slug,
+          excerpt: article.excerpt,
+          cover_image_url: article.image_url,
+          created_at: article.created_at,
+          tags: article.tags ?? [],
+          category: article.category,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Artigo enviado para autopublicação!");
+      queryClient.invalidateQueries({ queryKey: ["social-publish-logs"] });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Falha ao enviar";
+      toast.error(`Erro: ${msg}`);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
 
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ["social-publish-logs", statusFilter],
