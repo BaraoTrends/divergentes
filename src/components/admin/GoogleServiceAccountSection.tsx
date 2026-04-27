@@ -9,6 +9,9 @@ import { Loader2, Save, Trash2, KeyRound, CheckCircle2, AlertTriangle } from "lu
 
 const SECRET_KEY = "GOOGLE_SERVICE_ACCOUNT_JSON";
 
+const PRIVATE_KEY_BEGIN = "-----BEGIN PRIVATE KEY-----";
+const PRIVATE_KEY_END = "-----END PRIVATE KEY-----";
+
 interface StoredSecret {
   id: string;
   key: string;
@@ -54,6 +57,50 @@ const GoogleServiceAccountSection = () => {
     load();
   }, []);
 
+  const normalizePrivateKey = (raw: unknown): { ok: boolean; error?: string; value?: string } => {
+    if (typeof raw !== "string" || !raw.trim()) {
+      return { ok: false, error: "private_key ausente ou vazia." };
+    }
+
+    if (/-----BEGIN RSA PRIVATE KEY-----/.test(raw)) {
+      return { ok: false, error: "Use uma chave de Service Account em formato PKCS#8 (BEGIN PRIVATE KEY), não RSA PRIVATE KEY." };
+    }
+
+    const pem = raw
+      .trim()
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .replace(/\\n/g, "\n");
+
+    const beginIndex = pem.indexOf(PRIVATE_KEY_BEGIN);
+    const endIndex = pem.indexOf(PRIVATE_KEY_END);
+
+    if (beginIndex === -1 || endIndex === -1) {
+      return { ok: false, error: `private_key precisa conter os cabeçalhos ${PRIVATE_KEY_BEGIN} e ${PRIVATE_KEY_END}.` };
+    }
+    if (endIndex <= beginIndex) {
+      return { ok: false, error: "private_key está com os cabeçalhos fora de ordem." };
+    }
+
+    const body = pem.slice(beginIndex + PRIVATE_KEY_BEGIN.length, endIndex).replace(/\s/g, "");
+    if (!body) {
+      return { ok: false, error: "private_key não contém o corpo base64 entre os cabeçalhos." };
+    }
+    if (!/^[A-Za-z0-9+/=]+$/.test(body) || body.length % 4 === 1) {
+      return { ok: false, error: "private_key contém caracteres base64 inválidos." };
+    }
+
+    const paddedBody = body.padEnd(Math.ceil(body.length / 4) * 4, "=");
+    try {
+      atob(paddedBody);
+    } catch {
+      return { ok: false, error: "private_key não é base64 válido. Recole o JSON original da Service Account." };
+    }
+
+    const wrappedBody = paddedBody.match(/.{1,64}/g)?.join("\n") || paddedBody;
+    return { ok: true, value: `${PRIVATE_KEY_BEGIN}\n${wrappedBody}\n${PRIVATE_KEY_END}\n` };
+  };
+
   const validate = (text: string): { ok: boolean; error?: string; data?: any } => {
     try {
       const parsed = JSON.parse(text);
@@ -63,9 +110,11 @@ const GoogleServiceAccountSection = () => {
       if (!parsed.client_email || !parsed.private_key) {
         return { ok: false, error: "JSON sem client_email ou private_key." };
       }
-      if (!/-----BEGIN PRIVATE KEY-----/.test(parsed.private_key)) {
-        return { ok: false, error: "private_key não contém o cabeçalho BEGIN PRIVATE KEY." };
+      const normalizedKey = normalizePrivateKey(parsed.private_key);
+      if (!normalizedKey.ok) {
+        return { ok: false, error: normalizedKey.error };
       }
+      parsed.private_key = normalizedKey.value;
       return { ok: true, data: parsed };
     } catch (e: any) {
       return { ok: false, error: "JSON malformado: " + e.message };

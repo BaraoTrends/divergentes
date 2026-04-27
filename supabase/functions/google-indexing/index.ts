@@ -6,6 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const PRIVATE_KEY_BEGIN = "-----BEGIN PRIVATE KEY-----";
+const PRIVATE_KEY_END = "-----END PRIVATE KEY-----";
+
 /**
  * Google Indexing API edge function.
  * 
@@ -34,22 +37,11 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
 
   const unsignedToken = `${enc(header)}.${enc(payload)}`;
 
-  // Import the RSA private key — aceitar "\n" literal (escapado) ou quebras reais
-  const normalizedPem = String(serviceAccount.private_key || "")
-    .replace(/\\n/g, "\n")
-    .trim();
-  if (!/-----BEGIN PRIVATE KEY-----/.test(normalizedPem)) {
-    throw new Error(
-      "GOOGLE_SERVICE_ACCOUNT_JSON.private_key inválida: faltam delimitadores BEGIN/END PRIVATE KEY. Recole o JSON da Service Account."
-    );
-  }
-  const pemContents = normalizedPem
-    .replace(/-----BEGIN PRIVATE KEY-----/, "")
-    .replace(/-----END PRIVATE KEY-----/, "")
-    .replace(/\s/g, "");
+  const pemContents = normalizePrivateKey(serviceAccount.private_key);
   let binaryKey: Uint8Array;
   try {
-    binaryKey = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+    const padded = pemContents.padEnd(Math.ceil(pemContents.length / 4) * 4, "=");
+    binaryKey = Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
   } catch {
     throw new Error("private_key não é base64 válido. Recole o JSON original da Service Account do Google Cloud.");
   }
@@ -89,6 +81,42 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
 
   const { access_token } = await tokenRes.json();
   return access_token;
+}
+
+function normalizePrivateKey(raw: unknown): string {
+  if (typeof raw !== "string" || !raw.trim()) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON.private_key ausente ou vazia.");
+  }
+
+  if (/-----BEGIN RSA PRIVATE KEY-----/.test(raw)) {
+    throw new Error("private_key em formato incompatível: use Service Account PKCS#8 com BEGIN PRIVATE KEY, não RSA PRIVATE KEY.");
+  }
+
+  const pem = raw
+    .trim()
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\\n/g, "\n");
+
+  const beginIndex = pem.indexOf(PRIVATE_KEY_BEGIN);
+  const endIndex = pem.indexOf(PRIVATE_KEY_END);
+
+  if (beginIndex === -1 || endIndex === -1) {
+    throw new Error(`GOOGLE_SERVICE_ACCOUNT_JSON.private_key inválida: faltam os delimitadores ${PRIVATE_KEY_BEGIN} e ${PRIVATE_KEY_END}.`);
+  }
+  if (endIndex <= beginIndex) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON.private_key inválida: delimitadores BEGIN/END estão fora de ordem.");
+  }
+
+  const body = pem.slice(beginIndex + PRIVATE_KEY_BEGIN.length, endIndex).replace(/\s/g, "");
+  if (!body) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON.private_key inválida: corpo base64 vazio entre BEGIN/END PRIVATE KEY.");
+  }
+  if (!/^[A-Za-z0-9+/=]+$/.test(body) || body.length % 4 === 1) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON.private_key inválida: corpo base64 contém caracteres inválidos.");
+  }
+
+  return body;
 }
 
 serve(async (req) => {
