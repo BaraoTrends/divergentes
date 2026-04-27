@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, XCircle, RefreshCw, Share2 } from "lucide-react";
+import { CheckCircle2, XCircle, RefreshCw, Share2, Send, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 type StatusFilter = "all" | "success" | "error";
 
@@ -27,7 +28,61 @@ interface SocialPublishLog {
 
 const SocialPublishLogsTab = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [selectedArticleId, setSelectedArticleId] = useState<string>("");
+  const [isPublishing, setIsPublishing] = useState(false);
   const queryClient = useQueryClient();
+
+  const { data: articles = [] } = useQuery({
+    queryKey: ["admin-published-articles-for-social"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("id, title, slug, excerpt, image_url, category, tags, created_at, published")
+        .eq("published", true)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const handleManualPublish = async () => {
+    if (!selectedArticleId) {
+      toast.error("Selecione um artigo para publicar.");
+      return;
+    }
+    const article = articles.find((a) => a.id === selectedArticleId);
+    if (!article) {
+      toast.error("Artigo não encontrado.");
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("social-publish", {
+        body: {
+          id: article.id,
+          title: article.title,
+          slug: article.slug,
+          excerpt: article.excerpt,
+          cover_image_url: article.image_url,
+          created_at: article.created_at,
+          tags: article.tags ?? [],
+          category: article.category,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Artigo enviado para autopublicação!");
+      queryClient.invalidateQueries({ queryKey: ["social-publish-logs"] });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Falha ao enviar";
+      toast.error(`Erro: ${msg}`);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
 
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ["social-publish-logs", statusFilter],
@@ -88,6 +143,43 @@ const SocialPublishLogsTab = () => {
         </div>
       </div>
 
+      <div className="bg-card border rounded-lg p-4 space-y-3">
+        <div>
+          <h2 className="font-semibold text-foreground flex items-center gap-2">
+            <Send className="h-4 w-4" />
+            Envio manual
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Reenvia um artigo já publicado para o webhook de autopublicação (Make.com).
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Select value={selectedArticleId} onValueChange={setSelectedArticleId}>
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Selecione um artigo publicado..." />
+            </SelectTrigger>
+            <SelectContent>
+              {articles.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            onClick={handleManualPublish}
+            disabled={!selectedArticleId || isPublishing}
+            className="sm:w-auto"
+          >
+            {isPublishing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4 mr-2" />
+            )}
+            Enviar para autopublicação
+          </Button>
+        </div>
+      </div>
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Filtrar por status:</span>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
@@ -101,6 +193,7 @@ const SocialPublishLogsTab = () => {
           </SelectContent>
         </Select>
       </div>
+
 
       <div className="bg-card border rounded-lg overflow-hidden">
         <Table>
