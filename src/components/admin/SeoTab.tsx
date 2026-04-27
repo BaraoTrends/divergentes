@@ -13,6 +13,7 @@ import InternalLinksSection from "@/components/admin/InternalLinksSection";
 import SeoAuditSection from "@/components/admin/SeoAuditSection";
 import BrokenLinksReportSection from "@/components/admin/BrokenLinksReportSection";
 import GoogleIndexingSection from "@/components/admin/GoogleIndexingSection";
+import GoogleServiceAccountSection from "@/components/admin/GoogleServiceAccountSection";
 import IndexingStatusSection from "@/components/admin/IndexingStatusSection";
 import IndexingAlertsSection from "@/components/admin/IndexingAlertsSection";
 import KeywordRankingsSection from "@/components/admin/KeywordRankingsSection";
@@ -38,6 +39,7 @@ import {
   Bell,
   Target,
   Lightbulb,
+  KeyRound,
 } from "lucide-react";
 
 const SeoTab = () => {
@@ -285,6 +287,18 @@ const SeoTab = () => {
                     </a>
                   </p>
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Google Service Account JSON */}
+        <div className="border rounded-xl bg-card overflow-hidden">
+          <SectionHeader id="google-sa" icon={KeyRound} title="Chave Google Service Account" badge="Instant Indexing" />
+          {expandedSection === "google-sa" && (
+            <div className="p-4 pt-0 border-t">
+              <div className="pt-4">
+                <GoogleServiceAccountSection />
               </div>
             </div>
           )}

@@ -131,12 +131,22 @@ serve(async (req) => {
       });
     }
 
-    // Get service account credentials
-    const saJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+    // Get service account credentials — DB first, then env secret fallback
+    let saJson: string | null = null;
+    const { data: dbSecret } = await supabase
+      .from("integration_secrets")
+      .select("value")
+      .eq("key", "GOOGLE_SERVICE_ACCOUNT_JSON")
+      .maybeSingle();
+    if (dbSecret?.value) {
+      saJson = dbSecret.value;
+    } else {
+      saJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON") ?? null;
+    }
     if (!saJson) {
       return new Response(
         JSON.stringify({
-          error: "GOOGLE_SERVICE_ACCOUNT_JSON não configurado. Configure o secret com o JSON da conta de serviço do Google Cloud.",
+          error: "Chave do Google Service Account não configurada. Adicione o JSON no painel Admin → SEO → Chave Google Service Account.",
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
