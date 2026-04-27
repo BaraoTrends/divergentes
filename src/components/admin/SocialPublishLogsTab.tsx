@@ -180,7 +180,8 @@ const SocialPublishLogsTab = () => {
           </Button>
         </div>
       </div>
-
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Filtrar por status:</span>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue />
@@ -192,6 +193,7 @@ const SocialPublishLogsTab = () => {
           </SelectContent>
         </Select>
       </div>
+
 
       <div className="bg-card border rounded-lg overflow-hidden">
         <Table>
