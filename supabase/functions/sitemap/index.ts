@@ -54,7 +54,7 @@ function escapeXml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }
 
-function articlePriority(article: { updated_at: string; featured?: boolean }): string {
+function articlePriority(article: { updated_at: string; featured?: boolean | null }): string {
   if (article.featured) return "0.9";
   const ageMs = Date.now() - new Date(article.updated_at).getTime();
   const day = 24 * 60 * 60 * 1000;
