@@ -107,16 +107,21 @@ serve(async (req) => {
 
   const url = new URL(req.url);
   const base = (url.searchParams.get("base") || DEFAULT_BASE).replace(/\/$/, "");
+  // direct=1 → fala com a edge function (?type=…) em vez de paths /sitemap-*.xml
+  const direct = url.searchParams.get("direct") === "1";
 
-  const targets: Array<{ file: string; kind: "index" | "pages" | "categories" | "posts" | "news" }> = [
-    { file: "sitemap.xml", kind: "index" },
-    { file: "sitemap-pages.xml", kind: "pages" },
-    { file: "sitemap-categories.xml", kind: "categories" },
-    { file: "sitemap-posts.xml", kind: "posts" },
-    { file: "sitemap-news.xml", kind: "news" },
+  const targets: Array<{ file: string; kind: "index" | "pages" | "categories" | "posts" | "news"; type: string }> = [
+    { file: "sitemap.xml",            kind: "index",      type: "index" },
+    { file: "sitemap-pages.xml",      kind: "pages",      type: "pages" },
+    { file: "sitemap-categories.xml", kind: "categories", type: "categories" },
+    { file: "sitemap-posts.xml",      kind: "posts",      type: "posts" },
+    { file: "sitemap-news.xml",       kind: "news",       type: "news" },
   ];
 
-  const checks = await Promise.all(targets.map((t) => checkFile(`${base}/${t.file}`, t.kind, t.file)));
+  const buildUrl = (t: typeof targets[number]) =>
+    direct ? `${base}?type=${t.type}` : `${base}/${t.file}`;
+
+  const checks = await Promise.all(targets.map((t) => checkFile(buildUrl(t), t.kind, t.file)));
 
   const failed = checks.filter((c) => !c.ok);
   const summary = {
