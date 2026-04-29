@@ -3,15 +3,27 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const SITE_URL = "https://neurorotina.com";
 
+/**
+ * Sitemap architecture (Google-friendly):
+ *
+ *   /sitemap.xml                → sitemap INDEX (sitemapindex)
+ *     ├── /sitemap-pages.xml         → static pages
+ *     ├── /sitemap-categories.xml    → category hubs (/tdah, /tea, …)
+ *     ├── /sitemap-posts.xml         → blog articles (with image:image)
+ *     └── /sitemap-news.xml          → Google News (only last 48h)
+ *
+ * The edge function dispatches by `?type=` query param:
+ *   ?type=index | pages | categories | posts | news
+ * Default = index (so /functions/v1/sitemap and /sitemap.xml both return the index).
+ *
+ * The Cloudflare worker / static `public/sitemap.xml` proxy must rewrite
+ * each sub-sitemap path to `?type=<name>` when calling this function.
+ */
+
 const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
   { path: "/blog", priority: "0.9", changefreq: "daily" },
   { path: "/buscar", priority: "0.6", changefreq: "weekly" },
-  { path: "/tdah", priority: "0.8", changefreq: "weekly" },
-  { path: "/tea", priority: "0.8", changefreq: "weekly" },
-  { path: "/dislexia", priority: "0.8", changefreq: "weekly" },
-  { path: "/altas-habilidades", priority: "0.8", changefreq: "weekly" },
-  { path: "/toc", priority: "0.8", changefreq: "weekly" },
   { path: "/perguntas-frequentes", priority: "0.7", changefreq: "monthly" },
   { path: "/glossario", priority: "0.6", changefreq: "monthly" },
   { path: "/sobre", priority: "0.5", changefreq: "yearly" },
@@ -20,22 +32,28 @@ const STATIC_PAGES = [
   { path: "/politica-de-privacidade", priority: "0.3", changefreq: "yearly" },
 ];
 
+const CATEGORY_PAGES = [
+  { path: "/tdah", priority: "0.8", changefreq: "weekly" },
+  { path: "/tea", priority: "0.8", changefreq: "weekly" },
+  { path: "/dislexia", priority: "0.8", changefreq: "weekly" },
+  { path: "/altas-habilidades", priority: "0.8", changefreq: "weekly" },
+  { path: "/toc", priority: "0.8", changefreq: "weekly" },
+];
+
 // Slugs allowed for indexable articles. Mirrors src/lib/keywords.ts CATEGORY_KEYWORDS.
 const VALID_CATEGORY_SLUGS = new Set(["tdah", "tea", "dislexia", "altas-habilidades", "toc"]);
 const VALID_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const COMMON_HEADERS = {
+  "Content-Type": "application/xml; charset=utf-8",
+  "Cache-Control": "public, max-age=300, s-maxage=300",
+  "Access-Control-Allow-Origin": "*",
+};
 
 function escapeXml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }
 
-/**
- * Article priority: recency-aware so newer/featured articles surface first.
- *  - featured                       → 0.9
- *  - updated within last 7 days     → 0.85
- *  - updated within last 30 days    → 0.8
- *  - updated within last 180 days   → 0.7
- *  - older                          → 0.6
- */
 function articlePriority(article: { updated_at: string; featured?: boolean }): string {
   if (article.featured) return "0.9";
   const ageMs = Date.now() - new Date(article.updated_at).getTime();
@@ -46,89 +64,107 @@ function articlePriority(article: { updated_at: string; featured?: boolean }): s
   return "0.60";
 }
 
-serve(async () => {
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+type Article = {
+  slug: string;
+  title: string;
+  updated_at: string;
+  image_url: string | null;
+  excerpt: string | null;
+  category: string;
+  featured: boolean | null;
+  published: boolean;
+};
 
-    const { data: rawArticles } = await supabase
-      .from("articles")
-      .select("slug, title, updated_at, image_url, excerpt, category, featured, published")
-      .eq("published", true)
-      .order("updated_at", { ascending: false });
+async function fetchArticles(supabase: ReturnType<typeof createClient>): Promise<Article[]> {
+  const { data } = await supabase
+    .from("articles")
+    .select("slug, title, updated_at, image_url, excerpt, category, featured, published")
+    .eq("published", true)
+    .order("updated_at", { ascending: false });
 
-    // Filter: only published + valid slug + on-schema category. Drafts and
-    // off-schema content NEVER make it into the sitemap (would emit canonicals
-    // for pages that intentionally lack <meta keywords>).
-    const articles = (rawArticles || []).filter(
-      (a) =>
-        a.published === true &&
-        typeof a.slug === "string" &&
-        VALID_SLUG_RE.test(a.slug) &&
-        typeof a.category === "string" &&
-        VALID_CATEGORY_SLUGS.has(a.category),
-    );
+  return ((data || []) as Article[]).filter(
+    (a) =>
+      a.published === true &&
+      typeof a.slug === "string" &&
+      VALID_SLUG_RE.test(a.slug) &&
+      typeof a.category === "string" &&
+      VALID_CATEGORY_SLUGS.has(a.category),
+  );
+}
 
-    const latestArticleDate = articles[0]?.updated_at?.split("T")[0] || new Date().toISOString().split("T")[0];
-    const today = new Date().toISOString().split("T")[0];
-
-    // Per-category latest date so each hub's lastmod tracks its own newest article.
-    const categoryLastmod = new Map<string, string>();
-    for (const a of articles) {
-      const d = a.updated_at.split("T")[0];
-      if (!categoryLastmod.has(a.category)) categoryLastmod.set(a.category, d);
-    }
-
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+function urlsetOpen(extraNs = ""): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${extraNs}>
 `;
+}
 
-    for (const page of STATIC_PAGES) {
-      let lastmod = today;
-      if (page.path === "/blog") {
-        lastmod = latestArticleDate;
-      } else if (VALID_CATEGORY_SLUGS.has(page.path.replace(/^\//, ""))) {
-        const slug = page.path.replace(/^\//, "");
-        lastmod = categoryLastmod.get(slug) || latestArticleDate;
-      }
-
-      xml += `  <url>
+function buildPagesSitemap(latestArticleDate: string): string {
+  const today = new Date().toISOString().split("T")[0];
+  let xml = urlsetOpen();
+  for (const page of STATIC_PAGES) {
+    const lastmod = page.path === "/blog" ? latestArticleDate : today;
+    xml += `  <url>
     <loc>${SITE_URL}${page.path}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>
 `;
-    }
+  }
+  xml += `</urlset>`;
+  return xml;
+}
 
-    const now = new Date();
-    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+function buildCategoriesSitemap(categoryLastmod: Map<string, string>, latestArticleDate: string): string {
+  let xml = urlsetOpen();
+  for (const page of CATEGORY_PAGES) {
+    const slug = page.path.replace(/^\//, "");
+    const lastmod = categoryLastmod.get(slug) || latestArticleDate;
+    xml += `  <url>
+    <loc>${SITE_URL}${page.path}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>
+`;
+  }
+  xml += `</urlset>`;
+  return xml;
+}
 
-    for (const article of articles) {
-      const lastmod = article.updated_at.split("T")[0];
-      const articleDate = new Date(article.updated_at);
-      const priority = articlePriority(article);
-
-      xml += `  <url>
+function buildPostsSitemap(articles: Article[]): string {
+  let xml = urlsetOpen(`
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"`);
+  for (const article of articles) {
+    const lastmod = article.updated_at.split("T")[0];
+    xml += `  <url>
     <loc>${SITE_URL}/blog/${article.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>${priority}</priority>`;
-
-      if (article.image_url) {
-        xml += `
+    <priority>${articlePriority(article)}</priority>`;
+    if (article.image_url) {
+      xml += `
     <image:image>
       <image:loc>${escapeXml(article.image_url)}</image:loc>
       <image:title>${escapeXml(article.title)}</image:title>
     </image:image>`;
-      }
+    }
+    xml += `
+  </url>
+`;
+  }
+  xml += `</urlset>`;
+  return xml;
+}
 
-      // Google News: only articles published in last 2 days qualify.
-      if (articleDate >= twoDaysAgo) {
-        xml += `
+function buildNewsSitemap(articles: Article[]): string {
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  const recent = articles.filter((a) => new Date(a.updated_at) >= twoDaysAgo);
+  let xml = urlsetOpen(`
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"`);
+  for (const article of recent) {
+    xml += `  <url>
+    <loc>${SITE_URL}/blog/${article.slug}</loc>
     <news:news>
       <news:publication>
         <news:name>Neuro Rotina</news:name>
@@ -136,23 +172,71 @@ serve(async () => {
       </news:publication>
       <news:publication_date>${article.updated_at}</news:publication_date>
       <news:title>${escapeXml(article.title)}</news:title>
-    </news:news>`;
-      }
-
-      xml += `
+    </news:news>
   </url>
 `;
+  }
+  xml += `</urlset>`;
+  return xml;
+}
+
+function buildIndex(latestArticleDate: string): string {
+  const today = new Date().toISOString().split("T")[0];
+  const subs = [
+    { loc: `${SITE_URL}/sitemap-pages.xml`, lastmod: today },
+    { loc: `${SITE_URL}/sitemap-categories.xml`, lastmod: latestArticleDate },
+    { loc: `${SITE_URL}/sitemap-posts.xml`, lastmod: latestArticleDate },
+    { loc: `${SITE_URL}/sitemap-news.xml`, lastmod: latestArticleDate },
+  ];
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+`;
+  for (const s of subs) {
+    xml += `  <sitemap>
+    <loc>${s.loc}</loc>
+    <lastmod>${s.lastmod}</lastmod>
+  </sitemap>
+`;
+  }
+  xml += `</sitemapindex>`;
+  return xml;
+}
+
+serve(async (req) => {
+  try {
+    const url = new URL(req.url);
+    // Accept both ?type=posts and pathname-based hints (e.g. /sitemap-posts.xml).
+    let type = (url.searchParams.get("type") || "").toLowerCase();
+    if (!type) {
+      const m = url.pathname.match(/sitemap-(pages|categories|posts|news)/i);
+      if (m) type = m[1].toLowerCase();
+    }
+    if (!type) type = "index";
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const articles = await fetchArticles(supabase);
+    const latestArticleDate = articles[0]?.updated_at?.split("T")[0] || new Date().toISOString().split("T")[0];
+
+    const categoryLastmod = new Map<string, string>();
+    for (const a of articles) {
+      const d = a.updated_at.split("T")[0];
+      if (!categoryLastmod.has(a.category)) categoryLastmod.set(a.category, d);
     }
 
-    xml += `</urlset>`;
+    let xml: string;
+    switch (type) {
+      case "pages":      xml = buildPagesSitemap(latestArticleDate); break;
+      case "categories": xml = buildCategoriesSitemap(categoryLastmod, latestArticleDate); break;
+      case "posts":      xml = buildPostsSitemap(articles); break;
+      case "news":       xml = buildNewsSitemap(articles); break;
+      case "index":
+      default:           xml = buildIndex(latestArticleDate); break;
+    }
 
-    return new Response(xml, {
-      headers: {
-        "Content-Type": "application/xml; charset=utf-8",
-        "Cache-Control": "public, max-age=300, s-maxage=300",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    return new Response(xml, { headers: COMMON_HEADERS });
   } catch (e) {
     console.error("sitemap error:", e);
     return new Response("Error generating sitemap", { status: 500 });
