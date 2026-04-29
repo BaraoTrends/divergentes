@@ -90,25 +90,30 @@ export default {
       });
     }
 
-    // Proxy reverso para sitemap — serve XML diretamente sem redirect
-    if (url.pathname === '/sitemap.xml' || url.pathname === '/sitemap') {
-      try {
-        const sitemapUrl = env.SITEMAP_URL || 'https://wmdjjvjmwvsceqbcmksb.supabase.co/functions/v1/sitemap';
-        const sitemapRes = await fetch(sitemapUrl, {
-          cf: { cacheTtl: 300, cacheEverything: true },
-        });
-        const xml = await sitemapRes.text();
-        return new Response(xml, {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/xml; charset=utf-8',
-            'Cache-Control': 'public, max-age=300, s-maxage=300',
-            'X-Robots-Tag': 'noindex',
-          },
-        });
-      } catch (e) {
-        console.error('Sitemap proxy error:', e);
-        return fetch(request);
+    // Proxy reverso para sitemap (índice + sub-sitemaps) — serve XML direto
+    // Mapeia: /sitemap.xml → ?type=index ; /sitemap-<name>.xml → ?type=<name>
+    {
+      const sitemapMatch = url.pathname.match(/^\/sitemap(?:-(pages|categories|posts|news))?(?:\.xml)?$/);
+      if (sitemapMatch) {
+        try {
+          const type = sitemapMatch[1] || 'index';
+          const base = env.SITEMAP_URL || 'https://wmdjjvjmwvsceqbcmksb.supabase.co/functions/v1/sitemap';
+          const sitemapRes = await fetch(`${base}?type=${type}`, {
+            cf: { cacheTtl: 300, cacheEverything: true },
+          });
+          const xml = await sitemapRes.text();
+          return new Response(xml, {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/xml; charset=utf-8',
+              'Cache-Control': 'public, max-age=300, s-maxage=300',
+              'X-Robots-Tag': 'noindex',
+            },
+          });
+        } catch (e) {
+          console.error('Sitemap proxy error:', e);
+          return fetch(request);
+        }
       }
     }
 
