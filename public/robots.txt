@@ -19,6 +19,10 @@ Allow: /
 Disallow: /admin/
 
 Sitemap: https://neurorotina.com/sitemap.xml
+Sitemap: https://neurorotina.com/sitemap-pages.xml
+Sitemap: https://neurorotina.com/sitemap-categories.xml
+Sitemap: https://neurorotina.com/sitemap-posts.xml
+Sitemap: https://neurorotina.com/sitemap-news.xml
 
 # IndexNow
 # Key file: https://neurorotina.com/indexnow-key.txt
