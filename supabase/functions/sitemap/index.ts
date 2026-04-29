@@ -75,7 +75,7 @@ type Article = {
   published: boolean;
 };
 
-async function fetchArticles(supabase: ReturnType<typeof createClient>): Promise<Article[]> {
+async function fetchArticles(supabase: any): Promise<Article[]> {
   const { data } = await supabase
     .from("articles")
     .select("slug, title, updated_at, image_url, excerpt, category, featured, published")
