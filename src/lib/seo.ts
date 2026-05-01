@@ -62,6 +62,49 @@ export function generateBreadcrumbSchema(items: { name: string; url: string }[])
   };
 }
 
+/**
+ * Map our internal categories to schema.org / Wikidata entities.
+ * This powers the `about` property of Article schema, which LLMs
+ * (ChatGPT, Perplexity, Claude, Gemini) use to ground citations.
+ */
+export const CATEGORY_ENTITIES: Record<string, { name: string; sameAs: string[] }> = {
+  TDAH: {
+    name: "Transtorno do Déficit de Atenção com Hiperatividade",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Transtorno_do_d%C3%A9ficit_de_aten%C3%A7%C3%A3o_com_hiperatividade",
+      "https://www.wikidata.org/wiki/Q181923",
+    ],
+  },
+  TEA: {
+    name: "Transtorno do Espectro Autista",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Transtorno_do_espectro_autista",
+      "https://www.wikidata.org/wiki/Q38404",
+    ],
+  },
+  Dislexia: {
+    name: "Dislexia",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Dislexia",
+      "https://www.wikidata.org/wiki/Q170518",
+    ],
+  },
+  "Altas Habilidades": {
+    name: "Altas Habilidades / Superdotação",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Superdota%C3%A7%C3%A3o",
+      "https://www.wikidata.org/wiki/Q733312",
+    ],
+  },
+  TOC: {
+    name: "Transtorno Obsessivo-Compulsivo",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Transtorno_obsessivo-compulsivo",
+      "https://www.wikidata.org/wiki/Q177719",
+    ],
+  },
+};
+
 export function generateArticleSchema(data: {
   title: string;
   description: string;
@@ -74,6 +117,7 @@ export function generateArticleSchema(data: {
   keywords?: string[];
   articleSection?: string;
   wordCount?: number;
+  tldr?: string;
 }) {
   const absoluteUrl = `${SITE_URL}${data.url}`;
   // image as ImageObject (Google rich results prefer structured)
