@@ -62,6 +62,49 @@ export function generateBreadcrumbSchema(items: { name: string; url: string }[])
   };
 }
 
+/**
+ * Map our internal categories to schema.org / Wikidata entities.
+ * This powers the `about` property of Article schema, which LLMs
+ * (ChatGPT, Perplexity, Claude, Gemini) use to ground citations.
+ */
+export const CATEGORY_ENTITIES: Record<string, { name: string; sameAs: string[] }> = {
+  TDAH: {
+    name: "Transtorno do Déficit de Atenção com Hiperatividade",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Transtorno_do_d%C3%A9ficit_de_aten%C3%A7%C3%A3o_com_hiperatividade",
+      "https://www.wikidata.org/wiki/Q181923",
+    ],
+  },
+  TEA: {
+    name: "Transtorno do Espectro Autista",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Transtorno_do_espectro_autista",
+      "https://www.wikidata.org/wiki/Q38404",
+    ],
+  },
+  Dislexia: {
+    name: "Dislexia",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Dislexia",
+      "https://www.wikidata.org/wiki/Q170518",
+    ],
+  },
+  "Altas Habilidades": {
+    name: "Altas Habilidades / Superdotação",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Superdota%C3%A7%C3%A3o",
+      "https://www.wikidata.org/wiki/Q733312",
+    ],
+  },
+  TOC: {
+    name: "Transtorno Obsessivo-Compulsivo",
+    sameAs: [
+      "https://pt.wikipedia.org/wiki/Transtorno_obsessivo-compulsivo",
+      "https://www.wikidata.org/wiki/Q177719",
+    ],
+  },
+};
+
 export function generateArticleSchema(data: {
   title: string;
   description: string;
@@ -74,6 +117,7 @@ export function generateArticleSchema(data: {
   keywords?: string[];
   articleSection?: string;
   wordCount?: number;
+  tldr?: string;
 }) {
   const absoluteUrl = `${SITE_URL}${data.url}`;
   // image as ImageObject (Google rich results prefer structured)
@@ -111,7 +155,26 @@ export function generateArticleSchema(data: {
       },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl },
+    // GEO/AEO: SpeakableSpecification helps voice assistants & LLMs
+    // identify the most extractable parts of the page.
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", "[data-tldr]", "[data-faq-answer]"],
+    },
   };
+  // GEO: ground the article to a known entity (Wikipedia/Wikidata)
+  if (data.articleSection && CATEGORY_ENTITIES[data.articleSection]) {
+    const entity = CATEGORY_ENTITIES[data.articleSection];
+    schema.about = {
+      "@type": "Thing",
+      name: entity.name,
+      sameAs: entity.sameAs,
+    };
+  }
+  // AEO: short, model-friendly summary at the top of the schema
+  if (data.tldr && data.tldr.trim().length > 0) {
+    schema.abstract = data.tldr.trim();
+  }
   if (data.keywords && data.keywords.length > 0) {
     // Schema.org spec: comma-separated string. Mirror the EXACT formatting we
     // ship in <meta name="keywords"> so crawlers see one consistent list.
@@ -124,6 +187,24 @@ export function generateArticleSchema(data: {
     schema.wordCount = data.wordCount;
   }
   return schema;
+}
+
+/**
+ * GEO/AEO: build a TL;DR / direct-answer summary from the article excerpt
+ * or the first meaningful paragraph. LLMs (ChatGPT, Perplexity, Claude)
+ * heavily favor short, self-contained summaries when citing sources.
+ */
+export function buildTLDR(excerpt: string, content: string, maxLen = 320): string {
+  const stripTags = (s: string) =>
+    s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  let base = (excerpt || "").trim();
+  if (base.length < 80) {
+    const firstP = content.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i);
+    if (firstP) base = stripTags(firstP[1]);
+    else base = stripTags(content).slice(0, maxLen);
+  }
+  if (base.length > maxLen) base = base.slice(0, maxLen - 1).trimEnd() + "…";
+  return base;
 }
 
 export function generateFAQSchema(faqs: { question: string; answer: string }[]) {
