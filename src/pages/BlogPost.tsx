@@ -360,14 +360,73 @@ const BlogPost = () => {
               </div>
             )}
 
-            {isHtmlContent(post.content) ? (
-              <div
-                className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-heading prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:bg-accent/30 prose-blockquote:rounded-r-md prose-img:rounded-lg"
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
-              />
-            ) : (
-              renderContent(post.content)
+            {/* GEO/AEO: TL;DR block — extractable summary for LLMs and featured snippets */}
+            {tldr && (
+              <section
+                aria-label="Resumo do artigo"
+                className="mb-8 rounded-lg border border-primary/20 bg-accent/30 p-5"
+              >
+                <h2 className="font-heading text-sm font-bold uppercase tracking-wide text-primary mb-2">
+                  Resumo (TL;DR)
+                </h2>
+                <p data-tldr className="text-foreground leading-relaxed text-base">
+                  {tldr}
+                </p>
+              </section>
             )}
+
+            <section data-article-content>
+              {isHtmlContent(post.content) ? (
+                <div
+                  className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-heading prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:bg-accent/30 prose-blockquote:rounded-r-md prose-img:rounded-lg"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
+                />
+              ) : (
+                renderContent(post.content)
+              )}
+            </section>
+
+            {/* GEO/AEO: machine-extractable FAQ section mirrored from detected Q&A */}
+            {(() => {
+              if (!isHtmlContent(post.content)) return null;
+              const faqs = extractFAQsFromHtml(post.content);
+              if (faqs.length < 2) return null;
+              return (
+                <section
+                  aria-labelledby="faq-heading"
+                  className="mt-12 rounded-lg border bg-card p-6"
+                  itemScope
+                  itemType="https://schema.org/FAQPage"
+                >
+                  <h2 id="faq-heading" className="font-heading text-xl font-bold text-foreground mb-4">
+                    Perguntas frequentes
+                  </h2>
+                  <div className="space-y-5">
+                    {faqs.map((f, i) => (
+                      <article
+                        key={i}
+                        itemScope
+                        itemProp="mainEntity"
+                        itemType="https://schema.org/Question"
+                      >
+                        <h3 itemProp="name" className="font-semibold text-foreground mb-1">
+                          {f.question}
+                        </h3>
+                        <div
+                          itemScope
+                          itemProp="acceptedAnswer"
+                          itemType="https://schema.org/Answer"
+                        >
+                          <p data-faq-answer itemProp="text" className="text-muted-foreground leading-relaxed">
+                            {f.answer}
+                          </p>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
 
             <InternalLinksSuggestions articleId={dbArticle?.id} currentSlug={post.slug} />
 
