@@ -12,6 +12,112 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# ==========================================================
+# AI / LLM crawlers — explicitly allowed for GEO/AEO
+# (Generative Engine Optimization / Answer Engine Optimization)
+# ==========================================================
+
+# OpenAI — used by ChatGPT to fetch live URLs requested by users
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+
+# OpenAI — training/search index crawler
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+
+# Anthropic Claude
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin/
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin/
+
+# Apple Intelligence / Siri
+User-agent: Applebot
+Allow: /
+Disallow: /admin/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin/
+
+# Manus AI
+User-agent: Manus
+Allow: /
+Disallow: /admin/
+
+User-agent: ManusBot
+Allow: /
+Disallow: /admin/
+
+# ByteDance / Doubao
+User-agent: Bytespider
+Allow: /
+Disallow: /admin/
+
+# Google AI (Gemini / AI Overviews / Vertex)
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin/
+
+# Common Crawl (used as training corpus by many LLMs)
+User-agent: CCBot
+Allow: /
+Disallow: /admin/
+
+# Mistral
+User-agent: MistralAI-User
+Allow: /
+Disallow: /admin/
+
+# Meta AI
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /admin/
+
+User-agent: meta-externalagent
+Allow: /
+Disallow: /admin/
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+Disallow: /admin/
+
+# You.com
+User-agent: YouBot
+Allow: /
+Disallow: /admin/
+
+# DuckDuckGo Assist
+User-agent: DuckAssistBot
+Allow: /
+Disallow: /admin/
+
+# ==========================================================
+# Default fallback
+# ==========================================================
 User-agent: *
 Allow: /
 Disallow: /admin/
