@@ -81,6 +81,8 @@ const BlogPost = () => {
     category: post.category,
   });
 
+  const tldr = buildTLDR(post.excerpt, post.content);
+
   const articleSchema = generateArticleSchema({
     title: post.title,
     description: post.excerpt,
@@ -92,6 +94,7 @@ const BlogPost = () => {
     keywords: articleKeywords,
     articleSection: post.category,
     wordCount: countWords(post.content),
+    tldr,
   });
 
   // Collect all schemas: breadcrumb + article + custom per-article
